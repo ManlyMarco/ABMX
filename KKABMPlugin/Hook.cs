@@ -7,6 +7,7 @@ using Studio;
 using UnityEngine;
 using UnityEngine.UI;
 
+// ReSharper disable InconsistentNaming
 namespace KKABMPlugin
 {
     public static class Hook
@@ -25,8 +26,8 @@ namespace KKABMPlugin
             typeof(int),
             typeof(int),
             typeof(ChaFileControl)
-        }, null)]
-        public static void DoInitializePostHook(byte _sex, bool _hiPoly, GameObject _objRoot, int _id, int _no,
+        })]
+        public static void ChaControl_InitializePostHook(byte _sex, bool _hiPoly, GameObject _objRoot, int _id, int _no,
             ChaFileControl _chaFile, ChaControl __instance)
         {
             if (!__instance.gameObject.GetComponent<BoneController>())
@@ -43,8 +44,9 @@ namespace KKABMPlugin
             typeof(bool),
             typeof(bool),
             typeof(bool)
-        }, null)]
-        public static void DoLoadLimitedPostHook(string filename, byte sex, bool face, bool body, bool hair,
+        })]
+        public static void ChaFileControl_LoadLimitedPostHook(string filename, byte sex, bool face, bool body,
+            bool hair,
             bool parameter, bool coordinate, ChaFileControl __instance)
         {
             if ((face || body) && BoneControllerMgr.Instance)
@@ -58,8 +60,9 @@ namespace KKABMPlugin
             typeof(byte),
             typeof(bool),
             typeof(bool)
-        }, null)]
-        public static void DoLoadCharaFilePreHook(string filename, byte sex, bool noLoadPng, bool noLoadStatus,
+        })]
+        public static void ChaFileControl_LoadCharaFilePreHook(string filename, byte sex, bool noLoadPng,
+            bool noLoadStatus,
             ChaFileControl __instance)
         {
             BoneControllerMgr.Instance.ClearExtDataAndBoneController(__instance);
@@ -72,8 +75,9 @@ namespace KKABMPlugin
             typeof(byte),
             typeof(bool),
             typeof(bool)
-        }, null)]
-        public static void DoLoadCharaFilePostHook(string filename, byte sex, bool noLoadPng, bool noLoadStatus,
+        })]
+        public static void ChaFileControl_LoadCharaFilePostHook(string filename, byte sex, bool noLoadPng,
+            bool noLoadStatus,
             ChaFileControl __instance)
         {
             BoneControllerMgr.Instance.LoadAsExtSaveData(filename, __instance, false);
@@ -86,8 +90,8 @@ namespace KKABMPlugin
             typeof(string),
             typeof(bool),
             typeof(bool)
-        }, null)]
-        public static void DoLoadCharaFilePostHook(string assetBundleName, string assetName, bool noSetPNG,
+        })]
+        public static void ChaFileControl_LoadCharaFilePostHook(string assetBundleName, string assetName, bool noSetPNG,
             bool noLoadStatus, ChaFileControl __instance)
         {
             BoneControllerMgr.Instance.ClearExtDataAndBoneController(__instance);
@@ -97,8 +101,8 @@ namespace KKABMPlugin
         [HarmonyPatch(typeof(OCIChar), "ChangeChara", new[]
         {
             typeof(string)
-        }, null)]
-        public static void DoStudioChangeCharaPostHook(string _path, OCIChar __instance)
+        })]
+        public static void OCIChar_ChangeCharaPostHook(string _path, OCIChar __instance)
         {
             var component = __instance.charInfo.gameObject.GetComponent<BoneController>();
             if (component != null)
@@ -110,8 +114,8 @@ namespace KKABMPlugin
         {
             typeof(BinaryWriter),
             typeof(bool)
-        }, null)]
-        public static void DoSavePreHook(BinaryWriter bw, bool savePng, ChaFileControl __instance)
+        })]
+        public static void ChaFileControl_SavePreHook(BinaryWriter bw, bool savePng, ChaFileControl __instance)
         {
             if (BoneControllerMgr.Instance)
                 BoneControllerMgr.Instance.OnPreSave(__instance);
@@ -123,8 +127,9 @@ namespace KKABMPlugin
             typeof(string),
             typeof(byte),
             typeof(bool)
-        }, null)]
-        public static void DoSavePostHook(string filename, byte sex, bool newFile, ChaFileControl __instance)
+        })]
+        public static void ChaFileControl_SaveCharaFilePostHook(string filename, byte sex, bool newFile,
+            ChaFileControl __instance)
         {
             if (BoneControllerMgr.Instance)
                 BoneControllerMgr.Instance.OnSave(__instance.charaFileName);
@@ -134,8 +139,8 @@ namespace KKABMPlugin
         [HarmonyPatch(typeof(SaveData.CharaData), "Save", new[]
         {
             typeof(BinaryWriter)
-        }, null)]
-        public static void DoSaveDataSavePreHook(BinaryWriter w, SaveData.CharaData __instance)
+        })]
+        public static void CharaData_SavePreHook(BinaryWriter w, SaveData.CharaData __instance)
         {
             if (BoneControllerMgr.Instance)
                 BoneControllerMgr.Instance.OnPreCharaDataSave(__instance);
@@ -146,8 +151,8 @@ namespace KKABMPlugin
         {
             typeof(ChaFile),
             typeof(ChaFile)
-        }, null)]
-        public static void DoCopyChaFilePostHook(ChaFile dst, ChaFile src)
+        })]
+        public static void ChaFile_CopyChaFilePostHook(ChaFile dst, ChaFile src)
         {
             if (dst is ChaFileControl && src is ChaFileControl)
                 BoneControllerMgr.CloneBoneDataPluginData(src as ChaFileControl, dst as ChaFileControl);
@@ -156,8 +161,8 @@ namespace KKABMPlugin
         [HarmonyPrefix]
         [HarmonyPatch(typeof(CustomScene), "Start", new Type[]
         {
-        }, null)]
-        public static void OnCustomSceneStart()
+        })]
+        public static void CustomScene_Start()
         {
             BoneControllerMgr.Instance.EnterCustomScene();
         }
@@ -165,8 +170,8 @@ namespace KKABMPlugin
         [HarmonyPrefix]
         [HarmonyPatch(typeof(CustomScene), "OnDestroy", new Type[]
         {
-        }, null)]
-        public static void OnCustomSceneDestroy()
+        })]
+        public static void CustomScene_Destroy()
         {
             BoneControllerMgr.Instance.ExitCustomScene();
         }
@@ -175,8 +180,8 @@ namespace KKABMPlugin
         [HarmonyPatch(typeof(CvsExit), "ExitSceneRestoreStatus", new[]
         {
             typeof(string)
-        }, null)]
-        public static void OnExitSceneRestoreStatus(string strInput, CvsExit __instance)
+        })]
+        public static void CvsExit_ExitSceneRestoreStatus(string strInput, CvsExit __instance)
         {
             BoneControllerMgr.Instance.OnCustomSceneExitWithSave();
         }
@@ -184,15 +189,13 @@ namespace KKABMPlugin
         [HarmonyPostfix]
         [HarmonyPatch(typeof(LiveCharaSelectSprite), "Start", new Type[]
         {
-        }, null)]
+        })]
         public static void LiveCharaSelectSprite_StartPostHook(LiveCharaSelectSprite __instance)
         {
             (typeof(LiveCharaSelectSprite)
                 .GetField("btnIdolBack", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .GetValue(__instance) as Button).onClick.AddListener(delegate
-            {
-                BoneControllerMgr.Instance.SetNeedReload();
-            });
+                ?.GetValue(__instance) as Button)
+                ?.onClick.AddListener(BoneControllerMgr.Instance.SetNeedReload);
         }
     }
 }
