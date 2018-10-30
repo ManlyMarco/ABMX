@@ -309,7 +309,7 @@ namespace KKABMPlugin
         }
 
 
-        private BoneController InstallBoneController(ChaControl charInfo)
+        public static BoneController InstallBoneController(ChaControl charInfo)
         {
             if (charInfo == null)
                 return null;

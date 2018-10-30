@@ -30,8 +30,13 @@ namespace KKABMPlugin
         public static void ChaControl_InitializePostHook(byte _sex, bool _hiPoly, GameObject _objRoot, int _id, int _no,
             ChaFileControl _chaFile, ChaControl __instance)
         {
-            if (!__instance.gameObject.GetComponent<BoneController>())
-                __instance.gameObject.AddComponent<BoneController>();
+            if (!_hiPoly)
+            {
+                // Buggy, code would need to be fixed to use this
+                return;
+            }
+
+            BoneControllerMgr.InstallBoneController(__instance);
         }
 
         [HarmonyPostfix]
