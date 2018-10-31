@@ -136,6 +136,7 @@ namespace KKABMPlugin
         private void InsertAdditionalModifiers()
         {
             // 0 = male, else female
+            // TODO will they work for male too?
             if (chaControl.fileParam.sex != 0)
             {
                 InsertAdditionalModifier("cf_j_shoulder_L");
@@ -156,6 +157,7 @@ namespace KKABMPlugin
                 InsertAdditionalModifier("cf_j_leg03_R");
                 InsertAdditionalModifier("cf_j_foot_L");
                 InsertAdditionalModifier("cf_j_foot_R");
+                InsertAdditionalModifier("cf_j_ana");
             }
         }
 
@@ -255,7 +257,7 @@ namespace KKABMPlugin
             if (ReadDataFromLines(lines))
             {
                 //SaveToFile(path);
-                num = File.GetLastWriteTime(path).ToBinary();
+                //num = File.GetLastWriteTime(path).ToBinary();
             }
             //lastLoadedPath = path;
             //lastLoadedFileTimestamp = num;
