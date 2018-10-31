@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+// ReSharper disable InconsistentNaming
 
 namespace KKABMPlugin
 {
@@ -121,7 +122,7 @@ namespace KKABMPlugin
         private bool _enabled;
 
 
-        public int boneIndex;
+        public readonly int boneIndex;
 
 
         public string boneName;
@@ -132,14 +133,14 @@ namespace KKABMPlugin
 
         public bool isScaleBone;
 
-
+        /*
         private Vector3 lastPos;
 
 
         private Vector3 lastRot;
 
 
-        private Vector3 lastScl;
+        private Vector3 lastScl;*/
 
 
         public float lenBaseline;
@@ -157,7 +158,8 @@ namespace KKABMPlugin
         public Vector3 sclMod = Vector3.one;
 
 
-        public ShapeInfoBase sibBody;
+        public readonly ShapeInfoBase shapeInfoBase;
+        private readonly ShapeInfoBase.BoneInfo _boneInfo;
 
         // (get) Token: 0x06000023 RID: 35 RVA: 0x00002D5B File Offset: 0x00000F5B
         // (set) Token: 0x06000024 RID: 36 RVA: 0x00002D63 File Offset: 0x00000F63
@@ -210,6 +212,15 @@ namespace KKABMPlugin
             }
         }
 
+        public BoneModifierBody(int boneIndex, ShapeInfoBase sib)
+        {
+            this.boneIndex = boneIndex;
+            shapeInfoBase = sib;
+            isNotManual = boneIndex != -1;
+
+            if (isNotManual && shapeInfoBase != null && GetDict(shapeInfoBase).ContainsKey(boneIndex))
+                _boneInfo = GetDict(shapeInfoBase)[boneIndex];
+        }
 
         public static SortedDictionary<string, BoneModifierBody> CreateListForBody(ShapeInfoBase sibBody)
         {
@@ -218,13 +229,13 @@ namespace KKABMPlugin
             foreach (var key in dict.Keys)
             {
                 var boneInfo = dict[key];
-                var boneModifierBody = new BoneModifierBody();
-                boneModifierBody.boneIndex = key;
-                boneModifierBody.boneName = boneInfo.trfBone.name;
-                boneModifierBody.enabled = false;
-                boneModifierBody.sibBody = sibBody;
-                boneModifierBody.sclMod = Vector3.one;
-                boneModifierBody.isScaleBone = IsScaleBone(boneInfo, sibBody, key);
+                var boneModifierBody = new BoneModifierBody(key, sibBody)
+                {
+                    boneName = boneInfo.trfBone.name,
+                    enabled = false,
+                    sclMod = Vector3.one,
+                    isScaleBone = IsScaleBone(boneInfo, sibBody, key)
+                };
                 sortedDictionary.Add(boneModifierBody.boneName, boneModifierBody);
             }
             return sortedDictionary;
@@ -237,13 +248,13 @@ namespace KKABMPlugin
             foreach (var key in dict.Keys)
             {
                 var boneInfo = dict[key];
-                var boneModifierBody = new BoneModifierBody();
-                boneModifierBody.boneIndex = key;
-                boneModifierBody.boneName = boneInfo.trfBone.name;
-                boneModifierBody.enabled = false;
-                boneModifierBody.sibBody = sibFace;
-                boneModifierBody.sclMod = Vector3.one;
-                boneModifierBody.isScaleBone = IsScaleBone(boneInfo, sibFace, key);
+                var boneModifierBody = new BoneModifierBody(key, sibFace)
+                {
+                    boneName = boneInfo.trfBone.name,
+                    enabled = false,
+                    sclMod = Vector3.one,
+                    isScaleBone = IsScaleBone(boneInfo, sibFace, key)
+                };
                 result.Add(boneModifierBody.boneName, boneModifierBody);
             }
         }
@@ -253,19 +264,13 @@ namespace KKABMPlugin
         {
             if (boneIndex == -1)
                 return manualTarget;
-            return FindBoneInfo().trfBone;
+            return _boneInfo.trfBone;
         }
 
 
         private static Dictionary<int, ShapeInfoBase.BoneInfo> GetDict(ShapeInfoBase sibBody)
         {
             return dictDstBoneInfo.GetValue(sibBody) as Dictionary<int, ShapeInfoBase.BoneInfo>;
-        }
-
-
-        private ShapeInfoBase.BoneInfo FindBoneInfo()
-        {
-            return GetDict(sibBody)[boneIndex];
         }
 
 
@@ -277,22 +282,23 @@ namespace KKABMPlugin
                 sclBaseline = target.localScale;
                 lenBaseline = target.localPosition.magnitude;
                 hasBaseline = true;
-                if (boneIndex != -1)
-                {
-                    var boneInfo = FindBoneInfo();
+                if (isNotManual)
+                {/*
+                    var boneInfo = _boneInfo;
                     lastPos = boneInfo.vctPos;
                     lastScl = boneInfo.vctScl;
-                    lastRot = boneInfo.vctRot;
+                    lastRot = boneInfo.vctRot;*/
                 }
             }
         }
 
+        public readonly bool isNotManual;
 
         public bool CheckBaselineChanged()
         {
-            if (boneIndex != -1 && isScaleBone)
+            if (isNotManual && isScaleBone)
             {
-                var boneInfo = FindBoneInfo();
+                var boneInfo = _boneInfo;
                 if (boneInfo != null && boneInfo.trfBone != null && sclBaseline != boneInfo.trfBone.localScale)
                 {
                     if (_enabled)

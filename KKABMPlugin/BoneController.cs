@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using BepInEx.Logging;
 using ChaCustom;
 using IllusionUtility.GetUtility;
@@ -16,34 +18,21 @@ namespace KKABMPlugin
     public class BoneController : MonoBehaviour
     {
         private const string EDIT_DEFAULT_FILE_NAME = "ill_default_female.png";
-
-
         private const float MISSING_BONE_CHECK_INTERVAL = 1.5f;
-
 
         private static readonly PropertyInfo f_sibBody = typeof(ChaControl).GetProperty("sibBody",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetField);
-
-
         private static readonly PropertyInfo f_sibFace = typeof(ChaControl).GetProperty("sibFace",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetField);
-
-
         private static readonly FieldInfo f_PvCopy_bone = typeof(PVCopy).GetField("bone",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-
         private static readonly FieldInfo f_PvCopy_pv = typeof(PVCopy).GetField("pv",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
 
         private bool baseLineKnown;
 
 
         public ChaControl chaControl;
-
-
-        public bool disalbed;
 
 
         public string fileToLoad;
@@ -52,10 +41,10 @@ namespace KKABMPlugin
         private bool isCustomScene;
 
 
-        private long lastLoadedFileTimestamp = -1L;
+        //private long lastLoadedFileTimestamp = -1L;
 
 
-        private string lastLoadedPath;
+        //private string lastLoadedPath;
 
 
         private float missingBoneNextChecktime;
@@ -73,38 +62,40 @@ namespace KKABMPlugin
         {
             chaControl = GetComponent<ChaControl>();
             StartCoroutine(InstallModifierCo());
-            StartCoroutine(WatchLoadedFileUpdateCo());
+            //StartCoroutine(WatchLoadedFileUpdateCo());
             isCustomScene = Singleton<CustomBase>.Instance != null;
-            BoneControllerMgr.Instance.RegisterBoneController(this);
+            //BoneControllerMgr.Instance.RegisterBoneController(this);
         }
-
 
         private void OnDestroy()
         {
-            BoneControllerMgr.Instance.boneControllers.Remove(this);
+            //BoneControllerMgr.Instance.boneControllers.Remove(this);
         }
-
 
         public void ClearModifiers()
         {
             if (modifiers != null)
+            {
                 foreach (var boneModifierBody in modifiers.Values)
                 {
                     boneModifierBody.Reset();
                     boneModifierBody.Clear();
                 }
+            }
+
             var sibBody = f_sibBody.GetValue(chaControl, null) as ShapeInfoBase;
             var sibFace = f_sibFace.GetValue(chaControl, null) as ShapeInfoBase;
+
             modifiers = BoneModifierBody.CreateListForBody(sibBody);
             BoneModifierBody.AddFaceBones(sibFace, modifiers);
             InsertAdditionalModifiers();
+
             baseLineKnown = false;
             sibBodyValues = null;
             sibFaceValues = null;
-            lastLoadedPath = null;
-            lastLoadedFileTimestamp = -1L;
+            //lastLoadedPath = null;
+            //lastLoadedFileTimestamp = -1L;
         }
-
 
         private IEnumerator InstallModifierCo()
         {
@@ -127,7 +118,7 @@ namespace KKABMPlugin
                     if (isCustomScene)
                     {
                         BoneControllerMgr.Instance.LoadFromPluginData(this, chaControl.chaFile);
-                        SaveToFile();
+                        //SaveToFile();
                     }
                     else
                     {
@@ -137,11 +128,10 @@ namespace KKABMPlugin
             }
             catch (Exception value)
             {
-                Console.WriteLine("Unxepected Error." + chaControl.chaFile.parameter.fullname + " ");
-                Console.WriteLine(value);
+                Logger.Log(LogLevel.Error, "[ABM] Unxepected Error for " + chaControl.chaFile.parameter.fullname);
+                Logger.Log(LogLevel.Error, value);
             }
         }
-
 
         private void InsertAdditionalModifiers()
         {
@@ -169,22 +159,17 @@ namespace KKABMPlugin
             }
         }
 
-
         public BoneModifierBody InsertAdditionalModifier(string boneName)
         {
-            var boneModifierBody = new BoneModifierBody();
-            boneModifierBody.boneIndex = -1;
-            boneModifierBody.boneName = boneName;
-            boneModifierBody.sibBody = null;
-            var gameObject = GetRootTransform().FindLoop(boneName);
-            if (gameObject != null)
-                boneModifierBody.manualTarget = gameObject.transform;
+            var boneModifierBody = new BoneModifierBody(-1, null) { boneName = boneName };
+            var loopGo = GetRootTransform().FindLoop(boneName);
+            if (loopGo != null)
+                boneModifierBody.manualTarget = loopGo.transform;
             else
                 Console.WriteLine("Bone {0} not found but include forcefully.", boneName);
             modifiers.Add(boneModifierBody.boneName, boneModifierBody);
             return boneModifierBody;
         }
-
 
         public BoneModifierBody FindOrCreateModifierByBoneName(string boneName)
         {
@@ -201,27 +186,15 @@ namespace KKABMPlugin
             return null;
         }
 
-
         public bool IsExtDataExists()
         {
             return isCustomScene && IsExtDataExists(BoneControllerMgr.Instance.lastLoadedFile);
         }
 
-
         public bool IsExtDataExists(string baseCharaFileName)
         {
-            return !IsEditingCharacter() && File.Exists(GetExtDataFilePath(baseCharaFileName));
+            return File.Exists(GetExtDataFilePath(baseCharaFileName));
         }
-
-        /// <summary>
-        /// always false
-        /// </summary>
-        /// <returns></returns>
-        private bool IsEditingCharacter()
-        {
-            return false;
-        }
-
 
         public string GetExtDataFilePath()
         {
@@ -251,59 +224,51 @@ namespace KKABMPlugin
 
         public void LoadFromFile()
         {
-            if (IsEditingCharacter())
+            ClearModifiers();
+            if (IsExtDataExists())
             {
-                if (lastLoadedPath != null)
-                    LoadFromFile(lastLoadedPath);
+                LoadFromFile(GetExtDataFilePath());
+                return;
             }
-            else
+            if (isCustomScene && BoneControllerMgr.Instance.lastLoadedFile != null &&
+                File.Exists(BoneControllerMgr.Instance.lastLoadedFile))
             {
-                ClearModifiers();
-                if (IsExtDataExists())
-                {
-                    LoadFromFile(GetExtDataFilePath());
-                    return;
-                }
-                if (isCustomScene && BoneControllerMgr.Instance.lastLoadedFile != null &&
-                    File.Exists(BoneControllerMgr.Instance.lastLoadedFile))
-                {
-                    var chaFileControl = new ChaFileControl();
-                    chaFileControl.LoadCharaFile(BoneControllerMgr.Instance.lastLoadedFile, chaControl.fileParam.sex,
-                        false, false);
-                    BoneControllerMgr.Instance.LoadFromPluginData(this, chaFileControl);
-                    Logger.Log(LogLevel.Error, "bonemod.txt not found. try to load from card data.");
-                }
-                SaveToFile();
+                var chaFileControl = new ChaFileControl();
+                chaFileControl.LoadCharaFile(BoneControllerMgr.Instance.lastLoadedFile, chaControl.fileParam.sex,
+                    false, false);
+                BoneControllerMgr.Instance.LoadFromPluginData(this, chaFileControl);
+                Logger.Log(LogLevel.Error, "bonemod.txt not found. try to load from card data.");
             }
+            //SaveToFile();
         }
 
 
         public void LoadFromFile(string path)
         {
             var lines = WriteSafeReadAllLines(path);
-            if (modifiers.Count() == 0)
+            if (modifiers.Count == 0)
                 return;
-            lastLoadedFileTimestamp = -1L;
+            //lastLoadedFileTimestamp = -1L;
             ClearModifiers();
             var num = File.GetLastWriteTime(path).ToBinary();
             Console.WriteLine("Load from file: {0}, timestamp: {1}", path, num);
             if (ReadDataFromLines(lines))
             {
-                SaveToFile(path);
+                //SaveToFile(path);
                 num = File.GetLastWriteTime(path).ToBinary();
             }
-            lastLoadedPath = path;
-            lastLoadedFileTimestamp = num;
+            //lastLoadedPath = path;
+            //lastLoadedFileTimestamp = num;
         }
 
 
         public void LoadFromTextData(string textData)
         {
             var lines = ReadAllLinesFromReader(new StringReader(textData));
-            if (modifiers.Count() == 0)
+            if (modifiers.Count == 0)
                 return;
-            lastLoadedFileTimestamp = -1L;
-            lastLoadedPath = null;
+            //lastLoadedFileTimestamp = -1L;
+            //lastLoadedPath = null;
             ClearModifiers();
             ReadDataFromLines(lines);
         }
@@ -355,11 +320,11 @@ namespace KKABMPlugin
         }
 
 
-        public void SaveToFile()
+        /*public void SaveToFile()
         {
             if (GetLastLoadedFile() != null)
             {
-                if (!GetLastLoadedFile().ToLower().EndsWith("ill_default_female.png"))
+                if (!GetLastLoadedFile().ToLower().EndsWith(EDIT_DEFAULT_FILE_NAME))
                 {
                     var extDataFilePath = GetExtDataFilePath();
                     SaveToFile(extDataFilePath);
@@ -369,10 +334,18 @@ namespace KKABMPlugin
             {
                 Console.WriteLine("Cannot Save.");
             }
+        }*/
+
+        /// <summary>
+        /// Get rid of the legacy config file
+        /// </summary>
+        public void DeleteFile()
+        {
+            var extDataFilePath = GetExtDataFilePath();
+            File.Delete(extDataFilePath);
         }
 
-
-        public void SaveToFile(string path)
+        /*public void SaveToFile(string path)
         {
             Console.WriteLine("Save to file {0}", path);
             using (var streamWriter = File.CreateText(path))
@@ -381,22 +354,32 @@ namespace KKABMPlugin
             }
             lastLoadedPath = path;
             lastLoadedFileTimestamp = File.GetLastWriteTime(path).ToBinary();
-        }
+        }*/
 
-
-        public void SaveToWriter(TextWriter writer)
+        public string Serialize()
         {
+            var sb = new StringBuilder();
             foreach (var key in modifiers.Keys)
             {
                 var boneModifierBody = modifiers[key];
-                writer.WriteLine("{0},{1},{2},{3},{4},{5},{6}", boneModifierBody.boneIndex, boneModifierBody.boneName,
-                    boneModifierBody.enabled, boneModifierBody.sclMod.x, boneModifierBody.sclMod.y,
-                    boneModifierBody.sclMod.z, boneModifierBody.lenMod);
+
+                if (boneModifierBody.sclMod.Equals(Vector3.one) && boneModifierBody.lenMod == 1f)
+                    continue;
+
+                sb.AppendLine(string.Join(",", new[]{
+                    boneModifierBody.boneIndex.ToString(CultureInfo.InvariantCulture),
+                    boneModifierBody.boneName,
+                    boneModifierBody.enabled.ToString(CultureInfo.InvariantCulture),
+                    boneModifierBody.sclMod.x.ToString(CultureInfo.InvariantCulture),
+                    boneModifierBody.sclMod.y.ToString(CultureInfo.InvariantCulture),
+                    boneModifierBody.sclMod.z.ToString(CultureInfo.InvariantCulture),
+                    boneModifierBody.lenMod.ToString(CultureInfo.InvariantCulture)
+                }));
             }
+            return sb.ToString();
         }
 
-
-        protected void Update()
+        /*protected void Update()
         {
             try
             {
@@ -425,8 +408,7 @@ namespace KKABMPlugin
                 Console.WriteLine(value);
             }
         }
-
-
+        
         private bool IsBaselineChanged()
         {
             if (sibBodyValues == null || sibFaceValues == null)
@@ -438,43 +420,44 @@ namespace KKABMPlugin
                 if (sibFaceValues[j] != chaControl.fileFace.shapeValueFace[j])
                     return true;
             return false;
-        }
-
+        }*/
 
         protected void LateUpdate()
         {
             try
             {
-                if (!disalbed)
+                if (BoneControllerMgr.Instance.needReload)
+                    BoneControllerMgr.Instance.LoadFromPluginData(this, chaControl.chaFile);
+
+                if (baseLineKnown && !BoneControllerMgr.Instance.needReload)
                 {
-                    if (BoneControllerMgr.Instance.needReload)
-                        BoneControllerMgr.Instance.LoadFromPluginData(this, chaControl.chaFile);
-                    if (baseLineKnown && !BoneControllerMgr.Instance.needReload)
+                    if (missingBoneNextChecktime <= 0f)
                     {
-                        if (missingBoneNextChecktime <= 0f)
+                        foreach (var boneModifierBody in modifiers.Values)
                         {
-                            foreach (var boneModifierBody in modifiers.Values)
-                                if (boneModifierBody.boneIndex == -1 && boneModifierBody.manualTarget == null)
+                            if (!boneModifierBody.isNotManual && boneModifierBody.manualTarget == null)
+                            {
+                                var loopGo = GetRootTransform().FindLoop(boneModifierBody.boneName);
+                                if (loopGo != null)
                                 {
-                                    var gameObject = GetRootTransform().FindLoop(boneModifierBody.boneName);
-                                    if (gameObject != null)
-                                    {
-                                        boneModifierBody.manualTarget = gameObject.transform;
-                                        boneModifierBody.CollectBaseline();
-                                    }
+                                    boneModifierBody.manualTarget = loopGo.transform;
+                                    boneModifierBody.CollectBaseline();
                                 }
-                            missingBoneNextChecktime = 1.5f;
+                            }
                         }
-                        else
-                        {
-                            missingBoneNextChecktime -= Time.deltaTime;
-                        }
-                        ApplyAll();
+
+                        missingBoneNextChecktime = MISSING_BONE_CHECK_INTERVAL;
                     }
                     else
                     {
-                        StartCoroutine(CollectBaselineCo());
+                        missingBoneNextChecktime -= Time.deltaTime;
                     }
+
+                    ApplyAll();
+                }
+                else
+                {
+                    StartCoroutine(CollectBaselineCo());
                 }
             }
             catch (Exception value)
@@ -482,7 +465,6 @@ namespace KKABMPlugin
                 Console.WriteLine(value);
             }
         }
-
 
         public void ApplyAll()
         {
@@ -493,6 +475,7 @@ namespace KKABMPlugin
 
         private IEnumerator CollectBaselineCo()
         {
+            if (chaControl.animBody == null) yield break;
             var pvCopy = chaControl.animBody.gameObject.GetComponent<PVCopy>();
             var currentPvCopy = new bool[4];
             if (pvCopy != null)
@@ -526,7 +509,7 @@ namespace KKABMPlugin
         }
 
 
-        private IEnumerator ForceBoneUpdateAndRebaseCo()
+        /*private IEnumerator ForceBoneUpdateAndRebaseCo()
         {
             yield return null;
             sibBodyValues = new float[chaControl.fileBody.shapeValueBody.Length];
@@ -541,10 +524,10 @@ namespace KKABMPlugin
                 if (boneModifierBody.boneIndex != -1 && boneModifierBody.isScaleBone)
                     boneModifierBody.CollectBaseline();
             baseLineKnown = true;
-        }
+        }*/
 
 
-        private IEnumerator WatchLoadedFileUpdateCo()
+        /*private IEnumerator WatchLoadedFileUpdateCo()
         {
             for (; ; )
             {
@@ -560,7 +543,7 @@ namespace KKABMPlugin
                     }
                 }
             }
-        }
+        }*/
 
 
         private static string[] WriteSafeReadAllLines(string path)
@@ -595,7 +578,6 @@ namespace KKABMPlugin
         {
             return chaControl;
         }
-
 
         private Transform GetRootTransform()
         {

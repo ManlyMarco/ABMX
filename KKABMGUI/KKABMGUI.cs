@@ -145,10 +145,10 @@ namespace KKABMGUI
 
             GUILayout.EndScrollView();
 
-            GUILayout.BeginHorizontal(glo_Slider);
+            /*GUILayout.BeginHorizontal(glo_Slider);
             if (GUILayout.Button("Save", gs_ButtonReset, glo_HEIGHT_30, glo_HEIGHT_30))
                 FindObjectOfType<BoneController>().SaveToFile();
-            GUILayout.EndHorizontal();
+            GUILayout.EndHorizontal();*/
 
             GUILayout.EndVertical();
             GUI.DragWindow();

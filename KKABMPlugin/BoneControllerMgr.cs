@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections;
 using System.IO;
 using BepInEx.Logging;
 using ChaCustom;
@@ -11,27 +11,17 @@ namespace KKABMPlugin
 {
     internal class BoneControllerMgr : MonoBehaviour
     {
-        public const string EXTENDED_SAVE_ID = "KKABMPlugin.ABMData";
-
-
-        public const string BONE_DATA_KEY = "boneData";
-
-
-        public List<BoneController> boneControllers = new List<BoneController>();
-
-
-        private CustomBase customBase;
-
-
-        public string lastLoadedFile;
-
-
-        public bool needReload;
-
-        // (get) Token: 0x06000032 RID: 50 RVA: 0x0000332B File Offset: 0x0000152B
+        private const string EXTENDED_SAVE_ID = "KKABMPlugin.ABMData";
+        private const string BONE_DATA_KEY = "boneData";
+        //public List<BoneController> boneControllers = new List<BoneController>();
+        
+        private bool InsideMaker { get; set; }
         public static BoneControllerMgr Instance { get; private set; }
 
-
+        public string lastLoadedFile;
+        
+        public bool needReload;
+        
         public static void Init()
         {
             if (!Instance)
@@ -39,9 +29,9 @@ namespace KKABMPlugin
                 Instance = new GameObject("BoneControllerMgr").AddComponent<BoneControllerMgr>();
                 DontDestroyOnLoad(Instance.gameObject);
             }
+            ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
         }
-
-
+        
         protected void Start()
         {
         }
@@ -66,40 +56,38 @@ namespace KKABMPlugin
 
         public void SetCustomLastLoadedFile(string path)
         {
-            if (customBase != null)
+            if (InsideMaker)
                 lastLoadedFile = path;
         }
 
 
         protected void OnLevelWasLoaded(int level)
         {
-            customBase = Singleton<CustomBase>.Instance;
+            InsideMaker = Singleton<CustomBase>.Instance != null;
             lastLoadedFile = null;
         }
 
 
         public void EnterCustomScene()
         {
-            customBase = Singleton<CustomBase>.Instance;
+            InsideMaker = Singleton<CustomBase>.Instance != null;
             lastLoadedFile = null;
         }
 
 
         public void ExitCustomScene()
         {
-            customBase = null;
+            InsideMaker = false;
             lastLoadedFile = null;
         }
-
-
+        
         public void OnCustomSceneExitWithSave()
         {
-            if (customBase != null)
-                OnPreSave(customBase.chaCtrl.chaFile);
+            if (InsideMaker)
+                OnBeforeCardSave(Singleton<CustomBase>.Instance.chaCtrl.chaFile);
         }
-
-
-        private string GetPath(Transform root)
+        
+        /*private string GetPath(Transform root)
         {
             var text = root.name;
             var parent = root.parent;
@@ -109,193 +97,190 @@ namespace KKABMPlugin
                 parent = parent.parent;
             }
             return text;
-        }
-
-
-        public void OnLoad(string path)
+        }*/
+        
+        public void OnLimitedLoad(string path)
         {
-            if (customBase != null)
+            if (InsideMaker)
             {
                 lastLoadedFile = path;
-                ReloadABM(path);
+                ReloadAllControllers(path);
             }
         }
-
-
-        public static PluginData GetBoneDataPluginData(ChaFileControl chaFile)
+        
+        public static PluginData GetExtendedCharacterData(ChaFileControl chaFile)
         {
-            //if (ExtendedSave.GetAllExtendedData(chaFile) != null)
-                return ExtendedSave.GetExtendedDataById(chaFile, "KKABMPlugin.ABMData");
-            //return null;
+            if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
+
+            return ExtendedSave.GetExtendedDataById(chaFile, EXTENDED_SAVE_ID);
         }
 
+        public static void SetExtendedCharacterData(ChaFile chaFile, PluginData pluginData)
+        {
+            if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
+            if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
+
+            ExtendedSave.SetExtendedDataById(chaFile, EXTENDED_SAVE_ID, pluginData);
+        }
+
+        public static void RemoveExtendedCharacterData(ChaFileControl chaFile)
+        {
+            if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
+            //if (GetCharacterData(chaFile) != null)
+            ExtendedSave.GetAllExtendedData(chaFile)?.Remove(EXTENDED_SAVE_ID);
+        }
 
         public void LoadAsExtSaveData(string charCardPath, ChaFileControl chaFile, bool clearIfNotFound = true)
         {
             var extDataFilePath = BoneController.GetExtDataFilePath(charCardPath, chaFile.parameter.sex);
             if (!string.IsNullOrEmpty(extDataFilePath) && File.Exists(extDataFilePath))
             {
-                Logger.Log(LogLevel.Error, "[ABM] .bonemod.txt file found: " + extDataFilePath + ".");
-                using (var fileStream =
-                    new FileStream(extDataFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                Logger.Log(LogLevel.Message, $"[ABM] Importing file: {extDataFilePath}");
+
+                var value = File.ReadAllText(extDataFilePath);
+                var pluginData = new PluginData
                 {
-                    using (var streamReader = new StreamReader(fileStream))
-                    {
-                        var value = streamReader.ReadToEnd();
-                        var pluginData = new PluginData();
-                        pluginData.version = 1;
-                        pluginData.data["boneData"] = value;
-                        ExtendedSave.SetExtendedDataById(chaFile, "KKABMPlugin.ABMData", pluginData);
-                    }
-                }
+                    version = 1,
+                    data = { [BONE_DATA_KEY] = value }
+                };
+                SetExtendedCharacterData(chaFile, pluginData);
                 SetNeedReload();
                 return;
             }
-            if (clearIfNotFound && GetBoneDataPluginData(chaFile) != null)
-                ExtendedSave.GetAllExtendedData(chaFile).Remove("KKABMPlugin.ABMData");
-        }
 
+            if (clearIfNotFound)
+                RemoveExtendedCharacterData(chaFile);
+        }
 
         public void ClearExtDataAndBoneController(ChaFileControl chaFile)
         {
-            if (GetBoneDataPluginData(chaFile) != null)
-                ExtendedSave.GetAllExtendedData(chaFile).Remove("KKABMPlugin.ABMData");
-            foreach (var boneController in boneControllers)
-                if (boneController != null && boneController.chaControl != null &&
+            RemoveExtendedCharacterData(chaFile);
+
+            foreach (var boneController in GetAllBoneControllers())
+            {
+                if (boneController != null &&
+                    boneController.chaControl != null &&
                     boneController.chaControl.chaFile == chaFile)
                 {
                     boneController.ClearModifiers();
                     break;
                 }
-        }
-
-
-        public static void CloneBoneDataPluginData(ChaFileControl src, ChaFileControl dst)
-        {
-            var boneDataPluginData = GetBoneDataPluginData(src);
-            if (boneDataPluginData != null)
-            {
-                var pluginData = new PluginData();
-                pluginData.version = boneDataPluginData.version;
-                pluginData.data["boneData"] = boneDataPluginData.data["boneData"];
-                ExtendedSave.SetExtendedDataById(dst, "KKABMPlugin.ABMData", pluginData);
             }
         }
 
+        public static void CloneBoneDataPluginData(ChaFileControl src, ChaFileControl dst)
+        {
+            var boneDataPluginData = GetExtendedCharacterData(src);
+            if (boneDataPluginData != null)
+            {
+                var pluginData = new PluginData
+                {
+                    version = boneDataPluginData.version,
+                    data = { [BONE_DATA_KEY] = boneDataPluginData.data[BONE_DATA_KEY] }
+                };
+                SetExtendedCharacterData(dst, pluginData);
+            }
+        }
 
         public void LoadFromPluginData(BoneController boneController, ChaFileControl chaFile)
         {
-            if (ExtendedSave.GetAllExtendedData(chaFile) != null)
+            var pluginData = GetExtendedCharacterData(chaFile);
+            if (pluginData != null && 
+                pluginData.data.TryGetValue(BONE_DATA_KEY, out var value) && 
+                value is string textData && 
+                !string.IsNullOrEmpty(textData))
             {
-                var extendedDataById = ExtendedSave.GetExtendedDataById(chaFile, "KKABMPlugin.ABMData");
-                if (extendedDataById != null)
-                {
-                    if (extendedDataById.data.ContainsKey("boneData"))
-                    {
-                        var textData = (string) extendedDataById.data["boneData"];
-                        Logger.Log(LogLevel.Info,
-                            "[ABM] ExtensibleSaveFormat data found for " + chaFile.parameter.fullname
-                        );
-                        boneController.LoadFromTextData(textData);
-                        return;
-                    }
-                    boneController.ClearModifiers();
-                }
+                Logger.Log(LogLevel.Info, "[ABM] Loading ExtensibleSaveFormat data for " + chaFile.parameter.fullname);
+                boneController.LoadFromTextData(textData);
             }
             else
             {
                 boneController.ClearModifiers();
             }
         }
-
-
+        
         public void OnPreCharaDataSave(SaveData.CharaData saveCharaData)
         {
-            if (GetBoneDataPluginData(saveCharaData.charFile) != null)
-                Logger.Log(LogLevel.Info,"[Save] Save bone data as ExtensibleSaveFormat: " + saveCharaData.charFile.parameter.fullname);
+            //if (GetCharacterData(saveCharaData.charFile) != null)
+            //    Logger.Log(LogLevel.Info, "[Save] Save bone data as ExtensibleSaveFormat: " + saveCharaData.charFile.parameter.fullname);
         }
 
 
-        public void OnPreSave(ChaFileControl chaFile)
+        public void OnBeforeCardSave(ChaFile chaFile)
         {
-            if (customBase != null)
+            if (InsideMaker)
             {
-                var component = customBase.chaCtrl.gameObject.GetComponent<BoneController>();
-                if (component)
+                var boneController = Singleton<CustomBase>.Instance.chaCtrl.gameObject.GetComponent<BoneController>();
+                if (boneController)
                 {
-                    var pluginData = SaveAsPluginData(component);
-                    ExtendedSave.SetExtendedDataById(chaFile, "KKABMPlugin.ABMData", pluginData);
+                    var pluginData = SerializeBoneController(boneController);
+                    SetExtendedCharacterData(chaFile, pluginData);
+
+                    // Get rid of the text file since we already loaded it and will now save changes to the card
+                    boneController.DeleteFile();
                 }
             }
             else
             {
-                foreach (var boneController in boneControllers)
+                foreach (var boneController in GetAllBoneControllers())
+                {
                     if (boneController != null && boneController.chaControl != null &&
                         boneController.chaControl.chaFile == chaFile)
                     {
-                        var pluginData2 = SaveAsPluginData(boneController);
-                        ExtendedSave.SetExtendedDataById(chaFile, "KKABMPlugin.ABMData", pluginData2);
+                        var pluginData2 = SerializeBoneController(boneController);
+                        SetExtendedCharacterData(chaFile, pluginData2);
                         break;
                     }
+                }
             }
         }
-
-
-        private PluginData SaveAsPluginData(BoneController boneController)
+        
+        private static PluginData SerializeBoneController(BoneController boneController)
         {
-            var pluginData = new PluginData();
-            pluginData.version = 1;
-            var stringWriter = new StringWriter();
-            boneController.SaveToWriter(stringWriter);
-            var value = stringWriter.ToString();
-            pluginData.data["boneData"] = value;
+            var pluginData = new PluginData
+            {
+                version = 1,
+                data = {[BONE_DATA_KEY] = boneController.Serialize()}
+            };
+
             return pluginData;
         }
-
-
-        public void OnSave(string path)
+        
+        /*public void OnSave(string path)
         {
-            if (customBase != null)
+            if (InsideMaker)
             {
                 lastLoadedFile = path;
-                SaveABM();
+                SaveAllControllers();
             }
-        }
-
-
-        public void ReloadABM(string path)
+        }*/
+        
+        public void ReloadAllControllers(string path)
         {
-            var array = FindObjectsOfType<BoneController>();
-            for (var i = 0; i < array.Length; i++)
-                array[i].LoadFromFile();
+            // todo remove
+            var controllers = GetAllBoneControllers();
+            foreach (var bc in controllers)
+                LoadFromPluginData(bc, bc.chaControl.chaFile);
         }
-
-
-        public void SaveABM()
+        
+        /*public void SaveAllControllers()
         {
-            var array = FindObjectsOfType<BoneController>();
-            for (var i = 0; i < array.Length; i++)
-                array[i].SaveToFile();
+            var controllers = GetAllBoneControllers();
+            foreach (var bc in controllers)
+                bc.SaveToFile();
+        }*/
+
+        private static BoneController[] GetAllBoneControllers()
+        {
+            return FindObjectsOfType<BoneController>();
         }
 
-
-        public void RegisterBoneController(BoneController controller)
+        /*public void RegisterBoneController(BoneController controller)
         {
             boneControllers.Add(controller);
-        }
+        }*/
 
-
-        protected void OnLoadClick()
-        {
-        }
-
-
-        protected void OnSaveClick()
-        {
-        }
-
-
-        private T FindObject<T>(Transform transform)
+        /*private T FindObject<T>(Transform transform)
         {
             if (transform.gameObject.GetComponent<T>() != null)
                 return transform.gameObject.GetComponent<T>();
@@ -306,10 +291,10 @@ namespace KKABMPlugin
                     return t;
             }
             return default(T);
-        }
+        }*/
 
 
-        public static BoneController InstallBoneController(ChaControl charInfo)
+        public static BoneController AttachBoneController(ChaControl charInfo)
         {
             if (charInfo == null)
                 return null;

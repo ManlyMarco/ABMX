@@ -36,7 +36,7 @@ namespace KKABMPlugin
                 return;
             }
 
-            BoneControllerMgr.InstallBoneController(__instance);
+            BoneControllerMgr.AttachBoneController(__instance);
         }
 
         [HarmonyPostfix]
@@ -55,7 +55,7 @@ namespace KKABMPlugin
             bool parameter, bool coordinate, ChaFileControl __instance)
         {
             if ((face || body) && BoneControllerMgr.Instance)
-                BoneControllerMgr.Instance.OnLoad(filename);
+                BoneControllerMgr.Instance.OnLimitedLoad(filename);
         }
 
         [HarmonyPrefix]
@@ -114,7 +114,7 @@ namespace KKABMPlugin
                 BoneControllerMgr.Instance.LoadFromPluginData(component, __instance.charInfo.chaFile);
         }
 
-        [HarmonyPrefix]
+        /*[HarmonyPrefix]
         [HarmonyPatch(typeof(ChaFileControl), "SaveCharaFile", new[]
         {
             typeof(BinaryWriter),
@@ -124,9 +124,9 @@ namespace KKABMPlugin
         {
             if (BoneControllerMgr.Instance)
                 BoneControllerMgr.Instance.OnPreSave(__instance);
-        }
+        }*/
 
-        [HarmonyPostfix]
+        /*[HarmonyPostfix]
         [HarmonyPatch(typeof(ChaFileControl), "SaveCharaFile", new[]
         {
             typeof(string),
@@ -138,7 +138,7 @@ namespace KKABMPlugin
         {
             if (BoneControllerMgr.Instance)
                 BoneControllerMgr.Instance.OnSave(__instance.charaFileName);
-        }
+        }*/
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SaveData.CharaData), "Save", new[]
