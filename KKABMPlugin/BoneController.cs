@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using BepInEx.Logging;
@@ -17,7 +16,7 @@ namespace KKABMPlugin
 {
     public class BoneController : MonoBehaviour
     {
-        private const string EDIT_DEFAULT_FILE_NAME = "ill_default_female.png";
+        //private const string EDIT_DEFAULT_FILE_NAME = "ill_default_female.png";
         private const float MISSING_BONE_CHECK_INTERVAL = 1.5f;
 
         private static readonly PropertyInfo f_sibBody = typeof(ChaControl).GetProperty("sibBody",
@@ -58,6 +57,8 @@ namespace KKABMPlugin
 
         private float[] sibFaceValues;
 
+        public event EventHandler ModifiersInitialized;
+
         private void Start()
         {
             chaControl = GetComponent<ChaControl>();
@@ -72,15 +73,12 @@ namespace KKABMPlugin
             //BoneControllerMgr.Instance.boneControllers.Remove(this);
         }
 
-        public void ClearModifiers()
+        public void InitializeModifiers()
         {
-            if (modifiers != null)
+            foreach (var boneModifierBody in modifiers.Values)
             {
-                foreach (var boneModifierBody in modifiers.Values)
-                {
-                    boneModifierBody.Reset();
-                    boneModifierBody.Clear();
-                }
+                boneModifierBody.Reset();
+                boneModifierBody.Clear();
             }
 
             var sibBody = f_sibBody.GetValue(chaControl, null) as ShapeInfoBase;
@@ -95,6 +93,8 @@ namespace KKABMPlugin
             sibFaceValues = null;
             //lastLoadedPath = null;
             //lastLoadedFileTimestamp = -1L;
+
+            ModifiersInitialized?.Invoke(this, EventArgs.Empty);
         }
 
         private IEnumerator InstallModifierCo()
@@ -102,7 +102,7 @@ namespace KKABMPlugin
             yield return new WaitUntil(() => chaControl != null && chaControl.loadEnd && chaControl.objBodyBone != null);
             try
             {
-                ClearModifiers();
+                InitializeModifiers();
                 if (IsExtDataExists())
                 {
                     LoadFromFile();
@@ -226,7 +226,7 @@ namespace KKABMPlugin
 
         public void LoadFromFile()
         {
-            ClearModifiers();
+            InitializeModifiers();
             if (IsExtDataExists())
             {
                 LoadFromFile(GetExtDataFilePath());
@@ -247,11 +247,11 @@ namespace KKABMPlugin
 
         public void LoadFromFile(string path)
         {
-            var lines = WriteSafeReadAllLines(path);
             if (modifiers.Count == 0)
                 return;
+            var lines = WriteSafeReadAllLines(path);
             //lastLoadedFileTimestamp = -1L;
-            ClearModifiers();
+            InitializeModifiers();
             var num = File.GetLastWriteTime(path).ToBinary();
             Console.WriteLine("Load from file: {0}, timestamp: {1}", path, num);
             if (ReadDataFromLines(lines))
@@ -266,12 +266,12 @@ namespace KKABMPlugin
 
         public void LoadFromTextData(string textData)
         {
-            var lines = ReadAllLinesFromReader(new StringReader(textData));
             if (modifiers.Count == 0)
                 return;
+            var lines = ReadAllLinesFromReader(new StringReader(textData));
             //lastLoadedFileTimestamp = -1L;
             //lastLoadedPath = null;
-            ClearModifiers();
+            InitializeModifiers();
             ReadDataFromLines(lines);
         }
 

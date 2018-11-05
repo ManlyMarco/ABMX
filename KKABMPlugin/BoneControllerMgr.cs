@@ -162,7 +162,7 @@ namespace KKABMPlugin
                     boneController.chaControl != null &&
                     boneController.chaControl.chaFile == chaFile)
                 {
-                    boneController.ClearModifiers();
+                    boneController.InitializeModifiers();
                     break;
                 }
             }
@@ -195,7 +195,7 @@ namespace KKABMPlugin
             }
             else
             {
-                boneController.ClearModifiers();
+                boneController.InitializeModifiers();
             }
         }
         
