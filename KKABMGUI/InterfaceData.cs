@@ -192,12 +192,12 @@ namespace KKABMX.GUI
             new BoneMeta("cf_d_sk_04_00"        , "Skirt Back"                 , 0, 3f, "03_ClothesTop", "tglSkirt"        , "")                 ,
 
 
-            new BoneMeta("cf_d_kokan"           , "Genital area"               , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
-            new BoneMeta("cf_j_kokan"           , "Pubic mound"                , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
-            new BoneMeta("cf_j_ana"             , "Anus"                       , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
-            new BoneMeta("cm_J_dan100_00"       , "Penis"                      , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
-            new BoneMeta("cm_J_dan109_00"       , "Penis tip"                  , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
-            new BoneMeta("cm_J_dan_f_L"         , "Testicles"                  , 0, 4f, "01_BodyTop"   , "tglGenitals"     , "cm_J_dan_f_R")     ,
+            new BoneMeta("cf_d_kokan"           , "Genital area Scale"               , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cf_j_kokan"           , "Pubic mound Scale"                , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cm_J_dan100_00"       , "Penis Scale"                      , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cm_J_dan109_00"       , "Penis tip Scale"                  , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cm_J_dan_f_L"         , "Testicles Scale"                  , 0, 4f, "01_BodyTop"   , "tglGenitals"     , "cm_J_dan_f_R")     ,
+            new BoneMeta("cf_j_ana"             , "Anus Scale"                       , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
         };
     }
 }

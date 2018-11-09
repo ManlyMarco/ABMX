@@ -118,7 +118,7 @@ namespace MakerAPI
         /// Add custom controls. If you want to use custom sub categories, register them by calling AddSubCategory.
         /// </summary>
         internal T AddControl<T>(T control) where T : MakerGuiEntryBase
-        {
+        {//todo if a different plugin adds to an existing tab, place a separator first (add tags to gui entries?)
             _guiEntries.Add(control);
             return control;
         }
