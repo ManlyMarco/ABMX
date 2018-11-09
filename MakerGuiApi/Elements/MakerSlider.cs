@@ -108,7 +108,7 @@ namespace MakerAPI
             var inputField = tr.Find("InputField").GetComponent<TMP_InputField>();
             inputField.onEndEdit.AddListener(txt =>
             {
-                var result = StringToValue?.Invoke(txt) ?? float.Parse(txt);
+                var result = StringToValue?.Invoke(txt) ?? float.Parse(txt) / 100f;
                 slider.value = Mathf.Clamp(result, slider.minValue, slider.maxValue);
             });
 
@@ -117,7 +117,7 @@ namespace MakerAPI
                 if (ValueToString != null)
                     inputField.text = ValueToString(f);
                 else
-                    inputField.text = f.ToString("F2");
+                    inputField.text = Mathf.RoundToInt(f * 100).ToString();
             });
 
             var resetButton = tr.Find("Button").GetComponent<Button>();
