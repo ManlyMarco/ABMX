@@ -7,7 +7,7 @@
     <ProjectGuid>{288732FD-1D63-45F0-815E-7EB938B6E064}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>KKABMX.GUI</RootNamespace>
-    <AssemblyName>KKABMXGUI</AssemblyName>
+    <AssemblyName>KKABMGUI</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
