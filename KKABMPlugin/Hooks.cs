@@ -50,6 +50,7 @@ namespace KKABMX.Core
         }
 
         private static ChaFile lastLoadedChaFile;
+        private static readonly FieldInfo _idolBackButton = typeof(LiveCharaSelectSprite).GetField("btnIdolBack", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ChaFileControl), "LoadFileLimited", new[]
@@ -152,7 +153,7 @@ namespace KKABMX.Core
                 BoneControllerMgr.Instance.OnSave(__instance.charaFileName);
         }*/
 
-        [HarmonyPrefix]
+        /*[HarmonyPrefix]
         [HarmonyPatch(typeof(SaveData.CharaData), "Save", new[]
         {
             typeof(BinaryWriter)
@@ -161,7 +162,7 @@ namespace KKABMX.Core
         {
             if (BoneControllerMgr.Instance)
                 BoneControllerMgr.Instance.OnPreCharaDataSave(__instance);
-        }
+        }*/
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ChaFile), "CopyChaFile", new[]
@@ -171,23 +172,19 @@ namespace KKABMX.Core
         })]
         public static void ChaFile_CopyChaFilePostHook(ChaFile dst, ChaFile src)
         {
-            if (dst is ChaFileControl && src is ChaFileControl)
-                BoneControllerMgr.CloneBoneDataPluginData(src as ChaFileControl, dst as ChaFileControl);
+            if (src is ChaFileControl && dst is ChaFileControl)
+                BoneControllerMgr.CloneBoneDataPluginData((ChaFileControl) src, (ChaFileControl) dst);
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(CustomScene), "Start", new Type[]
-        {
-        })]
+        [HarmonyPatch(typeof(CustomScene), "Start")]
         public static void CustomScene_Start()
         {
             BoneControllerMgr.Instance.EnterCustomScene();
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(CustomScene), "OnDestroy", new Type[]
-        {
-        })]
+        [HarmonyPatch(typeof(CustomScene), "OnDestroy")]
         public static void CustomScene_Destroy()
         {
             BoneControllerMgr.Instance.ExitCustomScene();
@@ -205,15 +202,11 @@ namespace KKABMX.Core
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(LiveCharaSelectSprite), "Start", new Type[]
-        {
-        })]
+        [HarmonyPatch(typeof(LiveCharaSelectSprite), "Start")]
         public static void LiveCharaSelectSprite_StartPostHook(LiveCharaSelectSprite __instance)
         {
-            (typeof(LiveCharaSelectSprite)
-                .GetField("btnIdolBack", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                ?.GetValue(__instance) as Button)
-                ?.onClick.AddListener(BoneControllerMgr.Instance.SetNeedReload);
+            var button = _idolBackButton?.GetValue(__instance) as Button;
+            button?.onClick.AddListener(BoneControllerMgr.Instance.SetNeedReload);
         }
     }
 }

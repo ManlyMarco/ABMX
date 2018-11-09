@@ -127,5 +127,11 @@ namespace MakerAPI
 
             tr.gameObject.SetActive(true);
         }
+
+        public override void Dispose()
+        {
+            _incomingValue.Dispose();
+            _outgoingValue.Dispose();
+        }
     }
 }

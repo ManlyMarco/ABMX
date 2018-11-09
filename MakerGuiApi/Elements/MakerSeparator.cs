@@ -12,6 +12,10 @@ namespace MakerAPI
             s.name = "Separate" + GuiApiNameAppendix;
         }
 
+        public override void Dispose()
+        {
+        }
+
         private static Transform SourceSeparator
         {
             get

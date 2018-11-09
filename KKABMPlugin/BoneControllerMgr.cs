@@ -28,8 +28,8 @@ namespace KKABMX.Core
             {
                 Instance = new GameObject("BoneControllerMgr").AddComponent<BoneControllerMgr>();
                 DontDestroyOnLoad(Instance.gameObject);
+                ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
             }
-            ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
         }
 
         private IEnumerator ClearReloadFlagCo()
@@ -102,8 +102,7 @@ namespace KKABMX.Core
 
                 var makerController = FindObjectOfType<BoneController>();
                 LoadFromPluginData(makerController, chaFile);
-
-                Logger.Log(LogLevel.Debug, "MakerLimitedLoad");
+                
                 MakerLimitedLoad?.Invoke(this, new BoneControllerEventArgs(makerController));
             }
         }
@@ -132,7 +131,7 @@ namespace KKABMX.Core
             if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
             if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
 
-            Logger.Log(LogLevel.Info, "[ABM] Saving ExtensibleSaveFormat data for " + chaFile.parameter.fullname);
+            Logger.Log(LogLevel.Info, "[KKABMX] Saving embedded ABM data to character card: " + (chaFile.charaFileName ?? chaFile.parameter.fullname));
             ExtendedSave.SetExtendedDataById(chaFile, EXTENDED_SAVE_ID, pluginData);
         }
 
@@ -148,7 +147,7 @@ namespace KKABMX.Core
             var extDataFilePath = BoneController.GetExtDataFilePath(charCardPath, chaFile.parameter.sex);
             if (!string.IsNullOrEmpty(extDataFilePath) && File.Exists(extDataFilePath))
             {
-                Logger.Log(LogLevel.Message, $"[ABM] Importing file: {extDataFilePath}");
+                Logger.Log(LogLevel.Info, $"[KKABMX] Importing external ABM data from file: {extDataFilePath}");
 
                 var value = File.ReadAllText(extDataFilePath);
                 var pluginData = new PluginData
@@ -175,7 +174,7 @@ namespace KKABMX.Core
                     boneController.chaControl != null &&
                     boneController.chaControl.chaFile == chaFile)
                 {
-                    boneController.InitializeModifiers();
+                    boneController.ResetModifiers();
                     break;
                 }
             }
@@ -203,20 +202,20 @@ namespace KKABMX.Core
                 value is string textData &&
                 !string.IsNullOrEmpty(textData))
             {
-                Logger.Log(LogLevel.Info, "[ABM] Loading ExtensibleSaveFormat data for " + chaFile.parameter.fullname);
+                Logger.Log(LogLevel.Info, "[KKABMX] Loading embedded ABM data from card: " + chaFile.parameter.fullname);
                 boneController.LoadFromTextData(textData);
             }
             else
             {
-                boneController.InitializeModifiers();
+                boneController.ResetModifiers();
             }
         }
 
-        public void OnPreCharaDataSave(SaveData.CharaData saveCharaData)
+        /*public void OnPreCharaDataSave(SaveData.CharaData saveCharaData)
         {
             //if (GetCharacterData(saveCharaData.charFile) != null)
             //    Logger.Log(LogLevel.Info, "[Save] Save bone data as ExtensibleSaveFormat: " + saveCharaData.charFile.parameter.fullname);
-        }
+        }*/
 
 
         public void OnBeforeCardSave(ChaFile chaFile)
@@ -270,8 +269,6 @@ namespace KKABMX.Core
 
         public void ReloadAllControllers()
         {
-            Console.WriteLine("ReloadAllControllers");
-
             var controllers = GetAllBoneControllers();
             foreach (var bc in controllers)
                 LoadFromPluginData(bc, bc.chaControl.chaFile);

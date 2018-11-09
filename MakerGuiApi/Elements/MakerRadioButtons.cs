@@ -26,6 +26,9 @@ namespace MakerAPI
             set => _incomingValue.OnNext(value);
         }
 
+        /// <summary>
+        /// Buttons 1, 2, 3 are values 0, 1, 2
+        /// </summary>
         public IObservable<int> ValueChanged => _outgoingValue;
 
         public MakerRadioButtons(MakerCategory category, string settingName, string button1, string button2, string button3) : base(category)
@@ -95,6 +98,12 @@ namespace MakerAPI
             });
             
             tr.gameObject.SetActive(true);
+        }
+
+        public override void Dispose()
+        {
+            _incomingValue.Dispose();
+            _outgoingValue.Dispose();
         }
 
         private static Transform RadioCopy

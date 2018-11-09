@@ -4,6 +4,35 @@ namespace KKABMX.GUI
 {
     internal static class InterfaceData
     {
+        /*public static MakerCategory FaceHead = new MakerCategory("00_FaceTop", "tglHead");
+        public static MakerCategory FaceEar = new MakerCategory("00_FaceTop", "tglEar");
+        public static MakerCategory FaceChin = new MakerCategory("00_FaceTop", "tglChin");
+        public static MakerCategory FaceCheek = new MakerCategory("00_FaceTop", "tglCheek");
+        public static MakerCategory FaceEyebrow = new MakerCategory("00_FaceTop", "tglEyebrow");
+        public static MakerCategory FaceEye01 = new MakerCategory("00_FaceTop", "tglEye01");
+        public static MakerCategory FaceEyes2 = new MakerCategory("00_FaceTop", "tglEyes 2");
+        public static MakerCategory FaceEyelashUp = new MakerCategory("00_FaceTop", "tglUpper Eyelash");
+        public static MakerCategory FaceEyelashDn = new MakerCategory("00_FaceTop", "tglLower Eyelash");
+        public static MakerCategory FaceNose = new MakerCategory("00_FaceTop", "tglNose");
+        public static MakerCategory FaceMouth = new MakerCategory("00_FaceTop", "tglMouth");
+        public static MakerCategory FaceMouth2 = new MakerCategory("00_FaceTop", "tglMouth2");
+        public static MakerCategory BodyAll = new MakerCategory("01_BodyTop", "tglAll");
+        public static MakerCategory BodyBreast = new MakerCategory("01_BodyTop", "tglBreast");//Chest
+        public static MakerCategory BodyBreast2 = new MakerCategory("01_BodyTop", "tglBreast2");//Chest 2
+        public static MakerCategory BodyNipples = new MakerCategory("01_BodyTop", "tglNipples");
+        public static MakerCategory BodyUpper = new MakerCategory("01_BodyTop", "tglUpper"); // Upper Body
+        public static MakerCategory BodyUpper2 = new MakerCategory("01_BodyTop", "tglUpper2"); // Upper Body 2
+        public static MakerCategory BodyLeg = new MakerCategory("01_BodyTop", "tglLeg");
+        public static MakerCategory BodyLower = new MakerCategory("01_BodyTop", "tglLower");
+        public static MakerCategory BodyArm = new MakerCategory("01_BodyTop", "tglArm");//Arms
+        public static MakerCategory BodyArm2 = new MakerCategory("01_BodyTop", "tglArm2"); //Arms 2
+        public static MakerCategory BodyForearms = new MakerCategory("01_BodyTop", "tglForearms");
+        public static MakerCategory BodyHands = new MakerCategory("01_BodyTop", "tglHands");
+        public static MakerCategory BodyThighs = new MakerCategory("01_BodyTop", "tglThighs");
+        public static MakerCategory BodyFeet = new MakerCategory("01_BodyTop", "tglFeet"); //Feet & Calves
+        public static MakerCategory BodyBot = new MakerCategory("03_ClothesTop", "tglBot");
+        public static MakerCategory BodySkirtScl = new MakerCategory("03_ClothesTop", "tglSkirtScl");*/
+
         // 6 Max per 1 empty page
         public static List<BoneMeta> Metadata { get; } = new List<BoneMeta>
         {
@@ -15,8 +44,8 @@ namespace KKABMX.GUI
             new BoneMeta("cf_J_FaceLow_sx"      , "Lower Head Scale 1"         , 0, 3f, "00_FaceTop"   , "tglHead"         , "")                 ,
             new BoneMeta("cf_J_FaceLow_tz"      , "Lower Head Scale 2"         , 0, 3f, "00_FaceTop"   , "tglHead"         , "")                 ,
 
-            //BoneMeta.Separator("00_FaceTop"     , "tglAll")                    ,
-            
+            //BoneMeta.Separator("00_FaceTop"   , "tglAll")                    ,
+
             BoneMeta.Separator("00_FaceTop"     , "tglEar")                    ,
             BoneMeta.Separator("00_FaceTop"     , "tglEar")                    ,
             new BoneMeta("cf_J_EarBase_ry_L"    , "Ear Scale"                  , 0, 3f, "00_FaceTop"   , "tglEar"          , "cf_J_EarBase_ry_R"),
@@ -42,11 +71,11 @@ namespace KKABMX.GUI
             new BoneMeta("cf_J_MayuMid_s_L"     , "Inner Eyebrow Scale"        , 0, 3f, "00_FaceTop"   , "tglEyebrow"      , "cf_J_MayuMid_s_R") ,
             new BoneMeta("cf_J_MayuTip_s_L"     , "Outer Eyebrow Scale"        , 0, 3f, "00_FaceTop"   , "tglEyebrow"      , "cf_J_MayuTip_s_R") ,
 
-            //BoneMeta.Separator("00_FaceTop"     , "tglEye01")                  ,
-            //BoneMeta.Separator("00_FaceTop"     , "tglEye01")                  ,
-            new BoneMeta("cf_J_Eye_tz"          , "Both Eyeballs Scale"        , 0, 3f, "00_FaceTop"   , "tglEyes 2"        , "")                 ,
-            new BoneMeta("cf_J_Eye_rz_L"        , "Eyeball Scale 1"            , 0, 3f, "00_FaceTop"   , "tglEyes 2"        , "cf_J_Eye_rz_R")    ,
-            new BoneMeta("cf_J_Eye_tx_L"        , "Eyeball Scale 2"            , 0, 3f, "00_FaceTop"   , "tglEyes 2"        , "cf_J_Eye_tx_R")    ,
+            //BoneMeta.Separator("00_FaceTop"   , "tglEye01")                  ,
+            //BoneMeta.Separator("00_FaceTop"   , "tglEye01")                  ,
+            new BoneMeta("cf_J_Eye_tz"          , "Both Eyeballs Scale"        , 0, 3f, "00_FaceTop"   , "tglEyes 2"       , "")                 ,
+            new BoneMeta("cf_J_Eye_rz_L"        , "Eyeball Scale 1"            , 0, 3f, "00_FaceTop"   , "tglEyes 2"       , "cf_J_Eye_rz_R")    ,
+            new BoneMeta("cf_J_Eye_tx_L"        , "Eyeball Scale 2"            , 0, 3f, "00_FaceTop"   , "tglEyes 2"       , "cf_J_Eye_tx_R")    ,
 
             new BoneMeta("cf_J_Eye01_s_L"       , "Upper Eyelashes Scale 1"    , 0, 3f, "00_FaceTop"   , "tglUpper Eyelash", "cf_J_Eye01_s_R")   ,
             new BoneMeta("cf_J_Eye02_s_L"       , "Upper Eyelashes Scale 2"    , 0, 3f, "00_FaceTop"   , "tglUpper Eyelash", "cf_J_Eye02_s_R")   ,
@@ -64,9 +93,10 @@ namespace KKABMX.GUI
             new BoneMeta("cf_J_Nose_tip"        , "Nose Tip Scale"             , 0, 3f, "00_FaceTop"   , "tglNose"         , "")                 ,
             new BoneMeta("cf_J_NoseBridge_rx"   , "Nose Bridge Scale 1"        , 0, 3f, "00_FaceTop"   , "tglNose"         , "")                 ,
             new BoneMeta("cf_J_NoseBridge_ty"   , "Nose Bridge Scale 2"        , 0, 3f, "00_FaceTop"   , "tglNose"         , "")                 ,
-            new BoneMeta("cf_J_megane_rx_ear"   , "Glasses Accessory Scale"    , 0, 3f, "00_FaceTop"   , "tglNose"          ,"")                  , //This will scale any Accessories parented to glasses
+            new BoneMeta("cf_J_megane_rx_ear"   , "Glasses Accessory Scale"    , 0, 3f, "00_FaceTop"   , "tglNose"         , "")                 , //This will scale any Accessories parented to glasses
 
             //BoneMeta.Separator("00_FaceTop"   , "tglMouth")                  ,
+
 
             new BoneMeta("cf_J_MouthBase_rx"    , "Mouth Scale 1"              , 0, 3f, "00_FaceTop"   , "tglMouth 2"      , "")                 ,
             new BoneMeta("cf_J_MouthBase_ty"    , "Mouth Scale 2"              , 0, 3f, "00_FaceTop"   , "tglMouth 2"      , "")                 ,
@@ -111,8 +141,6 @@ namespace KKABMX.GUI
 
             BoneMeta.Separator("01_BodyTop"     , "tglLower")                  ,
             BoneMeta.Separator("01_BodyTop"     , "tglLower")                  ,
-            new BoneMeta("cf_d_kokan"           , "Genital Scale"              , 0, 3f, "01_BodyTop"   , "tglLower"        , "")                 ,
-            new BoneMeta("cf_j_ana"             , "Anus Scale"                 , 0, 3f, "01_BodyTop"   , "tglLower"        , "")                 ,
             new BoneMeta("cf_hit_berry"         , "Belly Collision Scale"      , 0, 3f, "01_BodyTop"   , "tglLower"        , "")                 ,
             new BoneMeta("cf_hit_waist_L"       , "Waist Collision Scale"      , 0, 3f, "01_BodyTop"   , "tglLower"        , "")                 ,
             new BoneMeta("cf_hit_siri_L"        , "Ass Collision Scale"        , 0, 3f, "01_BodyTop"   , "tglLower"        , "cf_hit_siri_R")    ,
@@ -142,8 +170,6 @@ namespace KKABMX.GUI
             new BoneMeta("cf_s_hand_L"          , "Hand Scale 2"               , 0, 3f, "01_BodyTop"   , "tglHands"        , "cf_s_hand_R")      ,
             new BoneMeta("cf_hit_arm_L"         , "Hand Collision Scale"       , 0, 3f, "01_BodyTop"   , "tglHands"        , "cf_hit_arm_R")     ,
 
-            //BoneMeta.Separator("01_BodyTop"   , "tglLeg")                    ,
-
             new BoneMeta("cf_j_thigh00_L"       , "Thigh & Leg Scale"          , 0, 3f, "01_BodyTop"   , "tglThighs"       , "cf_j_thigh00_R")   ,
             new BoneMeta("cf_s_thigh01_L"       , "Upper Thigh Scale"          , 0, 3f, "01_BodyTop"   , "tglThighs"       , "cf_s_thigh01_R")   ,
             new BoneMeta("cf_s_thigh02_L"       , "Middle Thigh Scale"         , 0, 3f, "01_BodyTop"   , "tglThighs"       , "cf_s_thigh02_R")   ,
@@ -164,6 +190,14 @@ namespace KKABMX.GUI
             new BoneMeta("cf_d_sk_06_00"        , "Skirt Sides"                , 0, 3f, "03_ClothesTop", "tglSkirt"        , "cf_d_sk_02_00")    ,
             new BoneMeta("cf_d_sk_05_00"        , "Skirt Back Sides"           , 0, 3f, "03_ClothesTop", "tglSkirt"        , "cf_d_sk_03_00")    ,
             new BoneMeta("cf_d_sk_04_00"        , "Skirt Back"                 , 0, 3f, "03_ClothesTop", "tglSkirt"        , "")                 ,
+
+
+            new BoneMeta("cf_d_kokan"           , "Genital area"               , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cf_j_kokan"           , "Pubic mound"                , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cf_j_ana"             , "Anus"                       , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cm_J_dan100_00"       , "Penis"                      , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cm_J_dan109_00"       , "Penis tip"                  , 0, 3f, "01_BodyTop"   , "tglGenitals"     , "")                 ,
+            new BoneMeta("cm_J_dan_f_L"         , "Testicles"                  , 0, 4f, "01_BodyTop"   , "tglGenitals"     , "cm_J_dan_f_R")     ,
         };
     }
 }

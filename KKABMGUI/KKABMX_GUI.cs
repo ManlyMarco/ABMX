@@ -92,6 +92,8 @@ namespace KKABMX.GUI
             var y = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Y", boneMeta.Min, boneMeta.Max, 1));
             var z = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Z", boneMeta.Min, boneMeta.Max, 1));
 
+            var isUpdatingValue = false;
+
             void PushValueToControls()
             {
                 var bone = _boneController.modifiers[boneMeta.BoneName];
@@ -116,15 +118,21 @@ namespace KKABMX.GUI
                     }
                 }
 
+                isUpdatingValue = true;
+
                 x.Value = bone.sclMod.x;
                 y.Value = bone.sclMod.y;
                 z.Value = bone.sclMod.z;
+
+                isUpdatingValue = false;
             }
             _updateActionList.Add(PushValueToControls);
             PushValueToControls();
 
             void PullValuesToBone(float _)
             {
+                if(isUpdatingValue) return;
+
                 var newValue = new Vector3(x.Value, y.Value, z.Value);
                 var bone = _boneController.modifiers[boneMeta.BoneName];
 

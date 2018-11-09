@@ -57,7 +57,7 @@ namespace KKABMX.Core
 
         private float[] sibFaceValues;
 
-        public event EventHandler ModifiersInitialized;
+        //public event EventHandler ModifiersInitialized;
 
         private void Start()
         {
@@ -68,12 +68,12 @@ namespace KKABMX.Core
             //BoneControllerMgr.Instance.RegisterBoneController(this);
         }
 
-        private void OnDestroy()
+        /*private void OnDestroy()
         {
             //BoneControllerMgr.Instance.boneControllers.Remove(this);
-        }
+        }*/
 
-        public void InitializeModifiers()
+        public void ResetModifiers()
         {
             foreach (var boneModifierBody in modifiers.Values)
             {
@@ -93,9 +93,6 @@ namespace KKABMX.Core
             sibFaceValues = null;
             //lastLoadedPath = null;
             //lastLoadedFileTimestamp = -1L;
-
-            Logger.Log(LogLevel.Debug, "BoneController.ModifiersInitialized");
-            ModifiersInitialized?.Invoke(this, EventArgs.Empty);
         }
 
         private IEnumerator InstallModifierCo()
@@ -103,7 +100,7 @@ namespace KKABMX.Core
             yield return new WaitUntil(() => chaControl != null && chaControl.loadEnd && chaControl.objBodyBone != null);
             try
             {
-                InitializeModifiers();
+                ResetModifiers();
                 if (IsExtDataExists())
                 {
                     LoadFromFile();
@@ -129,7 +126,7 @@ namespace KKABMX.Core
             }
             catch (Exception value)
             {
-                Logger.Log(LogLevel.Error, "[ABM] Unxepected Error for " + chaControl.chaFile.parameter.fullname);
+                Logger.Log(LogLevel.Error, "[KKABMX] Unxepected error setting up character: " + chaControl.chaFile.parameter.fullname);
                 Logger.Log(LogLevel.Error, value);
             }
         }
@@ -138,7 +135,7 @@ namespace KKABMX.Core
         {
             // 0 = male, else female
             // TODO will they work for male too?
-            if (chaControl.fileParam.sex != 0)
+            //if (chaControl.fileParam.sex != 0)
             {
                 InsertAdditionalModifier("cf_j_shoulder_L");
                 InsertAdditionalModifier("cf_j_shoulder_R");
@@ -160,16 +157,26 @@ namespace KKABMX.Core
                 InsertAdditionalModifier("cf_j_foot_R");
                 InsertAdditionalModifier("cf_j_ana");
             }
+            //else
+            {
+                InsertAdditionalModifier("cm_J_dan109_00");
+                InsertAdditionalModifier("cm_J_dan100_00");
+                InsertAdditionalModifier("cm_J_dan_f_L"  );
+                InsertAdditionalModifier("cm_J_dan_f_R"  );
+                InsertAdditionalModifier("cf_j_kokan"    );
+            }
         }
 
         public BoneModifierBody InsertAdditionalModifier(string boneName)
         {
             var boneModifierBody = new BoneModifierBody(BoneModifierBody.ManualBoneId, null) { boneName = boneName };
             var loopGo = GetRootTransform().FindLoop(boneName);
-            if (loopGo != null)
-                boneModifierBody.manualTarget = loopGo.transform;
-            else
-                Logger.Log(LogLevel.Warning, $"[ABM] Manually included bone {boneName} was not found");
+            if (loopGo == null)
+            {
+                Logger.Log(LogLevel.Warning, $"[KKABMX] Manually included bone {boneName} was not found");
+                return null;
+            }
+            boneModifierBody.manualTarget = loopGo.transform;
             modifiers.Add(boneModifierBody.boneName, boneModifierBody);
             return boneModifierBody;
         }
@@ -227,7 +234,7 @@ namespace KKABMX.Core
 
         public void LoadFromFile()
         {
-            InitializeModifiers();
+            ResetModifiers();
             if (IsExtDataExists())
             {
                 LoadFromFile(GetExtDataFilePath());
@@ -252,7 +259,7 @@ namespace KKABMX.Core
                 return;
             var lines = WriteSafeReadAllLines(path);
             //lastLoadedFileTimestamp = -1L;
-            InitializeModifiers();
+            ResetModifiers();
             var num = File.GetLastWriteTime(path).ToBinary();
             Console.WriteLine("Load from file: {0}, timestamp: {1}", path, num);
             if (ReadDataFromLines(lines))
@@ -272,7 +279,7 @@ namespace KKABMX.Core
             var lines = ReadAllLinesFromReader(new StringReader(textData));
             //lastLoadedFileTimestamp = -1L;
             //lastLoadedPath = null;
-            InitializeModifiers();
+            ResetModifiers();
             ReadDataFromLines(lines);
         }
 
@@ -306,6 +313,8 @@ namespace KKABMX.Core
                         {
                             int.Parse(array[0]);
                             boneModifierBody = FindOrCreateModifierByBoneName(text2);
+                            if(boneModifierBody == null)
+                                continue;
                         }
                         boneModifierBody.enabled = enabled;
                         boneModifierBody.sclMod.x = x;

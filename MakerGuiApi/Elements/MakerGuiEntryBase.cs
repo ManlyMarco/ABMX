@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace MakerAPI
 {
-    public abstract class MakerGuiEntryBase
+    public abstract class MakerGuiEntryBase : IDisposable
     {
         public static readonly string GuiApiNameAppendix = "(GUIAPI)";
 
@@ -13,5 +14,7 @@ namespace MakerAPI
 
         public MakerCategory Category { get; }
         protected internal abstract void CreateControl(Transform subCategoryList);
+
+        public abstract void Dispose();
     }
 }

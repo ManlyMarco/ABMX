@@ -9,14 +9,6 @@ namespace MakerAPI
         // ReSharper disable UnusedMember.Local
         private static class Hooks
         {
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(CustomScene), "OnDestroy")]
-            public static void CustomScene_Destroy()
-            {
-                Instance.OnMakerExiting();
-            }
-
-            private static bool _registerEventFired;
             private static bool _studioStarting;
 
             [HarmonyPrefix]
@@ -29,22 +21,31 @@ namespace MakerAPI
 
                 if (categoryTransfrom?.parent != null && categoryTransfrom.parent.name == "CvsMenuTree")
                 {
-                    if (!_registerEventFired)
-                    {
-                        _registerEventFired = true;
-                        Instance.OnRegisterCustomSubCategories();
-                    }
-
                     if (!_studioStarting)
                     {
-                        _studioStarting = true;
+                        Instance.OnRegisterCustomSubCategories();
                         Instance.StartCoroutine(OnMakerLoadingCo());
+                        _studioStarting = true;
                     }
 
                     // Have to add missing subcategories now, before UI_ToggleGroupCtrl.Start runs
                     Instance.AddMissingSubCategories(__instance);
                 }
             }
+
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(CustomScene), "OnDestroy")]
+            public static void CustomScene_Destroy()
+            {
+                Instance.OnMakerExiting();
+            }
+
+            /*[HarmonyPrefix]
+            [HarmonyPatch(typeof(BaseLoader), "Awake")]
+            public static void CustomScene_Awake(BaseLoader __instance)
+            {
+                Instance.CurrentCustomScene = __instance as CustomScene;
+            }*/
 
             private static IEnumerator OnMakerLoadingCo()
             {
@@ -53,7 +54,7 @@ namespace MakerAPI
 
                 Instance.OnMakerStartedLoading();
                 
-                // Wait a few frames to give everything chance to properly initialize before announcing loading end
+                // Wait a few frames to give everything chance to properly initialize
                 for (var i = 0; i < 3; i++)
                     yield return null;
 
