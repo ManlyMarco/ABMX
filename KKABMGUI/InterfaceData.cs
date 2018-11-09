@@ -76,7 +76,7 @@ namespace KKABMX.GUI
 
             BoneMeta.Separator("01_BodyTop"     , "tglAll")                    ,
             BoneMeta.Separator("01_BodyTop"     , "tglAll")                    ,
-            new BoneMeta("cf_n_height"          , "Body Scale"                 , 0, 3f, "01_BodyTop"   , "tglAll"          , "")                 ,
+            new BoneMeta("cf_n_height"          , "Body Scale"                 , 0, 2f, "01_BodyTop"   , "tglAll"          , "")                 ,
 
             BoneMeta.Separator("01_BodyTop"     , "tglBreast")                 ,
             BoneMeta.Separator("01_BodyTop"     , "tglBreast")                 ,
@@ -150,9 +150,9 @@ namespace KKABMX.GUI
             new BoneMeta("cf_s_thigh03_L"       , "Lower Thigh Scale"          , 0, 3f, "01_BodyTop"   , "tglThighs"       , "cf_s_thigh03_R")   ,
 
             new BoneMeta("cf_j_leg01_L"         , "Lower Leg Scale"            , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_j_leg01_R")     ,
-            new BoneMeta("cf_s_leg01_L"         , "Upper Calve Scale"          , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_s_leg02_R")     ,
-            new BoneMeta("cf_s_leg02_L"         , "Lower Calve Scale"          , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_s_leg03_R")     ,
-            new BoneMeta("cf_s_leg03_L"         , "Angkle Scale"               , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_s_leg01_R")     ,
+            new BoneMeta("cf_s_leg01_L"         , "Upper Calve Scale"          , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_s_leg01_R")     ,
+            new BoneMeta("cf_s_leg02_L"         , "Lower Calve Scale"          , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_s_leg02_R")     ,
+            new BoneMeta("cf_s_leg03_L"         , "Ankle Scale"                , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_s_leg03_R")     ,
             new BoneMeta("cf_j_foot_L"          , "Foot Scale 1"               , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_j_foot_R")      ,
             new BoneMeta("cf_j_leg03_L"         , "Foot Scale 2"               , 0, 3f, "01_BodyTop"   , "tglFeet & Calves", "cf_j_leg03_R")     ,
 

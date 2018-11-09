@@ -17,10 +17,8 @@ namespace KKABMX.GUI
     [BepInDependency(KKABMX_Core.GUID)]
     public class KKABMX_GUI : BaseUnityPlugin
     {
-        private MakerAPI.MakerAPI _mi;
         private BoneController _boneController;
-        private bool _controlsWereAdded;
-        readonly List<Action> _updateActionList = new List<Action>();
+        private readonly List<Action> _updateActionList = new List<Action>();
 
         public KKABMX_GUI()
         {
@@ -33,15 +31,16 @@ namespace KKABMX.GUI
 
         private void Start()
         {
-            _mi = MakerAPI.MakerAPI.Instance;
-            _mi.MakerBaseLoaded += OnEarlyMakerFinishedLoading;
-            _mi.RegisterCustomSubCategories += OnRegisterCustomSubCategories;
+            var makerApi = MakerAPI.MakerAPI.Instance;
+            makerApi.RegisterCustomSubCategories += OnRegisterCustomSubCategories;
+            makerApi.MakerBaseLoaded += OnEarlyMakerFinishedLoading;
+            makerApi.MakerExiting += OnMakerExiting;
 
             if (EnableLegacyGui.Value)
                 gameObject.AddComponent<KKABMX_LegacyGUI>();
         }
 
-        private void RegisterCustomControls()
+        private void RegisterCustomControls(RegisterCustomControlsEvent callback)
         {
             foreach (var categoryBones in InterfaceData.Metadata.GroupBy(x => new MakerCategory(x.Category, x.SubCategory)))
             {
@@ -57,7 +56,7 @@ namespace KKABMX.GUI
                         continue;
                     }
 
-                    first = !RegisterSingleControl(category, boneMeta, first);
+                    first = !RegisterSingleControl(category, boneMeta, first, callback);
                 }
             }
 
@@ -72,26 +71,26 @@ namespace KKABMX.GUI
             }
         }
 
-        private bool RegisterSingleControl(MakerCategory category, BoneMeta boneMeta, bool isFirstElement)
+        private bool RegisterSingleControl(MakerCategory category, BoneMeta boneMeta, bool isFirstElement, RegisterCustomControlsEvent callback)
         {
             if (boneMeta.IsSeparator)
             {
-                _mi.AddControl(new MakerSeparator(category));
+                callback.AddControl(new MakerSeparator(category));
                 return false;
             }
 
             if (!isFirstElement)
-                _mi.AddControl(new MakerSeparator(category));
+                callback.AddControl(new MakerSeparator(category));
 
             MakerRadioButtons rb = null;
             if (!string.IsNullOrEmpty(boneMeta.RightBoneName))
             {
-                rb = _mi.AddControl(new MakerRadioButtons(category, "Side to edit", "Both", "Left", "Right"));
+                rb = callback.AddControl(new MakerRadioButtons(category, "Side to edit", "Both", "Left", "Right"));
             }
 
-            var x = _mi.AddControl(new MakerSlider(category, boneMeta.DisplayName + " X", boneMeta.Min, boneMeta.Max, 1));
-            var y = _mi.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Y", boneMeta.Min, boneMeta.Max, 1));
-            var z = _mi.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Z", boneMeta.Min, boneMeta.Max, 1));
+            var x = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " X", boneMeta.Min, boneMeta.Max, 1));
+            var y = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Y", boneMeta.Min, boneMeta.Max, 1));
+            var z = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Z", boneMeta.Min, boneMeta.Max, 1));
 
             void PushValueToControls()
             {
@@ -156,17 +155,17 @@ namespace KKABMX.GUI
             return true;
         }
 
-        private static void OnRegisterCustomSubCategories(object sender, EventArgs e)
+        private static void OnRegisterCustomSubCategories(object sender, RegisterSubCategoriesEvent e)
         {
             foreach (var subCategory in InterfaceData.Metadata
                 .Select(x => new MakerCategory(x.Category, x.SubCategory))
                 .Distinct())
             {
-                MakerAPI.MakerAPI.Instance.AddSubCategory(subCategory);
+                e.AddSubCategory(subCategory);
             }
         }
 
-        private void OnEarlyMakerFinishedLoading(object sender, EventArgs e)
+        private void OnEarlyMakerFinishedLoading(object sender, RegisterCustomControlsEvent e)
         {
             _boneController = FindObjectOfType<BoneController>();
             var modifiers = _boneController?.modifiers?.Values.ToArray();
@@ -176,22 +175,21 @@ namespace KKABMX.GUI
                 return;
             }
 
-            _boneController.ModifiersInitialized += (s, args) =>
+            BoneControllerMgr.Instance.MakerLimitedLoad += (s, args) =>
             {
-                if (!ReferenceEquals(_boneController, s)) return;
+                if (!ReferenceEquals(_boneController, args.Controller)) return;
 
                 foreach (var action in _updateActionList)
-                {
                     action();
-                }
-                // todo send updated values to all controls when this happens
             };
 
-            if (!_controlsWereAdded)
-            {
-                RegisterCustomControls();
-                _controlsWereAdded = true;
-            }
+            RegisterCustomControls(e);
+        }
+
+        private void OnMakerExiting(object sender, EventArgs e)
+        {
+            _updateActionList.Clear();
+            _boneController = null;
         }
     }
 }

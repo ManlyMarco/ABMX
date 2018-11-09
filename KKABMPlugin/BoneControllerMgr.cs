@@ -9,13 +9,13 @@ using Logger = BepInEx.Logger;
 
 namespace KKABMX.Core
 {
-    internal class BoneControllerMgr : MonoBehaviour
+    public class BoneControllerMgr : MonoBehaviour
     {
         private const string EXTENDED_SAVE_ID = "KKABMPlugin.ABMData";
         private const string BONE_DATA_KEY = "boneData";
         //public List<BoneController> boneControllers = new List<BoneController>();
 
-        private bool InsideMaker { get; set; }
+        public bool InsideMaker { get; private set; }
         public static BoneControllerMgr Instance { get; private set; }
 
         public string lastLoadedFile;
@@ -30,21 +30,7 @@ namespace KKABMX.Core
                 DontDestroyOnLoad(Instance.gameObject);
             }
             ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
-            ExtendedSave.CardBeingLoaded += Instance.ExtendedSave_CardBeingLoaded;
         }
-
-        private void ExtendedSave_CardBeingLoaded(ChaFile file)
-        {
-            Console.WriteLine("ExtendedSave_CardBeingLoaded " + file.charaFileName);
-            if (InsideMaker)
-                lastLoadedChaFile = file;
-            else
-            {
-                lastLoadedChaFile = null;
-            }
-        }
-
-        private static ChaFile lastLoadedChaFile;
 
         private IEnumerator ClearReloadFlagCo()
         {
@@ -108,13 +94,30 @@ namespace KKABMX.Core
             return text;
         }*/
 
-        public void OnLimitedLoad(string path)
+        public void OnLimitedLoad(string path, ChaFile chaFile)
         {
             if (InsideMaker)
             {
                 lastLoadedFile = path;
-                ReloadAllControllers(path);
+
+                var makerController = FindObjectOfType<BoneController>();
+                LoadFromPluginData(makerController, chaFile);
+
+                Logger.Log(LogLevel.Debug, "MakerLimitedLoad");
+                MakerLimitedLoad?.Invoke(this, new BoneControllerEventArgs(makerController));
             }
+        }
+
+        public event EventHandler<BoneControllerEventArgs> MakerLimitedLoad;
+
+        public sealed class BoneControllerEventArgs : EventArgs
+        {
+            public BoneControllerEventArgs(BoneController controller)
+            {
+                Controller = controller;
+            }
+
+            public BoneController Controller { get; }
         }
 
         public static PluginData GetExtendedCharacterData(ChaFile chaFile)
@@ -265,16 +268,13 @@ namespace KKABMX.Core
             }
         }*/
 
-        public void ReloadAllControllers(string path)
+        public void ReloadAllControllers()
         {
-            Console.WriteLine("ReloadAllControllers " + path);
-            //ExtensibleSaveFormat.ExtendedSave
-            // todo remove
+            Console.WriteLine("ReloadAllControllers");
 
-            Console.WriteLine(lastLoadedChaFile.charaFileName);
             var controllers = GetAllBoneControllers();
             foreach (var bc in controllers)
-                LoadFromPluginData(bc, lastLoadedChaFile ?? bc.chaControl.chaFile);
+                LoadFromPluginData(bc, bc.chaControl.chaFile);
         }
 
         /*public void SaveAllControllers()

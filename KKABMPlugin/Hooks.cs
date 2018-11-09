@@ -39,6 +39,18 @@ namespace KKABMX.Core
             BoneControllerMgr.AttachBoneController(__instance);
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ChaFile), "LoadFile", new[] { typeof(BinaryReader), typeof(bool), typeof(bool) })]
+        public static void ChaFileLoadFilePreHook(ChaFile __instance, BinaryReader br, bool noLoadPNG, bool noLoadStatus)
+        {
+            if (BoneControllerMgr.Instance && BoneControllerMgr.Instance.InsideMaker)
+                lastLoadedChaFile = __instance;
+            else
+                lastLoadedChaFile = null;
+        }
+
+        private static ChaFile lastLoadedChaFile;
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ChaFileControl), "LoadFileLimited", new[]
         {
@@ -55,7 +67,7 @@ namespace KKABMX.Core
             bool parameter, bool coordinate, ChaFileControl __instance)
         {
             if ((face || body) && BoneControllerMgr.Instance)
-                BoneControllerMgr.Instance.OnLimitedLoad(filename);
+                BoneControllerMgr.Instance.OnLimitedLoad(filename, lastLoadedChaFile);
         }
 
         [HarmonyPrefix]
@@ -179,6 +191,7 @@ namespace KKABMX.Core
         public static void CustomScene_Destroy()
         {
             BoneControllerMgr.Instance.ExitCustomScene();
+            lastLoadedChaFile = null;
         }
 
         [HarmonyPrefix]
