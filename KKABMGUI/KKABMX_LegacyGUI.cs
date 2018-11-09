@@ -1,16 +1,13 @@
 ﻿using System.Collections;
 using System.Linq;
-using BepInEx;
-using KKABMPlugin;
+using KKABMX.Core;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-namespace KKABMGUI
+namespace KKABMX.GUI
 {
-    [BepInPlugin(nameof(KKABMGUI), nameof(KKABMGUI), "1.1")]
-    //TODO [BepInDependency()]
-    internal class KKABMGUI : BaseUnityPlugin
+    internal class KKABMX_LegacyGUI : MonoBehaviour
     {
         private Rect abmRect = new Rect(20, 220, 600, 400);
 
@@ -71,9 +68,9 @@ namespace KKABMGUI
         {
             if (initGUI)
             {
-                gs_Input = new GUIStyle(GUI.skin.textArea);
-                gs_Label = new GUIStyle(GUI.skin.label);
-                gs_ButtonReset = new GUIStyle(GUI.skin.button);
+                gs_Input = new GUIStyle(UnityEngine.GUI.skin.textArea);
+                gs_Label = new GUIStyle(UnityEngine.GUI.skin.label);
+                gs_ButtonReset = new GUIStyle(UnityEngine.GUI.skin.button);
                 gs_Label.alignment = TextAnchor.MiddleRight;
                 gs_Label.normal.textColor = Color.white;
                 initGUI = false;
@@ -95,7 +92,7 @@ namespace KKABMGUI
         {
             //MarC0's gonna burst a blood vessel, by all means make this less awful.
 
-            GUILayout.BeginVertical();
+            //GUILayout.BeginVertical();
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, glo_Slider);
 
             foreach (var mod in modifiers)
@@ -120,8 +117,6 @@ namespace KKABMGUI
 
                 mod.sclMod = v3;
 
-                mod.enabled = true;
-
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal(glo_Slider);
@@ -138,20 +133,12 @@ namespace KKABMGUI
 
                 mod.sclMod = v3;
 
-                mod.enabled = true;
-
                 GUILayout.EndHorizontal();
             }
 
             GUILayout.EndScrollView();
-
-            /*GUILayout.BeginHorizontal(glo_Slider);
-            if (GUILayout.Button("Save", gs_ButtonReset, glo_HEIGHT_30, glo_HEIGHT_30))
-                FindObjectOfType<BoneController>().SaveToFile();
-            GUILayout.EndHorizontal();*/
-
-            GUILayout.EndVertical();
-            GUI.DragWindow();
+            
+            UnityEngine.GUI.DragWindow();
         }
     }
 }

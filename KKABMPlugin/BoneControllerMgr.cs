@@ -7,21 +7,21 @@ using ExtensibleSaveFormat;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 
-namespace KKABMPlugin
+namespace KKABMX.Core
 {
     internal class BoneControllerMgr : MonoBehaviour
     {
         private const string EXTENDED_SAVE_ID = "KKABMPlugin.ABMData";
         private const string BONE_DATA_KEY = "boneData";
         //public List<BoneController> boneControllers = new List<BoneController>();
-        
+
         private bool InsideMaker { get; set; }
         public static BoneControllerMgr Instance { get; private set; }
 
         public string lastLoadedFile;
-        
+
         public bool needReload;
-        
+
         public static void Init()
         {
             if (!Instance)
@@ -30,12 +30,21 @@ namespace KKABMPlugin
                 DontDestroyOnLoad(Instance.gameObject);
             }
             ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
-        }
-        
-        protected void Start()
-        {
+            ExtendedSave.CardBeingLoaded += Instance.ExtendedSave_CardBeingLoaded;
         }
 
+        private void ExtendedSave_CardBeingLoaded(ChaFile file)
+        {
+            Console.WriteLine("ExtendedSave_CardBeingLoaded " + file.charaFileName);
+            if (InsideMaker)
+                lastLoadedChaFile = file;
+            else
+            {
+                lastLoadedChaFile = null;
+            }
+        }
+
+        private static ChaFile lastLoadedChaFile;
 
         private IEnumerator ClearReloadFlagCo()
         {
@@ -80,13 +89,13 @@ namespace KKABMPlugin
             InsideMaker = false;
             lastLoadedFile = null;
         }
-        
+
         public void OnCustomSceneExitWithSave()
         {
             if (InsideMaker)
                 OnBeforeCardSave(Singleton<CustomBase>.Instance.chaCtrl.chaFile);
         }
-        
+
         /*private string GetPath(Transform root)
         {
             var text = root.name;
@@ -98,7 +107,7 @@ namespace KKABMPlugin
             }
             return text;
         }*/
-        
+
         public void OnLimitedLoad(string path)
         {
             if (InsideMaker)
@@ -107,8 +116,8 @@ namespace KKABMPlugin
                 ReloadAllControllers(path);
             }
         }
-        
-        public static PluginData GetExtendedCharacterData(ChaFileControl chaFile)
+
+        public static PluginData GetExtendedCharacterData(ChaFile chaFile)
         {
             if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
 
@@ -120,6 +129,7 @@ namespace KKABMPlugin
             if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
             if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
 
+            Logger.Log(LogLevel.Info, "[ABM] Saving ExtensibleSaveFormat data for " + chaFile.parameter.fullname);
             ExtendedSave.SetExtendedDataById(chaFile, EXTENDED_SAVE_ID, pluginData);
         }
 
@@ -168,7 +178,7 @@ namespace KKABMPlugin
             }
         }
 
-        public static void CloneBoneDataPluginData(ChaFileControl src, ChaFileControl dst)
+        public static void CloneBoneDataPluginData(ChaFileControl src, ChaFile dst)
         {
             var boneDataPluginData = GetExtendedCharacterData(src);
             if (boneDataPluginData != null)
@@ -182,12 +192,12 @@ namespace KKABMPlugin
             }
         }
 
-        public void LoadFromPluginData(BoneController boneController, ChaFileControl chaFile)
+        public void LoadFromPluginData(BoneController boneController, ChaFile chaFile)
         {
             var pluginData = GetExtendedCharacterData(chaFile);
-            if (pluginData != null && 
-                pluginData.data.TryGetValue(BONE_DATA_KEY, out var value) && 
-                value is string textData && 
+            if (pluginData != null &&
+                pluginData.data.TryGetValue(BONE_DATA_KEY, out var value) &&
+                value is string textData &&
                 !string.IsNullOrEmpty(textData))
             {
                 Logger.Log(LogLevel.Info, "[ABM] Loading ExtensibleSaveFormat data for " + chaFile.parameter.fullname);
@@ -198,7 +208,7 @@ namespace KKABMPlugin
                 boneController.InitializeModifiers();
             }
         }
-        
+
         public void OnPreCharaDataSave(SaveData.CharaData saveCharaData)
         {
             //if (GetCharacterData(saveCharaData.charFile) != null)
@@ -234,18 +244,18 @@ namespace KKABMPlugin
                 }
             }
         }
-        
+
         private static PluginData SerializeBoneController(BoneController boneController)
         {
             var pluginData = new PluginData
             {
                 version = 1,
-                data = {[BONE_DATA_KEY] = boneController.Serialize()}
+                data = { [BONE_DATA_KEY] = boneController.Serialize() }
             };
 
             return pluginData;
         }
-        
+
         /*public void OnSave(string path)
         {
             if (InsideMaker)
@@ -254,15 +264,19 @@ namespace KKABMPlugin
                 SaveAllControllers();
             }
         }*/
-        
+
         public void ReloadAllControllers(string path)
         {
+            Console.WriteLine("ReloadAllControllers " + path);
+            //ExtensibleSaveFormat.ExtendedSave
             // todo remove
+
+            Console.WriteLine(lastLoadedChaFile.charaFileName);
             var controllers = GetAllBoneControllers();
             foreach (var bc in controllers)
-                LoadFromPluginData(bc, bc.chaControl.chaFile);
+                LoadFromPluginData(bc, lastLoadedChaFile ?? bc.chaControl.chaFile);
         }
-        
+
         /*public void SaveAllControllers()
         {
             var controllers = GetAllBoneControllers();

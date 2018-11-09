@@ -8,13 +8,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // ReSharper disable InconsistentNaming
-namespace KKABMPlugin
+namespace KKABMX.Core
 {
-    public static class Hook
+    public static class Hooks
     {
         public static void InstallHook()
         {
-            HarmonyInstance.Create("KKABMPlugin.Hook").PatchAll(typeof(Hook));
+            HarmonyInstance.Create("KKABMPlugin.Hook").PatchAll(typeof(Hooks));
         }
 
         [HarmonyPostfix]

@@ -12,7 +12,7 @@ using Studio;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 
-namespace KKABMPlugin
+namespace KKABMX.Core
 {
     public class BoneController : MonoBehaviour
     {
@@ -94,6 +94,7 @@ namespace KKABMPlugin
             //lastLoadedPath = null;
             //lastLoadedFileTimestamp = -1L;
 
+            Logger.Log(LogLevel.Debug, "BoneController.ModifiersInitialized");
             ModifiersInitialized?.Invoke(this, EventArgs.Empty);
         }
 
@@ -163,12 +164,12 @@ namespace KKABMPlugin
 
         public BoneModifierBody InsertAdditionalModifier(string boneName)
         {
-            var boneModifierBody = new BoneModifierBody(-1, null) { boneName = boneName };
+            var boneModifierBody = new BoneModifierBody(BoneModifierBody.ManualBoneId, null) { boneName = boneName };
             var loopGo = GetRootTransform().FindLoop(boneName);
             if (loopGo != null)
                 boneModifierBody.manualTarget = loopGo.transform;
             else
-                Console.WriteLine("Bone {0} not found but include forcefully.", boneName);
+                Logger.Log(LogLevel.Warning, $"[ABM] Manually included bone {boneName} was not found");
             modifiers.Add(boneModifierBody.boneName, boneModifierBody);
             return boneModifierBody;
         }
@@ -344,7 +345,8 @@ namespace KKABMPlugin
         public void DeleteFile()
         {
             var extDataFilePath = GetExtDataFilePath();
-            File.Delete(extDataFilePath);
+            if (File.Exists(extDataFilePath))
+                File.Delete(extDataFilePath);
         }
 
         /*public void SaveToFile(string path)
@@ -381,6 +383,12 @@ namespace KKABMPlugin
             return sb.ToString();
         }
 
+        void Update()
+        {
+            if (baseLineKnown && IsBaselineChanged())
+                StartCoroutine(ForceBoneUpdateAndRebaseCo());
+        }
+
         /*protected void Update()
         {
             try
@@ -409,8 +417,8 @@ namespace KKABMPlugin
             {
                 Console.WriteLine(value);
             }
-        }
-        
+        }*/
+
         private bool IsBaselineChanged()
         {
             if (sibBodyValues == null || sibFaceValues == null)
@@ -422,7 +430,7 @@ namespace KKABMPlugin
                 if (sibFaceValues[j] != chaControl.fileFace.shapeValueFace[j])
                     return true;
             return false;
-        }*/
+        }
 
         protected void LateUpdate()
         {
@@ -511,7 +519,7 @@ namespace KKABMPlugin
         }
 
 
-        /*private IEnumerator ForceBoneUpdateAndRebaseCo()
+        private IEnumerator ForceBoneUpdateAndRebaseCo()
         {
             yield return null;
             sibBodyValues = new float[chaControl.fileBody.shapeValueBody.Length];
@@ -526,7 +534,7 @@ namespace KKABMPlugin
                 if (boneModifierBody.boneIndex != -1 && boneModifierBody.isScaleBone)
                     boneModifierBody.CollectBaseline();
             baseLineKnown = true;
-        }*/
+        }
 
 
         /*private IEnumerator WatchLoadedFileUpdateCo()

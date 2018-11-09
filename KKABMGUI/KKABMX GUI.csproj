@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{288732FD-1D63-45F0-815E-7EB938B6E064}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>KKABMGUI</RootNamespace>
-    <AssemblyName>KKABMGUI</AssemblyName>
+    <RootNamespace>KKABMX.GUI</RootNamespace>
+    <AssemblyName>KKABMXGUI</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\..\..\..\Games\Koikatsu\BepInEx\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,45 +26,40 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\lib\0Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\lib\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\lib\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>..\lib\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ExtensibleSaveFormat">
-      <HintPath>..\lib\ExtensibleSaveFormat.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\lib\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\lib\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KKABMGUI.cs" />
+    <Compile Include="BoneMeta.cs" />
+    <Compile Include="InterfaceData.cs" />
+    <Compile Include="KKABMX_GUI.cs" />
+    <Compile Include="KKABMX_LegacyGUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\KKABMPlugin\KKABMPlugin.csproj">
+    <ProjectReference Include="..\KKABMPlugin\KKABMX Core.csproj">
       <Project>{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}</Project>
-      <Name>KKABMPlugin</Name>
+      <Name>KKABMX Core</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\MakerGuiApi\MakerAPI.csproj">
+      <Project>{74c2db86-55bb-47b4-9805-51b5b992ef35}</Project>
+      <Name>MakerAPI</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
