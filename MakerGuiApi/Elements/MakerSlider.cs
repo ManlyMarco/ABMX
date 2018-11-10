@@ -1,4 +1,5 @@
 ﻿using System;
+using BepInEx;
 using TMPro;
 using UniRx;
 using UniRx.Triggers;
@@ -8,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace MakerAPI
 {
-    public class MakerSlider : MakerGuiEntryBase
+    public class MakerSlider : ValueMakerGuiEntry<float>
     {
         private static Transform _sliderCopy;
 
@@ -17,34 +18,19 @@ namespace MakerAPI
         private readonly float _maxValue;
         private readonly float _minValue;
         private readonly float _defaultValue;
-
-        private readonly BehaviorSubject<float> _incomingValue;
-        private readonly Subject<float> _outgoingValue;
-
-        public MakerSlider(MakerCategory category, string settingName,
-            float minValue, float maxValue, float defaultValue) : base(category)
+        
+        public MakerSlider(MakerCategory category, string settingName, float minValue, float maxValue, float defaultValue, BaseUnityPlugin owner) : base(category, defaultValue, owner)
         {
             _settingName = settingName;
 
             _minValue = minValue;
             _maxValue = maxValue;
             _defaultValue = defaultValue;
-
-            _outgoingValue = new Subject<float>();
-            _incomingValue = new BehaviorSubject<float>(defaultValue);
         }
 
         public Func<string, float> StringToValue { get; set; }
         public Func<float, string> ValueToString { get; set; }
-
-        public float Value
-        {
-            get => _incomingValue.Value;
-            set => _incomingValue.OnNext(value);
-        }
-
-        public IObservable<float> ValueChanged => _outgoingValue;
-
+        
         private static Transform SliderCopy
         {
             get
@@ -52,11 +38,11 @@ namespace MakerAPI
                 if (_sliderCopy == null)
                 {
                     // Exists in male and female maker
-                    // CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglAll/AllTop/sldTemp
-                    var originalSlider = GameObject.Find("00_FaceTop").transform.Find("tglAll/AllTop/sldTemp");
+                    var originalSlider = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglAll/AllTop/sldTemp").transform;
 
-                    _sliderCopy = Object.Instantiate(originalSlider, MakerAPI.Instance.transform, true);
+                    _sliderCopy = Object.Instantiate(originalSlider, GuiCacheTransfrom, true);
                     _sliderCopy.gameObject.SetActive(false);
+                    _sliderCopy.name = "sldTemp" + GuiApiNameAppendix;
 
                     var slider = _sliderCopy.Find("Slider").GetComponent<Slider>();
                     slider.onValueChanged.RemoveAllListeners();
@@ -83,16 +69,14 @@ namespace MakerAPI
 
             tr.name = "sldTemp" + GuiApiNameAppendix;
 
-            tr.Find("textShape").GetComponent<TextMeshProUGUI>().text = _settingName;
+            var textMesh = tr.Find("textShape").GetComponent<TextMeshProUGUI>();
+            textMesh.text = _settingName;
+            textMesh.color = TextColor;
 
             var slider = tr.Find("Slider").GetComponent<Slider>();
             slider.minValue = _minValue;
             slider.maxValue = _maxValue;
-            slider.onValueChanged.AddListener(val =>
-            {
-                _incomingValue.OnNext(val);
-                _outgoingValue.OnNext(val);
-            });
+            slider.onValueChanged.AddListener(SetNewValue);
 
             slider.GetComponent<ObservableScrollTrigger>().OnScrollAsObservable().Subscribe(data =>
             {
@@ -123,15 +107,9 @@ namespace MakerAPI
             var resetButton = tr.Find("Button").GetComponent<Button>();
             resetButton.onClick.AddListener(() => slider.value = _defaultValue);
 
-            _incomingValue.Subscribe(f => slider.value = f);
+            BufferedValueChanged.Subscribe(f => slider.value = f);
 
             tr.gameObject.SetActive(true);
-        }
-
-        public override void Dispose()
-        {
-            _incomingValue.Dispose();
-            _outgoingValue.Dispose();
         }
     }
 }

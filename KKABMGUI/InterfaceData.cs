@@ -89,27 +89,27 @@ namespace KKABMX.GUI
                                                                                                              
                 //BoneMeta.Separator("00_FaceTop"   , "tglAll")                    ,                         
                                                                                                              
-                BoneMeta.Separator(FaceEar)         ,                                                        
-                BoneMeta.Separator(FaceEar)         ,                                                        
+                //BoneMeta.Separator(FaceEar)         ,                                                        
+                //BoneMeta.Separator(FaceEar)         ,                                                        
                 new BoneMeta("cf_J_EarBase_ry_L"    , "Ear Scale"                  , 0, 3f, FaceEar          , "cf_J_EarBase_ry_R"),
                 new BoneMeta("cf_J_EarUp_L"         , "Upper Ear Scale"            , 0, 3f, FaceEar          , "cf_J_EarUp_R")     ,
                 new BoneMeta("cf_J_EarLow_L"        , "Lower Ear Scale"            , 0, 3f, FaceEar          , "cf_J_EarLow_R")    ,
                                                                                                              
-                BoneMeta.Separator(FaceChin)        ,                                                        
-                BoneMeta.Separator(FaceChin)        ,                                                        
+                //BoneMeta.Separator(FaceChin)        ,                                                        
+                //BoneMeta.Separator(FaceChin)        ,                                                        
                 new BoneMeta("cf_J_Chin_Base"       , "Jaw Scale"                  , 0, 3f, FaceChin         , "")                 ,
                 new BoneMeta("cf_J_ChinLow"         , "Chin Scale"                 , 0, 3f, FaceChin         , "")                 ,
                 new BoneMeta("cf_J_ChinTip_Base"    , "Chin Tip Scale"             , 0, 3f, FaceChin         , "")                 ,
                                                                                                              
-                BoneMeta.Separator(FaceCheek)       ,                                                        
-                BoneMeta.Separator(FaceCheek)       ,                                                        
+                //BoneMeta.Separator(FaceCheek)       ,                                                        
+                //BoneMeta.Separator(FaceCheek)       ,                                                        
                 new BoneMeta("cf_J_CheekUpBase"     , "Cheek Scale"                , 0, 3f, FaceCheek        , "")                 ,
                 new BoneMeta("cf_J_CheekUp2_L"      , "Cheekbone Scale"            , 0, 3f, FaceCheek        , "cf_J_CheekUp2_R")  ,
                 new BoneMeta("cf_J_CheekUp_s_L"     , "Upper Cheek Scale"          , 0, 3f, FaceCheek        , "cf_J_CheekUp_s_R") ,
                 new BoneMeta("cf_J_CheekLow_s_L"    , "Lower Cheek Scale"          , 0, 3f, FaceCheek        , "cf_J_CheekLow_s_R"),
                                                                                                              
-                BoneMeta.Separator(FaceEyebrow)     ,                                                        
-                BoneMeta.Separator(FaceEyebrow)     ,                                                        
+                //BoneMeta.Separator(FaceEyebrow)     ,                                                        
+                //BoneMeta.Separator(FaceEyebrow)     ,                                                        
                 new BoneMeta("cf_J_Mayu_L"          , "Eyebrow Scale"              , 0, 3f, FaceEyebrow      , "cf_J_Mayu_R")      ,
                 new BoneMeta("cf_J_MayuMid_s_L"     , "Inner Eyebrow Scale"        , 0, 3f, FaceEyebrow      , "cf_J_MayuMid_s_R") ,
                 new BoneMeta("cf_J_MayuTip_s_L"     , "Outer Eyebrow Scale"        , 0, 3f, FaceEyebrow      , "cf_J_MayuTip_s_R") ,
@@ -130,8 +130,8 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_Eye07_s_L"       , "Lower Eyelashes Scale 2"    , 0, 3f, FaceEyelashDn    , "cf_J_Eye07_s_R")   ,
                 new BoneMeta("cf_J_Eye08_s_L"       , "Lower Eyelashes Scale 3"    , 0, 3f, FaceEyelashDn    , "cf_J_Eye08_s_R")   ,
                                                                                                              
-                BoneMeta.Separator(FaceNose)        ,                                                        
-                BoneMeta.Separator(FaceNose)        ,                                                        
+                //BoneMeta.Separator(FaceNose)        ,                                                        
+                //BoneMeta.Separator(FaceNose)        ,                                                        
                 new BoneMeta("cf_J_NoseBase_rx"     , "Nose Scale"                 , 0, 3f, FaceNose         , "")                 ,
                 new BoneMeta("cf_J_Nose_tip"        , "Nose Tip Scale"             , 0, 3f, FaceNose         , "")                 ,
                 new BoneMeta("cf_J_NoseBridge_rx"   , "Nose Bridge Scale 1"        , 0, 3f, FaceNose         , "")                 ,
@@ -139,7 +139,7 @@ namespace KKABMX.GUI
                 //This will scale any Accessories parented to glasses                                     
                 new BoneMeta("cf_J_megane_rx_ear"   , "Glasses Accessory Scale"    , 0, 3f, FaceNose         , "")                 , 
                                                                                                              
-                //BoneMeta.Separator("00_FaceTop"   , "tglMouth")                  ,                         
+                ////BoneMeta.Separator("00_FaceTop"   , "tglMouth")                  ,                         
                                                                                                              
                 new BoneMeta("cf_J_MouthBase_rx"    , "Mouth Scale 1"              , 0, 3f, FaceMouth2       , "")                 ,
                 new BoneMeta("cf_J_MouthBase_ty"    , "Mouth Scale 2"              , 0, 3f, FaceMouth2       , "")                 ,
@@ -147,12 +147,12 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_Mouthup"         , "Upper Lip Scale"            , 0, 3f, FaceMouth2       , "")                 ,
                 new BoneMeta("cf_J_MouthLow"        , "Lower Lip Scale"            , 0, 3f, FaceMouth2       , "")                 ,
                                                                                                              
-                BoneMeta.Separator(BodyAll)         ,                                                        
-                BoneMeta.Separator(BodyAll)         ,                                                        
+                //BoneMeta.Separator(BodyAll)         ,                                                        
+                //BoneMeta.Separator(BodyAll)         ,                                                        
                 new BoneMeta("cf_n_height"          , "Body Scale"                 , 0, 2f, BodyAll          , "")                 ,
                                                                                                              
-                BoneMeta.Separator(BodyBreast)      ,                                                        
-                BoneMeta.Separator(BodyBreast)      ,                                                        
+                //BoneMeta.Separator(BodyBreast)      ,                                                        
+                //BoneMeta.Separator(BodyBreast)      ,                                                        
                 new BoneMeta("cf_hit_bust02_L"      , "Breast Collision Scale"     , 0, 3f, BodyBreast       , "cf_hit_bust02_R")  ,
                 new BoneMeta("cf_d_bust01_L"        , "Breast Scale 1"             , 0, 3f, BodyBreast       , "cf_d_bust01_R")    ,
                                                                                                              
@@ -171,8 +171,8 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_s_bnip02_L"        , "Nipple Tip Scale"           , 0, 3f, BodyNipples      , "cf_s_bnip02_R")    ,
                 new BoneMeta("cf_s_bnipacc_L"       , "Nipple Accessory Scale"     , 0, 3f, BodyNipples      , "cf_s_bnipacc_R")   ,
 
-                BoneMeta.Separator(BodyUpper)       ,
-                BoneMeta.Separator(BodyUpper)       ,
+                //BoneMeta.Separator(BodyUpper)       ,
+                //BoneMeta.Separator(BodyUpper)       ,
                 new BoneMeta("cf_s_neck"            , "Neck Scale"                 , 0, 3f, BodyUpper        , "")                 ,
                 new BoneMeta("cf_s_shoulder02_L"    , "Shoulder Scale"             , 0, 3f, BodyUpper        , "cf_s_shoulder02_R"),
                 new BoneMeta("cf_hit_shoulder_L"    , "Shoulder Collision Scale"   , 0, 3f, BodyUpper        , "cf_hit_shoulder_R"),
@@ -183,8 +183,8 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_hit_spine01"       , "Upper Torso Collision Scale", 0, 3f, BodyUpper2       , "")                 ,
                 new BoneMeta("cf_hit_spine02_L"     , "Lower Torso Collision Scale", 0, 3f, BodyUpper2       , "")                 ,
 
-                BoneMeta.Separator(BodyLower)                  ,
-                BoneMeta.Separator(BodyLower)                  ,
+                //BoneMeta.Separator(BodyLower)                  ,
+                //BoneMeta.Separator(BodyLower)                  ,
                 new BoneMeta("cf_s_siri_L"          , "Ass Scale"                  , 0, 3f, BodyLower        , "cf_s_siri_R")      ,
                 new BoneMeta("cf_hit_siri_L"        , "Ass Collision Scale"        , 0, 3f, BodyLower        , "cf_hit_siri_R")    ,
 

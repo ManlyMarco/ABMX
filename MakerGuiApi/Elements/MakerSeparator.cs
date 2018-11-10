@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using BepInEx;
+using UnityEngine;
 
 namespace MakerAPI
 {
@@ -23,15 +24,14 @@ namespace MakerAPI
                 if (_sourceSeparator == null)
                 {
                     // Exists in male and female maker
-                    // CustomScene /CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglAll/AllTop/Separate
-                    _sourceSeparator = GameObject.Find("00_FaceTop").transform.Find("tglAll").Find("AllTop").Find("Separate");
+                    _sourceSeparator = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglAll/AllTop/Separate").transform;
                 }
 
                 return _sourceSeparator;
             }
         }
 
-        public MakerSeparator(MakerCategory category) : base(category)
+        public MakerSeparator(MakerCategory category, BaseUnityPlugin owner) : base(category, owner)
         {
         }
     }

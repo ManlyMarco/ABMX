@@ -67,6 +67,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Elements\MakerToggle.cs" />
+    <Compile Include="Elements\ValueMakerGuiEntry.cs" />
     <Compile Include="MakerAPI.Hooks.cs" />
     <Compile Include="MakerCategory.cs" />
     <Compile Include="MakerAPI.cs" />

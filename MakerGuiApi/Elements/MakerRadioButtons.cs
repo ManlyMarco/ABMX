@@ -1,44 +1,28 @@
-﻿using TMPro;
+﻿using System;
+using BepInEx;
+using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace MakerAPI
 {
-    public class MakerRadioButtons : MakerGuiEntryBase
+    public class MakerRadioButtons : ValueMakerGuiEntry<int>
     {
         private readonly string _settingName;
         private readonly string _button1;
         private readonly string _button2;
         private readonly string _button3;
 
-        private readonly BehaviorSubject<int> _incomingValue;
-        private readonly Subject<int> _outgoingValue;
-
         private static Transform _radioCopy;
 
-        /// <summary>
-        /// Buttons 1, 2, 3 are values 0, 1, 2
-        /// </summary>
-        public int Value
-        {
-            get => _incomingValue.Value;
-            set => _incomingValue.OnNext(value);
-        }
-
-        /// <summary>
-        /// Buttons 1, 2, 3 are values 0, 1, 2
-        /// </summary>
-        public IObservable<int> ValueChanged => _outgoingValue;
-
-        public MakerRadioButtons(MakerCategory category, string settingName, string button1, string button2, string button3) : base(category)
+        public MakerRadioButtons(MakerCategory category, string settingName, string button1, string button2, string button3, BaseUnityPlugin owner) : base(category, 0, owner)
         {
             _settingName = settingName;
             _button1 = button1;
             _button2 = button2;
             _button3 = button3;
-            _incomingValue = new BehaviorSubject<int>(0);
-            _outgoingValue = new Subject<int>();
         }
 
         protected internal override void CreateControl(Transform subCategoryList)
@@ -47,7 +31,10 @@ namespace MakerAPI
 
             tr.name = "rb" + GuiApiNameAppendix;
 
-            tr.Find("textTglTitle").GetComponent<TextMeshProUGUI>().text = _settingName;
+            var settingName = tr.Find("textTglTitle").GetComponent<TextMeshProUGUI>();
+            settingName.text = _settingName;
+            settingName.color = TextColor;
+
             var t1 = tr.Find("rb00").GetComponent<Toggle>();
             var t2 = tr.Find("rb01").GetComponent<Toggle>();
             var t3 = tr.Find("rb02").GetComponent<Toggle>();
@@ -59,29 +46,20 @@ namespace MakerAPI
             t1.onValueChanged.AddListener(a =>
             {
                 if (a)
-                {
-                    _incomingValue.OnNext(0);
-                    _outgoingValue.OnNext(0);
-                }
+                    SetNewValue(0);
             });
             t2.onValueChanged.AddListener(a =>
             {
                 if (a)
-                {
-                    _incomingValue.OnNext(1);
-                    _outgoingValue.OnNext(1);
-                }
+                    SetNewValue(1);
             });
             t3.onValueChanged.AddListener(a =>
             {
                 if (a)
-                {
-                    _incomingValue.OnNext(2);
-                    _outgoingValue.OnNext(2);
-                }
+                    SetNewValue(2);
             });
 
-            _incomingValue.Subscribe(i =>
+            BufferedValueChanged.Subscribe(i =>
             {
                 switch (i)
                 {
@@ -100,12 +78,6 @@ namespace MakerAPI
             tr.gameObject.SetActive(true);
         }
 
-        public override void Dispose()
-        {
-            _incomingValue.Dispose();
-            _outgoingValue.Dispose();
-        }
-
         private static Transform RadioCopy
         {
             get
@@ -113,11 +85,11 @@ namespace MakerAPI
                 if (_radioCopy == null)
                 {
                     // Exists in male and female maker
-                    // CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglEye02/Eye02Top/rbEyeSettingType
-                    var originalSlider = GameObject.Find("00_FaceTop").transform.Find("tglEye02/Eye02Top/rbEyeSettingType");
+                    var originalSlider = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglEye02/Eye02Top/rbEyeSettingType").transform;
 
-                    _radioCopy = Object.Instantiate(originalSlider, MakerAPI.Instance.transform, true);
+                    _radioCopy = Object.Instantiate(originalSlider, GuiCacheTransfrom, true);
                     _radioCopy.gameObject.SetActive(false);
+                    _radioCopy.name = "rbSide" + GuiApiNameAppendix;
 
                     foreach (var toggle in _radioCopy.GetComponentsInChildren<Toggle>())
                     {

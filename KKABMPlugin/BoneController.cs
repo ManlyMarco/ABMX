@@ -134,37 +134,10 @@ namespace KKABMX.Core
         private void InsertAdditionalModifiers()
         {
             // 0 = male, else female
-            // TODO will they work for male too?
             //if (chaControl.fileParam.sex != 0)
-            {
-                InsertAdditionalModifier("cf_j_shoulder_L");
-                InsertAdditionalModifier("cf_j_shoulder_R");
-                InsertAdditionalModifier("cf_j_arm00_L");
-                InsertAdditionalModifier("cf_j_arm00_R");
-                InsertAdditionalModifier("cf_j_forearm01_L");
-                InsertAdditionalModifier("cf_j_forearm01_R");
-                InsertAdditionalModifier("cf_j_hand_L");
-                InsertAdditionalModifier("cf_j_hand_R");
-                InsertAdditionalModifier("cf_j_waist01");
-                InsertAdditionalModifier("cf_j_waist02");
-                InsertAdditionalModifier("cf_j_thigh00_L");
-                InsertAdditionalModifier("cf_j_thigh00_R");
-                InsertAdditionalModifier("cf_j_leg01_L");
-                InsertAdditionalModifier("cf_j_leg01_R");
-                InsertAdditionalModifier("cf_j_leg03_L");
-                InsertAdditionalModifier("cf_j_leg03_R");
-                InsertAdditionalModifier("cf_j_foot_L");
-                InsertAdditionalModifier("cf_j_foot_R");
-                InsertAdditionalModifier("cf_j_ana");
-            }
-            //else
-            {
-                InsertAdditionalModifier("cm_J_dan109_00");
-                InsertAdditionalModifier("cm_J_dan100_00");
-                InsertAdditionalModifier("cm_J_dan_f_L"  );
-                InsertAdditionalModifier("cm_J_dan_f_R"  );
-                InsertAdditionalModifier("cf_j_kokan"    );
-            }
+
+            foreach (var boneName in BoneControllerMgr.Instance.AdditionalBoneNames)
+                InsertAdditionalModifier(boneName);
         }
 
         public BoneModifierBody InsertAdditionalModifier(string boneName)

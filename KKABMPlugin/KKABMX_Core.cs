@@ -16,6 +16,7 @@ namespace KKABMX.Core
         protected void Start()
         {
             BoneControllerMgr.Init();
+            BoneControllerMgr.Instance.transform.SetParent(transform);
         }
     }
 }

@@ -11,6 +11,16 @@ using UniRx;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 
+/*
+    MakerAPI.Instance.RegisterCustomSubCategories
+    var category = new MakerCategory("01_BodyTop", "tglGenitals", 101, "Genitals");
+    args.AddSubCategory(category);
+    var toggle = args.AddControl(new MakerToggle(category, "Test toggle", this));
+    toggle.TextColor = Color.magenta;
+    toggle.ValueChanged.Subscribe(b => Logger.Log(LogLevel.Message, b));
+    toggle.Value = true;
+*/
+
 namespace MakerAPI
 {
     [BepInPlugin(GUID, "Character Maker API", "1.0")]
@@ -52,9 +62,16 @@ namespace MakerAPI
                 if (categorySubTransform != null)
                 {
                     var contentParent = FindSubcategoryContentParent(categorySubTransform);
-
+                    
+                    BaseUnityPlugin lastOwner = contentParent.childCount > 1 ? this : null;
                     foreach (var customControl in subCategoryGroup)
+                    {
+                        if (lastOwner != customControl.Owner && lastOwner != null)
+                            new MakerSeparator(new MakerCategory(null, null), this).CreateControl(contentParent);
+
                         customControl.CreateControl(contentParent);
+                        lastOwner = customControl.Owner;
+                    }
 
                     Logger.Log(LogLevel.Debug, $"[MakerAPI] Added {subCategoryGroup.Count()} custom controls " +
                                                $"to {categoryTransfrom.name}/{subCategoryGroup.Key}");
@@ -137,7 +154,7 @@ namespace MakerAPI
             var index = 0;
             foreach (Transform tab in mainCategory.transform)
             {
-                if(!tab.gameObject.activeSelf) continue;
+                if (!tab.gameObject.activeSelf) continue;
 
                 var contents = tab.Cast<Transform>().First(x => !x.name.Equals("imgOff"));
                 var p = contents.localPosition;
@@ -152,7 +169,6 @@ namespace MakerAPI
         /// </summary>
         internal T AddControl<T>(T control) where T : MakerGuiEntryBase
         {
-            //todo if a different plugin adds to an existing tab, place a separator between them (add owner field to control entries?)
             _guiEntries.Add(control);
             return control;
         }

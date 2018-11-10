@@ -17,17 +17,19 @@ namespace KKABMX.GUI
     [BepInDependency(KKABMX_Core.GUID)]
     public class KKABMX_GUI : BaseUnityPlugin
     {
+        private static readonly Color SettingColor = new Color(0.57f, 1f, 0.96f);
+
         private BoneController _boneController;
         private readonly List<Action> _updateActionList = new List<Action>();
+
+        [DisplayName("Enable legacy bonemod GUI")]
+        [Description("Shows the old bone list UI in a separate window. Restart the game to apply changes.")]
+        public ConfigWrapper<bool> EnableLegacyGui { get; }
 
         public KKABMX_GUI()
         {
             EnableLegacyGui = new ConfigWrapper<bool>(nameof(EnableLegacyGui), this);
         }
-
-        [DisplayName("Enable legacy bonemod GUI")]
-        [Description("Shows the old bone list UI in a separate window. Restart the game to apply changes.")]
-        public ConfigWrapper<bool> EnableLegacyGui { get; }
 
         private void Start()
         {
@@ -52,7 +54,7 @@ namespace KKABMX.GUI
                     if (!boneMeta.IsSeparator && !_boneController.modifiers.ContainsKey(boneMeta.BoneName))
                     {
                         // TODO handle differently? Add but hide?
-                        Logger.Log(LogLevel.Warning, "Bone does not exist on the character: " + boneMeta.BoneName);
+                        Logger.Log(LogLevel.Warning, "[KKABMX_GUI] Bone does not exist on the character: " + boneMeta.BoneName);
                         continue;
                     }
 
@@ -75,22 +77,22 @@ namespace KKABMX.GUI
         {
             if (boneMeta.IsSeparator)
             {
-                callback.AddControl(new MakerSeparator(category));
+                callback.AddControl(new MakerSeparator(category, this) { TextColor = SettingColor });
                 return false;
             }
 
             if (!isFirstElement)
-                callback.AddControl(new MakerSeparator(category));
+                callback.AddControl(new MakerSeparator(category, this) { TextColor = SettingColor });
 
             MakerRadioButtons rb = null;
             if (!string.IsNullOrEmpty(boneMeta.RightBoneName))
             {
-                rb = callback.AddControl(new MakerRadioButtons(category, "Side to edit", "Both", "Left", "Right"));
+                rb = callback.AddControl(new MakerRadioButtons(category, "Side to edit", "Both", "Left", "Right", this) { TextColor = SettingColor });
             }
 
-            var x = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " X", boneMeta.Min, boneMeta.Max, 1));
-            var y = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Y", boneMeta.Min, boneMeta.Max, 1));
-            var z = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Z", boneMeta.Min, boneMeta.Max, 1));
+            var x = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " X", boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor });
+            var y = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Y", boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor });
+            var z = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Z", boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor });
 
             var isUpdatingValue = false;
 
@@ -131,7 +133,7 @@ namespace KKABMX.GUI
 
             void PullValuesToBone(float _)
             {
-                if(isUpdatingValue) return;
+                if (isUpdatingValue) return;
 
                 var newValue = new Vector3(x.Value, y.Value, z.Value);
                 var bone = _boneController.modifiers[boneMeta.BoneName];
@@ -179,7 +181,7 @@ namespace KKABMX.GUI
             var modifiers = _boneController?.modifiers?.Values.ToArray();
             if (modifiers == null || modifiers.Length <= 0)
             {
-                Logger.Log(LogLevel.Error, "Failed to find a BoneController or there are no bone modifiers");
+                Logger.Log(LogLevel.Error, "[KKABMX_GUI] Failed to find a BoneController or there are no bone modifiers");
                 return;
             }
 

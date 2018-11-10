@@ -28,7 +28,7 @@ namespace MakerAPI.Utilities
                     toggle.onValueChanged.RemoveAllListeners();
                     toggle.isOn = false;
 
-                    _subCategoryCopy.name = "CustomSubcategory (Copy)";
+                    _subCategoryCopy.name = "CustomSubcategory" + MakerGuiEntryBase.GuiApiNameAppendix;
                     var copyTop = _subCategoryCopy.Find("EarTop");
                     copyTop.name = "CustomSubcategoryTop";
 

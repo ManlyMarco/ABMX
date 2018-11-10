@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using BepInEx.Logging;
 using ChaCustom;
@@ -21,6 +22,34 @@ namespace KKABMX.Core
         public string lastLoadedFile;
 
         public bool needReload;
+
+        public List<string> AdditionalBoneNames { get; } = new List<string>
+        {
+            "cf_j_shoulder_L" ,
+            "cf_j_shoulder_R" ,
+            "cf_j_arm00_L"    ,
+            "cf_j_arm00_R"    ,
+            "cf_j_forearm01_L",
+            "cf_j_forearm01_R",
+            "cf_j_hand_L"     ,
+            "cf_j_hand_R"     ,
+            "cf_j_waist01"    ,
+            "cf_j_waist02"    ,
+            "cf_j_thigh00_L"  ,
+            "cf_j_thigh00_R"  ,
+            "cf_j_leg01_L"    ,
+            "cf_j_leg01_R"    ,
+            "cf_j_leg03_L"    ,
+            "cf_j_leg03_R"    ,
+            "cf_j_foot_L"     ,
+            "cf_j_foot_R"     ,
+            "cf_j_ana"        ,
+            "cm_J_dan109_00"  ,
+            "cm_J_dan100_00"  ,
+            "cm_J_dan_f_L"    ,
+            "cm_J_dan_f_R"    ,
+            "cf_j_kokan"
+        };
 
         public static void Init()
         {
@@ -102,7 +131,7 @@ namespace KKABMX.Core
 
                 var makerController = FindObjectOfType<BoneController>();
                 LoadFromPluginData(makerController, chaFile);
-                
+
                 MakerLimitedLoad?.Invoke(this, new BoneControllerEventArgs(makerController));
             }
         }
