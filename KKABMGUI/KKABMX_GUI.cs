@@ -42,7 +42,7 @@ namespace KKABMX.GUI
 
         private void RegisterCustomControls(RegisterCustomControlsEvent callback)
         {
-            foreach (var categoryBones in InterfaceData.Metadata.GroupBy(x => new MakerCategory(x.Category, x.SubCategory)))
+            foreach (var categoryBones in InterfaceData.BoneControls.GroupBy(x => x.Category))
             {
                 var first = true;
                 var category = categoryBones.Key;
@@ -60,8 +60,8 @@ namespace KKABMX.GUI
                 }
             }
 
-            var bonesInMetadata = InterfaceData.Metadata.Select(x => x.BoneName).Distinct()
-                .Concat(InterfaceData.Metadata.Select(x => x.RightBoneName).Distinct());
+            var bonesInMetadata = InterfaceData.BoneControls.Select(x => x.BoneName).Distinct()
+                .Concat(InterfaceData.BoneControls.Select(x => x.RightBoneName).Distinct());
 
             foreach (var unusedBone in _boneController.modifiers.Keys.Except(bonesInMetadata))
             {
@@ -165,8 +165,8 @@ namespace KKABMX.GUI
 
         private static void OnRegisterCustomSubCategories(object sender, RegisterSubCategoriesEvent e)
         {
-            foreach (var subCategory in InterfaceData.Metadata
-                .Select(x => new MakerCategory(x.Category, x.SubCategory))
+            foreach (var subCategory in InterfaceData.BoneControls
+                .Select(x => x.Category)
                 .Distinct())
             {
                 e.AddSubCategory(subCategory);

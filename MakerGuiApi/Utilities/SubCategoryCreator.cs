@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Logger = BepInEx.Logger;
 
-namespace MakerAPI
+namespace MakerAPI.Utilities
 {
     internal class SubCategoryCreator
     {
@@ -46,22 +46,28 @@ namespace MakerAPI
             }
         }
 
-        public static Transform AddNewSubCategory(UI_ToggleGroupCtrl mainCategory, string subCategoryName)
+        private static string GetSubcategoryDisplayName(MakerCategory subCategory)
         {
-            Logger.Log(LogLevel.Debug, $"[MakerAPI] Adding custom subcategory {subCategoryName} to {mainCategory.transform.name}");
+            if (subCategory.DisplayName != null) return subCategory.DisplayName;
+            return subCategory.SubCategoryName.StartsWith("tgl") ? subCategory.SubCategoryName.Substring(3) : subCategory.SubCategoryName;
+        }
+
+        public static Transform AddNewSubCategory(UI_ToggleGroupCtrl mainCategory, MakerCategory subCategory)
+        {
+            Logger.Log(LogLevel.Debug, $"[MakerAPI] Adding custom subcategory {subCategory.SubCategoryName} to {mainCategory.transform.name}");
 
             var tr = Object.Instantiate(SubCategoryCopy.gameObject, mainCategory.transform, true).transform;
-            tr.name = subCategoryName;
+            tr.name = subCategory.SubCategoryName;
             var trTop = tr.Find("CustomSubcategoryTop");
-            trTop.name = subCategoryName + "Top";
+            trTop.name = subCategory.SubCategoryName + "Top";
 
             foreach (Transform oldObj in trTop.transform)
                 Object.Destroy(oldObj.gameObject);
 
-            tr.GetComponentInChildren<TextMeshProUGUI>().text = subCategoryName.StartsWith("tgl") ? subCategoryName.Substring(3) : subCategoryName;
+            tr.GetComponentInChildren<TextMeshProUGUI>().text = GetSubcategoryDisplayName(subCategory);
 
             var tgl = tr.GetComponent<Toggle>();
-            tgl.@group = mainCategory.transform.GetComponent<ToggleGroup>();
+            tgl.group = mainCategory.transform.GetComponent<ToggleGroup>();
 
             var cgroup = trTop.GetComponent<CanvasGroup>();
             mainCategory.items = mainCategory.items.AddToArray(new UI_ToggleGroupCtrl.ItemInfo { tglItem = tgl, cgItem = cgroup });

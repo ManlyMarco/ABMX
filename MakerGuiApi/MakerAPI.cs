@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using ChaCustom;
 using Harmony;
+using MakerAPI.Utilities;
+using UniRx;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 
@@ -58,10 +61,8 @@ namespace MakerAPI
                 }
                 else
                 {
-                    Logger.Log(LogLevel.Error,
-                        $"[MakerAPI] Subcategory {categoryTransfrom.name} / {subCategoryGroup.Key} " +
-                        $"used by {subCategoryGroup.Count()} custom controls was not registered by " +
-                        $"AddSubCategory and will be ignored.");
+                    Logger.Log(LogLevel.Error, $"[MakerAPI] Failed to add {subCategoryGroup.Count()} custom controls " +
+                        $"to {categoryTransfrom.name}/{subCategoryGroup.Key} - The category was not registered with AddSubCategory.");
                 }
             }
         }
@@ -87,38 +88,71 @@ namespace MakerAPI
         private void AddMissingSubCategories(UI_ToggleGroupCtrl mainCategory)
         {
             var categoryTransfrom = mainCategory.transform;
+
+            // Can break stuff, 06_SystemTop might be fine but needs testing
+            if (categoryTransfrom.name == "04_AccessoryTop" || categoryTransfrom.name == "06_SystemTop") return;
+
+            // Sorting breaks hair selector layout, too lazy to fix
+            var noSorting = categoryTransfrom.name == "02_HairTop";
+
+            var transformsToSort = new List<Tuple<Transform, int>>();
             foreach (var category in _categories)
             {
                 if (categoryTransfrom.name != category.CategoryName) continue;
 
                 var categorySubTransform = categoryTransfrom.Find(category.SubCategoryName);
                 if (categorySubTransform == null)
-                    SubCategoryCreator.AddNewSubCategory(mainCategory, category.SubCategoryName);
-            }
-            /*
-            var toMove = categoryTransfrom.Find("tglMouth 2");
+                {
+                    categorySubTransform = SubCategoryCreator.AddNewSubCategory(mainCategory, category);
+                }
 
-            if (toMove == null) return; 
+                transformsToSort.Add(new Tuple<Transform, int>(categorySubTransform, category.Position));
+            }
+
+            if (noSorting) return;
+
+            foreach (Transform subTransform in categoryTransfrom)
+            {
+                if (transformsToSort.Any(x => x.Item1 == subTransform)) continue;
+
+                var builtInCategory = MakerConstants.GetBuiltInCategory(categoryTransfrom.name, subTransform.name);
+                if (builtInCategory != null)
+                    transformsToSort.Add(new Tuple<Transform, int>(subTransform, builtInCategory.Position));
+                else
+                    Logger.Log(LogLevel.Warning, $"[MakerAPI] Missing MakerCategory for existing transfrom {categoryTransfrom.name} / {subTransform.name}");
+            }
 
             var index = 0;
-            foreach (Transform subCat in categoryTransfrom)
+            foreach (var tuple in transformsToSort.OrderBy(x => x.Item2))
+                tuple.Item1.SetSiblingIndex(index++);
+
+            StartCoroutine(FixCategoryContentOffsets(mainCategory));
+        }
+
+        private static IEnumerator FixCategoryContentOffsets(UI_ToggleGroupCtrl mainCategory)
+        {
+            yield return null;
+
+            const int padding = 40;
+            var index = 0;
+            foreach (Transform tab in mainCategory.transform)
             {
-                if(subCat == toMove) continue;
+                if(!tab.gameObject.activeSelf) continue;
 
-                subCat.SetSiblingIndex(index++);
-
-                if (subCat.name.Contains("Mouth"))
-                {
-                    toMove.SetSiblingIndex(index++);
-                }
-            }*/
+                var contents = tab.Cast<Transform>().First(x => !x.name.Equals("imgOff"));
+                var p = contents.localPosition;
+                p.y = padding * index;
+                contents.localPosition = p;
+                index++;
+            }
         }
 
         /// <summary>
         /// Add custom controls. If you want to use custom sub categories, register them by calling AddSubCategory.
         /// </summary>
         internal T AddControl<T>(T control) where T : MakerGuiEntryBase
-        {//todo if a different plugin adds to an existing tab, place a separator first (add tags to gui entries?)
+        {
+            //todo if a different plugin adds to an existing tab, place a separator between them (add owner field to control entries?)
             _guiEntries.Add(control);
             return control;
         }

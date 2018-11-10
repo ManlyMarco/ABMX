@@ -21,15 +21,20 @@
                 return ((CategoryName != null ? CategoryName.GetHashCode() : 0) * 397) ^ (SubCategoryName != null ? SubCategoryName.GetHashCode() : 0);
             }
         }
-
-        public MakerCategory(string categoryName, string subCategoryName)
+        
+        public MakerCategory(string categoryName, string subCategoryName, 
+            int position = int.MaxValue, string displayName = null)
         {
             CategoryName = categoryName;
             SubCategoryName = subCategoryName;
+            Position = position;
+            DisplayName = displayName;
         }
 
         public string CategoryName { get; }
         public string SubCategoryName { get; }
+        public int Position { get; }
+        public string DisplayName { get; }
 
         public override string ToString()
         {

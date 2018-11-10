@@ -33,7 +33,7 @@ namespace KKABMX.Core
             if (!_hiPoly)
             {
                 // Buggy, code would need to be fixed to use this
-                return;
+                //return;
             }
 
             BoneControllerMgr.AttachBoneController(__instance);

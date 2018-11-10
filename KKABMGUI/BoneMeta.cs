@@ -1,22 +1,23 @@
-﻿namespace KKABMX.GUI
+﻿using MakerAPI;
+
+namespace KKABMX.GUI
 {
     public sealed class BoneMeta
     {
-        public static BoneMeta Separator(string category, string subCategory)
+        public static BoneMeta Separator(MakerCategory category)
         {
-            return new BoneMeta(null, null, 0, 0, category, subCategory);
+            return new BoneMeta(null, null, 0, 0, category);
         }
 
         public bool IsSeparator => BoneName == null;
 
-        public BoneMeta(string boneName, string displayName, float min, float max, string category, string subCategory, string rightBoneName = null)
+        public BoneMeta(string boneName, string displayName, float min, float max, MakerCategory category, string rightBoneName = null)
         {
             BoneName = boneName;
             DisplayName = displayName;
             Min = min;
             Max = max;
             Category = category;
-            SubCategory = subCategory;
             RightBoneName = rightBoneName;
         }
 
@@ -25,7 +26,6 @@
         public string DisplayName { get; }
         public float Min { get; }
         public float Max { get; }
-        public string Category { get; }
-        public string SubCategory { get; }
+        public MakerCategory Category { get; }
     }
 }
