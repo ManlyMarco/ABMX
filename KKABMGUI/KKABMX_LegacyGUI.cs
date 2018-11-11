@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 
 namespace KKABMX.GUI
 {
+    /// <summary>
+    /// Old style ABM GUI by essu, modified to work with ABMX
+    /// </summary>
     internal class KKABMX_LegacyGUI : MonoBehaviour
     {
         private Rect abmRect = new Rect(20, 220, 600, 400);
@@ -49,7 +52,7 @@ namespace KKABMX.GUI
             while (true)
             {
                 var bc = FindObjectOfType<BoneController>();
-                modifiers = bc?.modifiers?.Values.ToArray();
+                modifiers = bc?.Modifiers?.Values.ToArray();
                 //if (modifiers != null && modifiers.Length > 0) break;
                 yield return new WaitForSeconds(0.5f);
             }
@@ -101,9 +104,9 @@ namespace KKABMX.GUI
                 GUILayout.Space(40);
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal(glo_Slider);
-                GUILayout.Label(mod.boneName, gs_Label, glo_WIDTH_120);
+                GUILayout.Label(mod.BoneName, gs_Label, glo_WIDTH_120);
 
-                var v3 = mod.sclMod;
+                var v3 = mod.SclMod;
 
                 v3.x = GUILayout.HorizontalSlider(v3.x, 0f, 2f, gs_ButtonReset, gs_ButtonReset, glo_SliderWidth,
                     glo_HEIGHT_30);
@@ -115,7 +118,7 @@ namespace KKABMX.GUI
                 if (GUILayout.Button("X", gs_ButtonReset, glo_WIDTH_30, glo_HEIGHT_30))
                     v3 = Vector3.one;
 
-                mod.sclMod = v3;
+                mod.SclMod = v3;
 
                 GUILayout.EndHorizontal();
 
@@ -131,7 +134,7 @@ namespace KKABMX.GUI
 
                 GUILayout.Space(30);
 
-                mod.sclMod = v3;
+                mod.SclMod = v3;
 
                 GUILayout.EndHorizontal();
             }

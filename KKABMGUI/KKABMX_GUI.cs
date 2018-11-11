@@ -51,7 +51,7 @@ namespace KKABMX.GUI
 
                 foreach (var boneMeta in categoryBones)
                 {
-                    if (!boneMeta.IsSeparator && !_boneController.modifiers.ContainsKey(boneMeta.BoneName))
+                    if (!boneMeta.IsSeparator && !_boneController.Modifiers.ContainsKey(boneMeta.BoneName))
                     {
                         // TODO handle differently? Add but hide?
                         Logger.Log(LogLevel.Warning, "[KKABMX_GUI] Bone does not exist on the character: " + boneMeta.BoneName);
@@ -65,11 +65,11 @@ namespace KKABMX.GUI
             var bonesInMetadata = InterfaceData.BoneControls.Select(x => x.BoneName).Distinct()
                 .Concat(InterfaceData.BoneControls.Select(x => x.RightBoneName).Distinct());
 
-            foreach (var unusedBone in _boneController.modifiers.Keys.Except(bonesInMetadata))
+            foreach (var unusedBone in _boneController.Modifiers.Keys.Except(bonesInMetadata))
             {
                 Logger.Log(LogLevel.Debug, $"[KKABMX_GUI] No GUI data for bone {unusedBone} " +
-                                           $"(isScaleBone={_boneController.modifiers[unusedBone].isScaleBone}, " +
-                                           $"isNotManual={_boneController.modifiers[unusedBone].isNotManual})");
+                                           $"(isScaleBone={_boneController.Modifiers[unusedBone].ScaleBone}, " +
+                                           $"isNotManual={_boneController.Modifiers[unusedBone].IsNotManual})");
             }
         }
 
@@ -98,12 +98,12 @@ namespace KKABMX.GUI
 
             void PushValueToControls()
             {
-                var bone = _boneController.modifiers[boneMeta.BoneName];
+                var bone = _boneController.Modifiers[boneMeta.BoneName];
 
                 if (rb != null)
                 {
-                    var bone2 = _boneController.modifiers[boneMeta.RightBoneName];
-                    if (bone.sclMod != bone2.sclMod)
+                    var bone2 = _boneController.Modifiers[boneMeta.RightBoneName];
+                    if (bone.SclMod != bone2.SclMod)
                     {
                         if (rb.Value == 0)
                         {
@@ -122,9 +122,9 @@ namespace KKABMX.GUI
 
                 isUpdatingValue = true;
 
-                x.Value = bone.sclMod.x;
-                y.Value = bone.sclMod.y;
-                z.Value = bone.sclMod.z;
+                x.Value = bone.SclMod.x;
+                y.Value = bone.SclMod.y;
+                z.Value = bone.SclMod.z;
 
                 isUpdatingValue = false;
             }
@@ -136,26 +136,26 @@ namespace KKABMX.GUI
                 if (isUpdatingValue) return;
 
                 var newValue = new Vector3(x.Value, y.Value, z.Value);
-                var bone = _boneController.modifiers[boneMeta.BoneName];
+                var bone = _boneController.Modifiers[boneMeta.BoneName];
 
                 if (rb != null)
                 {
                     if (rb.Value != 1)
                     {
-                        var bone2 = _boneController.modifiers[boneMeta.RightBoneName];
+                        var bone2 = _boneController.Modifiers[boneMeta.RightBoneName];
                         if (rb.Value == 0)
                         {
-                            bone2.sclMod = newValue;
+                            bone2.SclMod = newValue;
                         }
                         else if (rb.Value == 2)
                         {
-                            bone2.sclMod = newValue;
+                            bone2.SclMod = newValue;
                             return;
                         }
                     }
                 }
 
-                bone.sclMod = newValue;
+                bone.SclMod = newValue;
             }
             var obs = Observer.Create<float>(PullValuesToBone);
             x.ValueChanged.Subscribe(obs);
@@ -178,7 +178,7 @@ namespace KKABMX.GUI
         private void OnEarlyMakerFinishedLoading(object sender, RegisterCustomControlsEvent e)
         {
             _boneController = FindObjectOfType<BoneController>();
-            var modifiers = _boneController?.modifiers?.Values.ToArray();
+            var modifiers = _boneController?.Modifiers?.Values.ToArray();
             if (modifiers == null || modifiers.Length <= 0)
             {
                 Logger.Log(LogLevel.Error, "[KKABMX_GUI] Failed to find a BoneController or there are no bone modifiers");

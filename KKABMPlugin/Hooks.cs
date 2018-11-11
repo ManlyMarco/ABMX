@@ -1,12 +1,12 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using ChaCustom;
 using Harmony;
 using Studio;
 using UnityEngine;
 using UnityEngine.UI;
-
+// ReSharper disable UnusedParameter.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
 namespace KKABMX.Core
 {
@@ -30,13 +30,7 @@ namespace KKABMX.Core
         public static void ChaControl_InitializePostHook(byte _sex, bool _hiPoly, GameObject _objRoot, int _id, int _no,
             ChaFileControl _chaFile, ChaControl __instance)
         {
-            if (!_hiPoly)
-            {
-                // Buggy, code would need to be fixed to use this
-                //return;
-            }
-
-            BoneControllerMgr.AttachBoneController(__instance);
+            BoneControllerMgr.GetOrAttachBoneController(__instance);
         }
 
         [HarmonyPrefix]
@@ -83,7 +77,7 @@ namespace KKABMX.Core
             bool noLoadStatus,
             ChaFileControl __instance)
         {
-            BoneControllerMgr.Instance.ClearExtDataAndBoneController(__instance);
+            BoneControllerMgr.ClearExtDataAndBoneController(__instance);
         }
 
         [HarmonyPostfix]
@@ -112,7 +106,7 @@ namespace KKABMX.Core
         public static void ChaFileControl_LoadCharaFilePostHook(string assetBundleName, string assetName, bool noSetPNG,
             bool noLoadStatus, ChaFileControl __instance)
         {
-            BoneControllerMgr.Instance.ClearExtDataAndBoneController(__instance);
+            BoneControllerMgr.ClearExtDataAndBoneController(__instance);
         }
 
         [HarmonyPostfix]
@@ -124,45 +118,8 @@ namespace KKABMX.Core
         {
             var component = __instance.charInfo.gameObject.GetComponent<BoneController>();
             if (component != null)
-                BoneControllerMgr.Instance.LoadFromPluginData(component, __instance.charInfo.chaFile);
+                BoneControllerMgr.LoadFromPluginData(component, __instance.charInfo.chaFile);
         }
-
-        /*[HarmonyPrefix]
-        [HarmonyPatch(typeof(ChaFileControl), "SaveCharaFile", new[]
-        {
-            typeof(BinaryWriter),
-            typeof(bool)
-        })]
-        public static void ChaFileControl_SavePreHook(BinaryWriter bw, bool savePng, ChaFileControl __instance)
-        {
-            if (BoneControllerMgr.Instance)
-                BoneControllerMgr.Instance.OnPreSave(__instance);
-        }*/
-
-        /*[HarmonyPostfix]
-        [HarmonyPatch(typeof(ChaFileControl), "SaveCharaFile", new[]
-        {
-            typeof(string),
-            typeof(byte),
-            typeof(bool)
-        })]
-        public static void ChaFileControl_SaveCharaFilePostHook(string filename, byte sex, bool newFile,
-            ChaFileControl __instance)
-        {
-            if (BoneControllerMgr.Instance)
-                BoneControllerMgr.Instance.OnSave(__instance.charaFileName);
-        }*/
-
-        /*[HarmonyPrefix]
-        [HarmonyPatch(typeof(SaveData.CharaData), "Save", new[]
-        {
-            typeof(BinaryWriter)
-        })]
-        public static void CharaData_SavePreHook(BinaryWriter w, SaveData.CharaData __instance)
-        {
-            if (BoneControllerMgr.Instance)
-                BoneControllerMgr.Instance.OnPreCharaDataSave(__instance);
-        }*/
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ChaFile), "CopyChaFile", new[]
@@ -172,8 +129,8 @@ namespace KKABMX.Core
         })]
         public static void ChaFile_CopyChaFilePostHook(ChaFile dst, ChaFile src)
         {
-            if (src is ChaFileControl && dst is ChaFileControl)
-                BoneControllerMgr.CloneBoneDataPluginData((ChaFileControl) src, (ChaFileControl) dst);
+            if (src is ChaFileControl srcCfc && dst is ChaFileControl dstCfc)
+                BoneControllerMgr.CloneBoneDataPluginData(srcCfc, dstCfc);
         }
 
         [HarmonyPrefix]
