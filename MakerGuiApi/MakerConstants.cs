@@ -70,5 +70,66 @@ namespace MakerAPI
 
             return _builtInCategories.First(x => x.CategoryName.Equals(category) && x.SubCategoryName.Equals(subCategory));
         }
+
+        public static class Face
+        {
+            public static MakerCategory All { get { return GetBuiltInCategory("00_FaceTop", "tglAll"); } }
+            public static MakerCategory Ear { get { return GetBuiltInCategory("00_FaceTop", "tglEar"); } }
+            public static MakerCategory Chin { get { return GetBuiltInCategory("00_FaceTop", "tglChin"); } }
+            public static MakerCategory Cheek { get { return GetBuiltInCategory("00_FaceTop", "tglCheek"); } }
+            public static MakerCategory Eyebrow { get { return GetBuiltInCategory("00_FaceTop", "tglEyebrow"); } }
+            public static MakerCategory Eye { get { return GetBuiltInCategory("00_FaceTop", "tglEye01"); } }
+            public static MakerCategory Iris { get { return GetBuiltInCategory("00_FaceTop", "tglEye02"); } }
+            public static MakerCategory Nose { get { return GetBuiltInCategory("00_FaceTop", "tglNose"); } }
+            public static MakerCategory Mouth { get { return GetBuiltInCategory("00_FaceTop", "tglMouth"); } }
+            public static MakerCategory Mole { get { return GetBuiltInCategory("00_FaceTop", "tglMole"); } }
+            public static MakerCategory Makeup { get { return GetBuiltInCategory("00_FaceTop", "tglMakeup"); } }
+            public static MakerCategory Shape { get { return GetBuiltInCategory("00_FaceTop", "tglShape"); } }
+        }
+        public static class Body
+        {
+            public static MakerCategory All { get { return GetBuiltInCategory("01_BodyTop", "tglAll"); } }
+            public static MakerCategory Breast { get { return GetBuiltInCategory("01_BodyTop", "tglBreast"); } }
+            public static MakerCategory Upper { get { return GetBuiltInCategory("01_BodyTop", "tglUpper"); } }
+            public static MakerCategory Lower { get { return GetBuiltInCategory("01_BodyTop", "tglLower"); } }
+            public static MakerCategory Arm { get { return GetBuiltInCategory("01_BodyTop", "tglArm"); } }
+            public static MakerCategory Leg { get { return GetBuiltInCategory("01_BodyTop", "tglLeg"); } }
+            public static MakerCategory Nail { get { return GetBuiltInCategory("01_BodyTop", "tglNail"); } }
+            public static MakerCategory Underhair { get { return GetBuiltInCategory("01_BodyTop", "tglUnderhair"); } }
+            public static MakerCategory Sunburn { get { return GetBuiltInCategory("01_BodyTop", "tglSunburn"); } }
+            public static MakerCategory Paint { get { return GetBuiltInCategory("01_BodyTop", "tglPaint"); } }
+            public static MakerCategory Shape { get { return GetBuiltInCategory("01_BodyTop", "tglShape"); } }
+        }
+        public static class Hair
+        {
+            public static MakerCategory Common { get { return GetBuiltInCategory("02_HairTop", "common"); } }
+            public static MakerCategory Back { get { return GetBuiltInCategory("02_HairTop", "tglBack"); } }
+            public static MakerCategory Front { get { return GetBuiltInCategory("02_HairTop", "tglFront"); } }
+            public static MakerCategory Side { get { return GetBuiltInCategory("02_HairTop", "tglSide"); } }
+            public static MakerCategory Extension { get { return GetBuiltInCategory("02_HairTop", "tglExtension"); } }
+            public static MakerCategory Etc { get { return GetBuiltInCategory("02_HairTop", "tglEtc"); } }
+        }
+        public static class Clothes
+        {
+            public static MakerCategory Top { get { return GetBuiltInCategory("03_ClothesTop", "tglTop"); } }
+            public static MakerCategory Bottom { get { return GetBuiltInCategory("03_ClothesTop", "tglBot"); } }
+            public static MakerCategory Bra { get { return GetBuiltInCategory("03_ClothesTop", "tglBra"); } }
+            public static MakerCategory Shorts { get { return GetBuiltInCategory("03_ClothesTop", "tglShorts"); } }
+            public static MakerCategory Gloves { get { return GetBuiltInCategory("03_ClothesTop", "tglGloves"); } }
+            public static MakerCategory Panst { get { return GetBuiltInCategory("03_ClothesTop", "tglPanst"); } }
+            public static MakerCategory Socks { get { return GetBuiltInCategory("03_ClothesTop", "tglSocks"); } }
+            public static MakerCategory InnerShoes { get { return GetBuiltInCategory("03_ClothesTop", "tglInnerShoes"); } }
+            public static MakerCategory OuterShoes { get { return GetBuiltInCategory("03_ClothesTop", "tglOuterShoes"); } }
+            public static MakerCategory Copy { get { return GetBuiltInCategory("03_ClothesTop", "tglCopy"); } }
+        }
+        public static class Parameter
+        {
+            public static MakerCategory Character { get { return GetBuiltInCategory("05_ParameterTop", "tglCharactor"); } }
+            public static MakerCategory CharacterEx { get { return GetBuiltInCategory("05_ParameterTop", "tglCharactorEx"); } }
+            public static MakerCategory H { get { return GetBuiltInCategory("03_ClothesTop", "tglH"); } }
+            public static MakerCategory QA { get { return GetBuiltInCategory("05_ParameterTop", "tglQA"); } }
+            public static MakerCategory Attribute { get { return GetBuiltInCategory("05_ParameterTop", "tglAttribute"); } }
+            public static MakerCategory ADK { get { return GetBuiltInCategory("05_ParameterTop", "tglADK"); } }
+        }
     }
 }
