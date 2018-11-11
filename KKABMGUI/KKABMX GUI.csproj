@@ -38,6 +38,11 @@
       <HintPath>..\lib\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="MakerAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MakerAPI\MakerApi\obj\Debug\MakerAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="UnityEngine">
@@ -56,11 +61,6 @@
     <ProjectReference Include="..\KKABMPlugin\KKABMX Core.csproj">
       <Project>{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}</Project>
       <Name>KKABMX Core</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\MakerGuiApi\MakerAPI.csproj">
-      <Project>{74c2db86-55bb-47b4-9805-51b5b992ef35}</Project>
-      <Name>MakerAPI</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
