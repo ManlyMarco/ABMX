@@ -52,7 +52,7 @@ namespace MakerAPI
 
             var text = tr.GetComponentInChildren<TextMeshProUGUI>();
             text.text = DisplayName;
-            text.color = Color.magenta;
+            text.color = TextColor;
             tr.gameObject.SetActive(true);
         }
     }
