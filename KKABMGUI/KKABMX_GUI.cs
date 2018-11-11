@@ -17,7 +17,7 @@ namespace KKABMX.GUI
     [BepInDependency(KKABMX_Core.GUID)]
     public class KKABMX_GUI : BaseUnityPlugin
     {
-        private static readonly Color SettingColor = new Color(0.57f, 1f, 0.96f);
+        private static readonly Color SettingColor = new Color(1f, 0.84f, 0.57f);
 
         private BoneController _boneController;
         private readonly List<Action> _updateActionList = new List<Action>();
