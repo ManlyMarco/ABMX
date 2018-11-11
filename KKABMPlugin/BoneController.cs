@@ -15,10 +15,10 @@ namespace KKABMX.Core
 {
     public class BoneController : MonoBehaviour
     {
-        private const float MissingBoneCheckInterval = 1.5f;
+        //private const float MissingBoneCheckInterval = 1.5f;
+        //private float _missingBoneNextChecktime;
 
         private bool _baseLineKnown;
-        private float _missingBoneNextChecktime;
         private float[] _sibBodyValues;
         private float[] _sibFaceValues;
 
@@ -176,7 +176,7 @@ namespace KKABMX.Core
                     return;
                 }
 
-                if (_missingBoneNextChecktime <= 0f)
+                /*if (_missingBoneNextChecktime <= 0f)
                 {
                     foreach (var boneModifierBody in Modifiers.Values)
                     {
@@ -201,7 +201,7 @@ namespace KKABMX.Core
                 else
                 {
                     _missingBoneNextChecktime -= Time.deltaTime;
-                }
+                }*/
 
                 ApplyAll();
             }

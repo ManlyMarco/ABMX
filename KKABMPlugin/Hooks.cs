@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Reflection;
+using BepInEx.Logging;
 using ChaCustom;
 using Harmony;
 using Studio;
@@ -10,7 +11,7 @@ using UnityEngine.UI;
 // ReSharper disable InconsistentNaming
 namespace KKABMX.Core
 {
-    public static class Hooks
+    internal static class Hooks
     {
         public static void InstallHook()
         {
@@ -164,6 +165,15 @@ namespace KKABMX.Core
         {
             var button = _idolBackButton?.GetValue(__instance) as Button;
             button?.onClick.AddListener(BoneControllerMgr.Instance.SetNeedReload);
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionScene), nameof(ActionScene.NPCLoadAll))]
+        public static void ActionScene_NPCLoadAllPreHook()
+        {
+            // Force reload when going to next day in school
+            // It's needed because after 1st day since loading the characters are reset but not reloaded, and BoneController stops working
+            BoneControllerMgr.Instance.SetNeedReload();
         }
     }
 }
