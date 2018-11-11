@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Reflection;
-using BepInEx.Logging;
 using ChaCustom;
 using Harmony;
 using Studio;

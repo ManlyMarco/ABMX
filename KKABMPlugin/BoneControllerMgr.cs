@@ -144,7 +144,7 @@ namespace KKABMX.Core
                 value is string textData &&
                 !string.IsNullOrEmpty(textData))
             {
-                Logger.Log(LogLevel.Info, "[KKABMX] Loading embedded ABM data from card: " + chaFile.parameter.fullname);
+                Logger.Log(LogLevel.Info, $"[KKABMX] Loading embedded ABM data from card: {chaFile.parameter.fullname}");
                 boneController.LoadFromTextData(textData);
             }
             else

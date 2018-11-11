@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -75,7 +74,7 @@ namespace KKABMX.Core
             var loopGo = GetRootTransform().FindLoop(boneName);
             if (loopGo == null)
             {
-                Logger.Log(LogLevel.Warning, $"[KKABMX] Manually included bone {boneName} was not found");
+                Logger.Log(LogLevel.Debug, $"[KKABMX] Manually included bone {boneName} was not found");
                 return null;
             }
             boneModifierBody.ManualTarget = loopGo.transform;
