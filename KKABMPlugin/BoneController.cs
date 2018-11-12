@@ -469,9 +469,12 @@ namespace KKABMX.Core
         {
             foreach (var coordData in _coordinateModifierData)
             {
-                var modifier = Modifiers[coordData.Key];
-                coordData.Value[previousId] = modifier.SclMod;
-                modifier.SclMod = coordData.Value[newId];
+                var modifier = FindOrCreateModifierByBoneName(coordData.Key);
+                if (modifier != null)
+                {
+                    coordData.Value[previousId] = modifier.SclMod;
+                    modifier.SclMod = coordData.Value[newId];
+                }
             }
 
             CurrentCoordinateChanged?.Invoke(this, EventArgs.Empty);

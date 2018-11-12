@@ -213,7 +213,8 @@ namespace KKABMX.Core
             if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
             if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
 
-            Logger.Log(LogLevel.Info, "[KKABMX] Saving embedded ABM data to character card: " + (chaFile.charaFileName ?? chaFile.parameter.fullname));
+            Logger.Log(LogLevel.Info, "[KKABMX] Saving embedded ABM data to character card: " + 
+                (chaFile.charaFileName ?? chaFile.parameter.fullname ?? "[Unnamed]"));
             ExtendedSave.SetExtendedDataById(chaFile, ExtendedSaveId, pluginData);
         }
 
@@ -228,7 +229,6 @@ namespace KKABMX.Core
 
         protected void OnLevelWasLoaded(int level)
         {
-            //todo set need reset flag when in game day and maybe? period? changes
             InsideMaker = Singleton<CustomBase>.Instance != null;
             LastLoadedFile = null;
         }

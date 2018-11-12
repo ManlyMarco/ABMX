@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Globalization;
 using System.Linq;
 using KKABMX.Core;
 using UnityEngine;
@@ -125,11 +126,11 @@ namespace KKABMX.GUI
                 GUILayout.BeginHorizontal(glo_Slider);
                 GUILayout.Space(128);
 
-                float.TryParse(GUILayout.TextField(v3.x.ToString(), gs_Input, glo_SliderWidth, glo_HEIGHT_30),
+                float.TryParse(GUILayout.TextField(v3.x.ToString(CultureInfo.InvariantCulture), gs_Input, glo_SliderWidth, glo_HEIGHT_30),
                     out v3.x);
-                float.TryParse(GUILayout.TextField(v3.y.ToString(), gs_Input, glo_SliderWidth, glo_HEIGHT_30),
+                float.TryParse(GUILayout.TextField(v3.y.ToString(CultureInfo.InvariantCulture), gs_Input, glo_SliderWidth, glo_HEIGHT_30),
                     out v3.y);
-                float.TryParse(GUILayout.TextField(v3.z.ToString(), gs_Input, glo_SliderWidth, glo_HEIGHT_30),
+                float.TryParse(GUILayout.TextField(v3.z.ToString(CultureInfo.InvariantCulture), gs_Input, glo_SliderWidth, glo_HEIGHT_30),
                     out v3.z);
 
                 GUILayout.Space(30);
