@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using BepInEx.Logging;
 using IllusionUtility.GetUtility;
@@ -23,6 +24,14 @@ namespace KKABMX.Core
 
         public ChaControl ChaControl { get; private set; }
         public SortedDictionary<string, BoneModifierBody> Modifiers { get; private set; } = new SortedDictionary<string, BoneModifierBody>();
+
+        private static readonly int CoordinateCount = Enum.GetValues(typeof(ChaFileDefine.CoordinateType)).Length;
+        private readonly Dictionary<string, Vector3[]> _coordinateModifierData = new Dictionary<string, Vector3[]>();
+
+        public ChaFileDefine.CoordinateType CurrentCoordinate => (ChaFileDefine.CoordinateType)_currentCoordinate;
+        private int _currentCoordinate;
+
+        public event EventHandler CurrentCoordinateChanged;
 
         private void ApplyAll()
         {
@@ -130,11 +139,15 @@ namespace KKABMX.Core
             BoneModifierBody.AddFaceBones(sibFace, Modifiers);
             InsertAdditionalModifiers();
 
+            foreach (var coordinateBoneName in Utilities.CoordinateBoneNames)
+                _coordinateModifierData[coordinateBoneName] = Enumerable.Repeat(Vector3.one, CoordinateCount).ToArray();
+
+            _currentCoordinate = 0;
             _baseLineKnown = false;
             _sibBodyValues = null;
             _sibFaceValues = null;
         }
-        
+
         public string Serialize()
         {
             var sb = new StringBuilder();
@@ -142,22 +155,36 @@ namespace KKABMX.Core
             {
                 var boneModifierBody = Modifiers[key];
 
-                if (boneModifierBody.SclMod.Equals(Vector3.one) && boneModifierBody.LenMod.Equals(1f))
-                    continue;
+                void SerializeHelper(string boneName, Vector3 sclMod, bool forceWrite)
+                {
+                    if (!forceWrite && sclMod.Equals(Vector3.one) && boneModifierBody.LenMod.Equals(1f))
+                        return;
 
-                var serializedModifier = string.Join(
-                    ",", new[]
+                    var serializedModifier = string.Join(",", new[]
+                        {
+                            boneModifierBody.BoneIndex.ToString(CultureInfo.InvariantCulture),
+                            boneName,
+                            boneModifierBody.Enabled.ToString(CultureInfo.InvariantCulture),
+                            sclMod.x.ToString(CultureInfo.InvariantCulture),
+                            sclMod.y.ToString(CultureInfo.InvariantCulture),
+                            sclMod.z.ToString(CultureInfo.InvariantCulture),
+                            boneModifierBody.LenMod.ToString(CultureInfo.InvariantCulture)
+                        });
+                    sb.AppendLine(serializedModifier);
+                }
+
+                // Save legacy data even if we save coord-specific, keep it first in order
+                SerializeHelper(boneModifierBody.BoneName, boneModifierBody.SclMod, false);
+
+                if (_coordinateModifierData.TryGetValue(key, out var data))
+                {
+                    for (var i = 0; i < data.Length; i++)
                     {
-                        boneModifierBody.BoneIndex.ToString(CultureInfo.InvariantCulture),
-                        boneModifierBody.BoneName,
-                        boneModifierBody.Enabled.ToString(CultureInfo.InvariantCulture),
-                        boneModifierBody.SclMod.x.ToString(CultureInfo.InvariantCulture),
-                        boneModifierBody.SclMod.y.ToString(CultureInfo.InvariantCulture),
-                        boneModifierBody.SclMod.z.ToString(CultureInfo.InvariantCulture),
-                        boneModifierBody.LenMod.ToString(CultureInfo.InvariantCulture)
-                    });
-
-                sb.AppendLine(serializedModifier);
+                        var sclMod = _currentCoordinate == i ? boneModifierBody.SclMod : data[i];
+                        // Need to force write these so we don't assume we are converting from old bonemod and set something other than Vector3.one
+                        SerializeHelper($"{boneModifierBody.BoneName}__{i}", sclMod, true);
+                    }
+                }
             }
             return sb.ToString();
         }
@@ -257,6 +284,13 @@ namespace KKABMX.Core
 
         private void DeserializeToModifiers(IEnumerable<string> lines)
         {
+            const float emptyMarker = -44f;
+            foreach (var coordDatas in _coordinateModifierData)
+            {
+                for (var i = 1; i < coordDatas.Value.Length; i++)
+                    coordDatas.Value[i].x = emptyMarker;
+            }
+
             foreach (var lineText in lines)
             {
                 var trimmedText = lineText?.Trim();
@@ -273,20 +307,44 @@ namespace KKABMX.Core
 
                     var lenMod = splitValues.Length > 6 ? float.Parse(splitValues[6]) : 1f;
 
+                    // Load non-coord data as 1st coord data if that's missing
+                    var coordinateId = 0;
+                    if (boneName[boneName.Length - 2] == '_' && boneName[boneName.Length - 3] == '_')
+                    {
+                        coordinateId = boneName[boneName.Length - 1] - '0';
+                        boneName = boneName.Substring(0, boneName.Length - 3);
+                    }
+
                     var boneModifierBody = FindOrCreateModifierByBoneName(boneName);
                     if (boneModifierBody == null)
                         continue;
 
-                    boneModifierBody.Enabled = isEnabled;
-                    boneModifierBody.SclMod.x = x;
-                    boneModifierBody.SclMod.y = y;
-                    boneModifierBody.SclMod.z = z;
-                    boneModifierBody.LenMod = lenMod;
+                    if (_coordinateModifierData.TryGetValue(boneName, out var data))
+                        data[coordinateId] = new Vector3(x, y, z);
+
+                    // Non-coord data is always 1st, so it gets overwritten by coord data if it exists
+                    if (coordinateId == 0 || coordinateId == _currentCoordinate)
+                    {
+                        boneModifierBody.Enabled = isEnabled;
+                        boneModifierBody.SclMod.x = x;
+                        boneModifierBody.SclMod.y = y;
+                        boneModifierBody.SclMod.z = z;
+                        boneModifierBody.LenMod = lenMod;
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logger.Log(LogLevel.Error, $"[KKABMX] Failed to load line \"{trimmedText}\" - {ex.Message}");
                     Logger.Log(LogLevel.Debug, "Error details: " + ex);
+                }
+            }
+
+            foreach (var coordDatas in _coordinateModifierData)
+            {
+                for (var i = 1; i < coordDatas.Value.Length; i++)
+                {
+                    if (coordDatas.Value[i].x.Equals(emptyMarker))
+                        coordDatas.Value[i] = coordDatas.Value[0];
                 }
             }
         }
@@ -396,8 +454,27 @@ namespace KKABMX.Core
 
         private void Update()
         {
+            if (ChaControl.fileStatus.coordinateType != _currentCoordinate)
+            {
+                var previousId = _currentCoordinate;
+                _currentCoordinate = ChaControl.fileStatus.coordinateType;
+                OnCurrentCoordinateChanged(_currentCoordinate, previousId);
+            }
+
             if (_baseLineKnown && IsBaselineChanged())
                 StartCoroutine(ForceBoneUpdateAndRebaseCo());
+        }
+
+        private void OnCurrentCoordinateChanged(int newId, int previousId)
+        {
+            foreach (var coordData in _coordinateModifierData)
+            {
+                var modifier = Modifiers[coordData.Key];
+                coordData.Value[previousId] = modifier.SclMod;
+                modifier.SclMod = coordData.Value[newId];
+            }
+
+            CurrentCoordinateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnDestroy()

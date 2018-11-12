@@ -50,6 +50,22 @@ namespace KKABMX.Core
             return (Dictionary<int, ShapeInfoBase.BoneInfo>)FieldShapeInfoBaseDictDst.GetValue(sibBody);
         }
 
+        /// <summary>
+        /// Bones that have separate values for each coordinate / uniform type
+        /// </summary>
+        public static readonly string[] CoordinateBoneNames =
+        {
+            "cf_d_sk_top",
+            "cf_d_sk_00_00",
+            "cf_d_sk_07_00",
+            "cf_d_sk_06_00",
+            "cf_d_sk_05_00",
+            "cf_d_sk_04_00",
+            "cf_d_sk_01_00",
+            "cf_d_sk_02_00",
+            "cf_d_sk_03_00"
+        };
+
         public static readonly int[] ScaleBodyBonesF =
         {
             0,

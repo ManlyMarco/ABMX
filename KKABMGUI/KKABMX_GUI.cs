@@ -96,6 +96,14 @@ namespace KKABMX.GUI
 
             var isUpdatingValue = false;
 
+            void SetSliders(Vector3 sclMod)
+            {
+                isUpdatingValue = true;
+                x.Value = sclMod.x;
+                y.Value = sclMod.y;
+                z.Value = sclMod.z;
+                isUpdatingValue = false;
+            }
             void PushValueToControls()
             {
                 var bone = _boneController.Modifiers[boneMeta.BoneName];
@@ -119,17 +127,20 @@ namespace KKABMX.GUI
                         rb.Value = 0;
                     }
                 }
-
-                isUpdatingValue = true;
-
-                x.Value = bone.SclMod.x;
-                y.Value = bone.SclMod.y;
-                z.Value = bone.SclMod.z;
-
-                isUpdatingValue = false;
+                
+                SetSliders(bone.SclMod);
             }
             _updateActionList.Add(PushValueToControls);
             PushValueToControls();
+
+            rb?.ValueChanged.Subscribe(
+                i =>
+                {
+                    if (i == 1)
+                        SetSliders(_boneController.Modifiers[boneMeta.BoneName].SclMod);
+                    else if (i == 2)
+                        SetSliders(_boneController.Modifiers[boneMeta.RightBoneName].SclMod);
+                });
 
             void PullValuesToBone(float _)
             {
@@ -189,6 +200,11 @@ namespace KKABMX.GUI
             {
                 if (!ReferenceEquals(_boneController, args.Controller)) return;
 
+                foreach (var action in _updateActionList)
+                    action();
+            };
+            _boneController.CurrentCoordinateChanged += (o, args) =>
+            {
                 foreach (var action in _updateActionList)
                     action();
             };
