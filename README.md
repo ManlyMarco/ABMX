@@ -2,6 +2,8 @@
 # KKABMX (BonemodX)
 Koikatsu! mod that adds more character customization settings to character maker. These additional settings are saved inside the card and used by the main game and studio. It is possible to change male height, make good-looking thick necks, customize skirts, adjust hand and feet size and much more.
 
+You can support development of my plugins through my Patreon page: https://www.patreon.com/ManlyMarco
+
 ## How to use 
 1. Make sure [BepInEx](https://github.com/BepInEx/BepInEx) and [BepisPlugins](https://github.com/bbepis/BepisPlugins) are installed, and your game is updated.
 2. Download the latest release from [here](https://github.com/ManlyMarco/KKABMX/releases).
