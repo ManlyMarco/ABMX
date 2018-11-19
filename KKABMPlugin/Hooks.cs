@@ -30,14 +30,15 @@ namespace KKABMX.Core
         public static void ChaControl_InitializePostHook(byte _sex, bool _hiPoly, GameObject _objRoot, int _id, int _no,
             ChaFileControl _chaFile, ChaControl __instance)
         {
-            BoneControllerMgr.GetOrAttachBoneController(__instance);
+            if (!MakerListIsLoading)
+                BoneControllerMgr.GetOrAttachBoneController(__instance);
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ChaFile), "LoadFile", new[] { typeof(BinaryReader), typeof(bool), typeof(bool) })]
         public static void ChaFileLoadFilePreHook(ChaFile __instance, BinaryReader br, bool noLoadPNG, bool noLoadStatus)
         {
-            if (BoneControllerMgr.Instance && BoneControllerMgr.Instance.InsideMaker)
+            if (!MakerListIsLoading && BoneControllerMgr.Instance != null && BoneControllerMgr.Instance.InsideMaker)
                 lastLoadedChaFile = __instance;
             else
                 lastLoadedChaFile = null;
@@ -77,7 +78,8 @@ namespace KKABMX.Core
             bool noLoadStatus,
             ChaFileControl __instance)
         {
-            BoneControllerMgr.ClearExtDataAndBoneController(__instance);
+            if (!MakerListIsLoading)
+                BoneControllerMgr.ClearExtDataAndBoneController(__instance);
         }
 
         [HarmonyPostfix]
@@ -92,7 +94,8 @@ namespace KKABMX.Core
             bool noLoadStatus,
             ChaFileControl __instance)
         {
-            BoneControllerMgr.Instance.LoadAsExtSaveData(filename, __instance, false);
+            if (!MakerListIsLoading)
+                BoneControllerMgr.Instance.LoadAsExtSaveData(filename, __instance, false);
         }
 
         [HarmonyPostfix]
@@ -106,7 +109,8 @@ namespace KKABMX.Core
         public static void ChaFileControl_LoadCharaFilePostHook(string assetBundleName, string assetName, bool noSetPNG,
             bool noLoadStatus, ChaFileControl __instance)
         {
-            BoneControllerMgr.ClearExtDataAndBoneController(__instance);
+            if (!MakerListIsLoading)
+                BoneControllerMgr.ClearExtDataAndBoneController(__instance);
         }
 
         [HarmonyPostfix]
@@ -173,6 +177,22 @@ namespace KKABMX.Core
             // Force reload when going to next day in school
             // It's needed because after 1st day since loading the characters are reset but not reloaded, and BoneController stops working
             BoneControllerMgr.Instance.SetNeedReload();
+        }
+
+        // Prevent reading ABM data when loading the list of characters
+        [HarmonyPrefix, HarmonyPatch(typeof(CustomCharaFile), "Initialize")]
+        public static void CustomScenePrefix()
+        {
+            MakerListIsLoading = true;
+        }
+
+        private static bool MakerListIsLoading;
+
+        // Prevent reading ABM data when loading the list of characters
+        [HarmonyPostfix, HarmonyPatch(typeof(CustomCharaFile), "Initialize")]
+        public static void CustomScenePostfix()
+        {
+            MakerListIsLoading = false;
         }
     }
 }
