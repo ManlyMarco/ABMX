@@ -114,7 +114,7 @@ namespace KKABMX.GUI
                             v3.y = GUILayout.HorizontalSlider(v3.y, 0f, 2f, gs_ButtonReset, gs_ButtonReset, glo_SliderWidth, glo_HEIGHT);
                             v3.z = GUILayout.HorizontalSlider(v3.z, 0f, 2f, gs_ButtonReset, gs_ButtonReset, glo_SliderWidth, glo_HEIGHT);
 
-                            len = GUILayout.HorizontalSlider(len, 0f, 2f, gs_ButtonReset, gs_ButtonReset, glo_SliderWidth, glo_HEIGHT);
+                            len = GUILayout.HorizontalSlider(len, 0.1f, 2f, gs_ButtonReset, gs_ButtonReset, glo_SliderWidth, glo_HEIGHT);
 
                             if (GUILayout.Button("X", gs_ButtonReset, glo_WIDTH_30, glo_HEIGHT))
                             {
@@ -140,7 +140,7 @@ namespace KKABMX.GUI
                             GUILayout.Space(30);
 
                             mod.SclMod = v3;
-                            mod.LenMod = len;
+                            mod.LenMod = Mathf.Max(len, 0.1f);
                         }
                         GUILayout.EndHorizontal();
                     }
