@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -38,7 +39,7 @@ namespace KKABMX.Core
         {
             get
             {
-                if (!Vector3.one.Equals(SclMod))
+                if (!Vector3.one.Equals(SclMod) || Math.Abs(LenMod - 1f) > 0.0001f)
                 {
                     _enabled = true;
                     return true;
