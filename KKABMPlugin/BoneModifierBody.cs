@@ -23,6 +23,7 @@ namespace KKABMX.Core
         private Vector3 _sclBaseline = Vector3.one;
 
         private bool _enabled = true;
+        private bool _lenModForceUpdate = false;
 
         public BoneModifierBody(int boneIndex, ShapeInfoBase sib, string boneName)
         {
@@ -49,6 +50,7 @@ namespace KKABMX.Core
                 if (_enabled)
                 {
                     _enabled = false;
+                    _lenModForceUpdate = true;
                     return true;
                 }
 
@@ -72,8 +74,12 @@ namespace KKABMX.Core
                     var localScale = new Vector3(_sclBaseline.x * SclMod.x, _sclBaseline.y * SclMod.y,
                         _sclBaseline.z * SclMod.z);
                     target.localScale = localScale;
-                    if (LenMod != 1f && target.localPosition != Vector3.zero && _lenBaseline != 0f)
+                    
+                    if ((_lenModForceUpdate || Math.Abs(LenMod - 1f) > 0.0001f) && target.localPosition != Vector3.zero && _lenBaseline != 0f)
+                    {
                         target.localPosition = target.localPosition / target.localPosition.magnitude * _lenBaseline * LenMod;
+                        _lenModForceUpdate = false;
+                    }
                 }
             }
         }
@@ -91,7 +97,7 @@ namespace KKABMX.Core
             if (target != null && Enabled && _hasBaseline)
             {
                 target.localScale = _sclBaseline;
-                if (LenMod != 1f && target.localPosition != Vector3.zero && _lenBaseline != 0f)
+                if (target.localPosition != Vector3.zero && _lenBaseline != 0f)
                     target.localPosition = target.localPosition / target.localPosition.magnitude * _lenBaseline;
             }
         }
