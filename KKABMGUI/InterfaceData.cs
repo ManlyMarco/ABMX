@@ -110,9 +110,9 @@ namespace KKABMX.GUI
                                                                                                              
                 //BoneMeta.Separator(FaceEyebrow)     ,                                                        
                 //BoneMeta.Separator(FaceEyebrow)     ,                                                        
-                new BoneMeta("cf_J_Mayu_L"          , "Eyebrow Scale"              , 0, 3f, FaceEyebrow      , "cf_J_Mayu_R")      ,
-                new BoneMeta("cf_J_MayuMid_s_L"     , "Inner Eyebrow Scale"        , 0, 3f, FaceEyebrow      , "cf_J_MayuMid_s_R") ,
-                new BoneMeta("cf_J_MayuTip_s_L"     , "Outer Eyebrow Scale"        , 0, 3f, FaceEyebrow      , "cf_J_MayuTip_s_R") ,
+                new BoneMeta("cf_J_Mayu_L"          , "Eyebrow Scale"              , 0, 5f, FaceEyebrow      , "cf_J_Mayu_R")      ,
+                new BoneMeta("cf_J_MayuMid_s_L"     , "Inner Eyebrow Scale"        , 0, 5f, FaceEyebrow      , "cf_J_MayuMid_s_R") ,
+                new BoneMeta("cf_J_MayuTip_s_L"     , "Outer Eyebrow Scale"        , 0, 5f, FaceEyebrow      , "cf_J_MayuTip_s_R") ,
                                                                                                              
                 //BoneMeta.Separator(FaceEyes1)     ,                                                        
                 //BoneMeta.Separator(FaceEyes1)     ,                                                        
@@ -120,15 +120,15 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_Eye_rz_L"        , "Eyeball Scale 1"            , 0, 3f, FaceEyes2        , "cf_J_Eye_rz_R")    ,
                 new BoneMeta("cf_J_Eye_tx_L"        , "Eyeball Scale 2"            , 0, 3f, FaceEyes2        , "cf_J_Eye_tx_R")    ,
                                                                                                              
-                new BoneMeta("cf_J_Eye01_s_L"       , "Upper Eyelashes Scale 1"    , 0, 3f, FaceEyelashUp    , "cf_J_Eye01_s_R")   ,
-                new BoneMeta("cf_J_Eye02_s_L"       , "Upper Eyelashes Scale 2"    , 0, 3f, FaceEyelashUp    , "cf_J_Eye02_s_R")   ,
-                new BoneMeta("cf_J_Eye03_s_L"       , "Upper Eyelashes Scale 3"    , 0, 3f, FaceEyelashUp    , "cf_J_Eye03_s_R")   ,
-                new BoneMeta("cf_J_Eye04_s_L"       , "Upper Eyelashes Scale 4"    , 0, 3f, FaceEyelashUp    , "cf_J_Eye04_s_R")   ,
-                new BoneMeta("cf_J_Eye05_s_L"       , "Upper Eyelashes Scale 5"    , 0, 3f, FaceEyelashUp    , "cf_J_Eye05_s_R")   ,
+                new BoneMeta("cf_J_Eye01_s_L"       , "Upper Eyelashes Scale 1"    , 0, 5f, FaceEyelashUp    , "cf_J_Eye01_s_R")   ,
+                new BoneMeta("cf_J_Eye02_s_L"       , "Upper Eyelashes Scale 2"    , 0, 5f, FaceEyelashUp    , "cf_J_Eye02_s_R")   ,
+                new BoneMeta("cf_J_Eye03_s_L"       , "Upper Eyelashes Scale 3"    , 0, 5f, FaceEyelashUp    , "cf_J_Eye03_s_R")   ,
+                new BoneMeta("cf_J_Eye04_s_L"       , "Upper Eyelashes Scale 4"    , 0, 5f, FaceEyelashUp    , "cf_J_Eye04_s_R")   ,
+                new BoneMeta("cf_J_Eye05_s_L"       , "Upper Eyelashes Scale 5"    , 0, 5f, FaceEyelashUp    , "cf_J_Eye05_s_R")   ,
                                                                                                              
-                new BoneMeta("cf_J_Eye06_s_L"       , "Lower Eyelashes Scale 1"    , 0, 3f, FaceEyelashDn    , "cf_J_Eye06_s_R")   ,
-                new BoneMeta("cf_J_Eye07_s_L"       , "Lower Eyelashes Scale 2"    , 0, 3f, FaceEyelashDn    , "cf_J_Eye07_s_R")   ,
-                new BoneMeta("cf_J_Eye08_s_L"       , "Lower Eyelashes Scale 3"    , 0, 3f, FaceEyelashDn    , "cf_J_Eye08_s_R")   ,
+                new BoneMeta("cf_J_Eye06_s_L"       , "Lower Eyelashes Scale 1"    , 0, 5f, FaceEyelashDn    , "cf_J_Eye06_s_R")   ,
+                new BoneMeta("cf_J_Eye07_s_L"       , "Lower Eyelashes Scale 2"    , 0, 5f, FaceEyelashDn    , "cf_J_Eye07_s_R")   ,
+                new BoneMeta("cf_J_Eye08_s_L"       , "Lower Eyelashes Scale 3"    , 0, 5f, FaceEyelashDn    , "cf_J_Eye08_s_R")   ,
                                                                                                              
                 //BoneMeta.Separator(FaceNose)        ,                                                        
                 //BoneMeta.Separator(FaceNose)        ,                                                        
@@ -141,11 +141,11 @@ namespace KKABMX.GUI
                                                                                                              
                 ////BoneMeta.Separator("00_FaceTop"   , "tglMouth")                  ,                         
                                                                                                              
-                new BoneMeta("cf_J_MouthBase_rx"    , "Mouth Scale 1"              , 0, 3f, FaceMouth2       , "")                 ,
-                new BoneMeta("cf_J_MouthBase_ty"    , "Mouth Scale 2"              , 0, 3f, FaceMouth2       , "")                 ,
-                new BoneMeta("cf_J_Mouth_L"         , "Mouth Side Scale"           , 0, 3f, FaceMouth2       , "cf_J_Mouth_R")     ,
-                new BoneMeta("cf_J_Mouthup"         , "Upper Lip Scale"            , 0, 3f, FaceMouth2       , "")                 ,
-                new BoneMeta("cf_J_MouthLow"        , "Lower Lip Scale"            , 0, 3f, FaceMouth2       , "")                 ,
+                new BoneMeta("cf_J_MouthBase_rx"    , "Mouth Scale 1"              , 0, 6f, FaceMouth2       , "")                 ,
+                new BoneMeta("cf_J_MouthBase_ty"    , "Mouth Scale 2"              , 0, 6f, FaceMouth2       , "")                 ,
+                new BoneMeta("cf_J_Mouth_L"         , "Mouth Side Scale"           , 0, 6f, FaceMouth2       , "cf_J_Mouth_R")     ,
+                new BoneMeta("cf_J_Mouthup"         , "Upper Lip Scale"            , 0, 6f, FaceMouth2       , "")                 ,
+                new BoneMeta("cf_J_MouthLow"        , "Lower Lip Scale"            , 0, 6f, FaceMouth2       , "")                 ,
                                                                                                              
                 //BoneMeta.Separator(BodyAll)         ,                                                        
                 //BoneMeta.Separator(BodyAll)         ,                                                        
