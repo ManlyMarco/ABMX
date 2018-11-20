@@ -90,20 +90,23 @@ namespace KKABMX.GUI
                 rb = callback.AddControl(new MakerRadioButtons(category, "Side to edit", "Both", "Left", "Right", this) { TextColor = SettingColor });
             }
 
-            var x = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " X", boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor });
-            var y = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Y", boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor });
-            var z = callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + " Z", boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor });
+            var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor }) : null;
+            var y = boneMeta.Y ? callback.AddControl(new MakerSlider(category, boneMeta.YDisplayName, boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor }) : null;
+            var z = boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.ZDisplayName, boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor }) : null;
+            var l = boneMeta.L ? callback.AddControl(new MakerSlider(category, boneMeta.LDisplayName, boneMeta.LMin, boneMeta.LMax, 1, this) { TextColor = SettingColor }) : null;
 
             var isUpdatingValue = false;
 
-            void SetSliders(Vector3 sclMod)
+            void SetSliders(BoneModifierBody bone)
             {
                 isUpdatingValue = true;
-                x.Value = sclMod.x;
-                y.Value = sclMod.y;
-                z.Value = sclMod.z;
+                if (x != null) x.Value = bone.SclMod.x;
+                if (y != null) y.Value = bone.SclMod.y;
+                if (z != null) z.Value = bone.SclMod.z;
+                if (l != null) l.Value = bone.LenMod;
                 isUpdatingValue = false;
             }
+
             void PushValueToControls()
             {
                 var bone = _boneController.Modifiers[boneMeta.BoneName];
@@ -127,8 +130,8 @@ namespace KKABMX.GUI
                         rb.Value = 0;
                     }
                 }
-                
-                SetSliders(bone.SclMod);
+
+                SetSliders(bone);
             }
             _updateActionList.Add(PushValueToControls);
             PushValueToControls();
@@ -137,17 +140,17 @@ namespace KKABMX.GUI
                 i =>
                 {
                     if (i == 1)
-                        SetSliders(_boneController.Modifiers[boneMeta.BoneName].SclMod);
+                        SetSliders(_boneController.Modifiers[boneMeta.BoneName]);
                     else if (i == 2)
-                        SetSliders(_boneController.Modifiers[boneMeta.RightBoneName].SclMod);
+                        SetSliders(_boneController.Modifiers[boneMeta.RightBoneName]);
                 });
 
             void PullValuesToBone(float _)
             {
                 if (isUpdatingValue) return;
 
-                var newValue = new Vector3(x.Value, y.Value, z.Value);
                 var bone = _boneController.Modifiers[boneMeta.BoneName];
+                var newValue = new Vector3(x?.Value ?? bone.SclMod.x, y?.Value ?? bone.SclMod.y, z?.Value ?? bone.SclMod.y);
 
                 if (rb != null)
                 {
@@ -157,21 +160,25 @@ namespace KKABMX.GUI
                         if (rb.Value == 0)
                         {
                             bone2.SclMod = newValue;
+                            if (l != null) bone2.LenMod = l.Value;
                         }
                         else if (rb.Value == 2)
                         {
                             bone2.SclMod = newValue;
+                            if (l != null) bone2.LenMod = l.Value;
                             return;
                         }
                     }
                 }
 
                 bone.SclMod = newValue;
+                if (l != null) bone.LenMod = l.Value;
             }
             var obs = Observer.Create<float>(PullValuesToBone);
-            x.ValueChanged.Subscribe(obs);
-            y.ValueChanged.Subscribe(obs);
-            z.ValueChanged.Subscribe(obs);
+            x?.ValueChanged.Subscribe(obs);
+            y?.ValueChanged.Subscribe(obs);
+            z?.ValueChanged.Subscribe(obs);
+            l?.ValueChanged.Subscribe(obs);
 
             return true;
         }

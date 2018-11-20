@@ -4,6 +4,12 @@ namespace KKABMX.GUI
 {
     public sealed class BoneMeta
     {
+        private float? _lMax;
+        private string _lDisplayName;
+        private string _xDisplayName;
+        private string _yDisplayName;
+        private string _zDisplayName;
+
         public static BoneMeta Separator(MakerCategory category)
         {
             return new BoneMeta(null, null, 0, 0, category);
@@ -27,5 +33,41 @@ namespace KKABMX.GUI
         public float Min { get; }
         public float Max { get; }
         public MakerCategory Category { get; }
+
+        public bool X { get; set; } = true;
+        public bool Y { get; set; } = true;
+        public bool Z { get; set; } = true;
+        public bool L { get; set; } = false;
+
+        public float LMax
+        {
+            get { return _lMax.HasValue ? _lMax.Value : Max; }
+            set { _lMax = value; }
+        }
+
+        public float LMin { get; set; } = 0.1f;
+
+        public string LDisplayName
+        {
+            get { return _lDisplayName ?? DisplayName + " Length"; }
+            set { _lDisplayName = value; }
+        }
+        public string XDisplayName
+        {
+            get { return _xDisplayName ?? $"{DisplayName}{XYZPostfix} X"; }
+            set { _xDisplayName = value; }
+        }
+        public string YDisplayName
+        {
+            get { return _yDisplayName ?? $"{DisplayName}{XYZPostfix} Y"; }
+            set { _yDisplayName = value; }
+        }
+        public string ZDisplayName
+        {
+            get { return _zDisplayName ?? $"{DisplayName}{XYZPostfix} Z"; }
+            set { _zDisplayName = value; }
+        }
+
+        public string XYZPostfix { get; set; } = " Scale";
     }
 }

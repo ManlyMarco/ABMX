@@ -40,8 +40,7 @@
     </Reference>
     <Reference Include="MakerAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MakerAPI\MakerApi\obj\Debug\MakerAPI.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\MakerAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

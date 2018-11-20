@@ -44,7 +44,9 @@ namespace KKABMX.Core
             "cm_J_dan100_00",
             "cm_J_dan_f_L",
             "cm_J_dan_f_R",
-            "cf_j_kokan"
+            "cf_j_kokan",
+            "cf_j_toes_L",
+            "cf_j_toes_R"
         };
 
         internal static readonly List<BoneController> BoneControllers = new List<BoneController>();
@@ -213,7 +215,7 @@ namespace KKABMX.Core
             if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
             if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
 
-            Logger.Log(LogLevel.Info, "[KKABMX] Saving embedded ABM data to character card: " + 
+            Logger.Log(LogLevel.Info, "[KKABMX] Saving embedded ABM data to character card: " +
                 (chaFile.charaFileName ?? chaFile.parameter.fullname ?? "[Unnamed]"));
             ExtendedSave.SetExtendedDataById(chaFile, ExtendedSaveId, pluginData);
         }
