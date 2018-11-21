@@ -54,6 +54,9 @@ namespace KKABMX.Core
                     return true;
                 }
 
+                if (_lenModForceUpdate)
+                    return true;
+
                 return false;
             }
             set
