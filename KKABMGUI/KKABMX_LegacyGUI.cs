@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using BepInEx.Logging;
@@ -43,6 +44,7 @@ namespace KKABMX.GUI
                 inMaker = s.name == SceneNames.CustomScene;
                 ccv2 = FindObjectOfType<CameraControl_Ver2>();
                 if (inMaker) StartCoroutine(WaitForABM());
+                _boneControllerMgr = FindObjectOfType<BoneControllerMgr>();
             };
 
             SceneManager.sceneLoaded += sl;
@@ -94,35 +96,20 @@ namespace KKABMX.GUI
             abmRect.y = Mathf.Min(Screen.height - abmRect.height, Mathf.Max(0, abmRect.y));
         }
 
-        private string _boneAddFieldValue;
+        private bool _onlyShowAdditional;
+        private string _boneAddFieldValue = "";
+        private BoneControllerMgr _boneControllerMgr;
+
+        private readonly HashSet<string> _addedBones = new HashSet<string>();
+
         private void LegacyWindow(int id)
         {
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, glo_Slider);
             GUILayout.BeginVertical();
             {
-                GUILayout.Label("Press Right Shift to hide/show this window. Slow, disable it completely in plugin settings if unused.");
-                GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
-                {
-                    GUILayout.Label("Add a new bone to the list. If valid, it will be saved to the card.");
-                    _boneAddFieldValue = GUILayout.TextField(_boneAddFieldValue, GUILayout.ExpandWidth(true));
-                    if (GUILayout.Button("Add"))
-                    {
-                        var bc = FindObjectOfType<BoneController>();
-                        var result = bc.InsertAdditionalModifier(_boneAddFieldValue);
-                        if(result == null)
-                        {
-                            Logger.Log(LogLevel.Message, $"Failed to add bone {_boneAddFieldValue}, make sure the name is correct.");
-                        }
-                        else
-                        {
-                            modifiers = bc.Modifiers.Values.ToArray();
-                            Logger.Log(LogLevel.Message, $"Added bone {_boneAddFieldValue} successfully. Modify it to make it save.");
-                        }
-                    }
-                }
-                GUILayout.EndHorizontal();
+                DrawHeader();
 
-                foreach (var mod in modifiers)
+                foreach (var mod in (_onlyShowAdditional ? modifiers.Where(x => _addedBones.Contains(x.BoneName)) : modifiers))
                 {
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
                     {
@@ -174,6 +161,49 @@ namespace KKABMX.GUI
             GUILayout.EndScrollView();
 
             UnityEngine.GUI.DragWindow();
+        }
+
+        private void DrawHeader()
+        {
+            GUILayout.Label("Press Right Shift to hide/show this window. Slow, disable this window completely in plugin settings if unused.");
+
+            GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
+            {
+                GUILayout.Label("Add a new bone to the list. If valid, it will be saved to the card.");
+
+                _boneAddFieldValue = GUILayout.TextField(_boneAddFieldValue, GUILayout.Width(90));
+
+                if (GUILayout.Button("Add"))
+                {
+                    _addedBones.Add(_boneAddFieldValue);
+
+                    var bc = FindObjectOfType<BoneController>();
+
+                    if (bc.Modifiers.ContainsKey(_boneAddFieldValue))
+                    {
+                        Logger.Log(LogLevel.Message, $"Bone {_boneAddFieldValue} is already added.");
+                        _boneAddFieldValue = "";
+                    }
+                    else
+                    {
+                        var result = bc.InsertAdditionalModifier(_boneAddFieldValue);
+                        if (result == null)
+                        {
+                            Logger.Log(LogLevel.Message, $"Failed to add bone {_boneAddFieldValue}, make sure the name is correct.");
+                        }
+                        else
+                        {
+                            _boneControllerMgr.AdditionalBoneNames.Add(_boneAddFieldValue);
+                            modifiers = bc.Modifiers.Values.ToArray();
+                            Logger.Log(LogLevel.Message, $"Added bone {_boneAddFieldValue} successfully. Modify it to make it save.");
+                            _boneAddFieldValue = "";
+                        }
+                    }
+                }
+
+                _onlyShowAdditional = GUILayout.Toggle(_onlyShowAdditional, "Only show added bones");
+            }
+            GUILayout.EndHorizontal();
         }
     }
 }
