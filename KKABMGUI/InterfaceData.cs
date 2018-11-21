@@ -85,6 +85,7 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_FaceUp_tz"    , "Upper Front Head"       , 0, 3f, FaceHead     , "")                                    ,
                 new BoneMeta("cf_J_FaceLow_sx"   , "Lower Head Scale 1"     , 0, 3f, FaceHead     , "")               {XYZPostfix = null}     ,
                 new BoneMeta("cf_J_FaceLow_tz"   , "Lower Head Scale 2"     , 0, 3f, FaceHead     , "")               {XYZPostfix = null}     ,
+                new BoneMeta("cf_hit_head"       , "Head Collision"         , 0, 3f, FaceHead     , "")                    ,
 
                 new BoneMeta("cf_J_EarBase_ry_L" , "Ear"                    , 0, 3f, FaceEar      , "cf_J_EarBase_ry_R")                   ,
                 new BoneMeta("cf_J_EarUp_L"      , "Upper Ear"              , 0, 3f, FaceEar      , "cf_J_EarUp_R")                        ,
@@ -199,11 +200,11 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_j_toes_L"       , "Foot Toes"              , 0, 3f, BodyFeet     , "cf_j_toes_R")      {L = true          , LMax = 2f, LDisplayName = "Foot Toes Length"},
 
                 new BoneMeta("cf_d_sk_top"       , "Whole Skirt"            , 0, 3f, BodySkirtScl , "")                 {L = true          , LMax = 6f, LDisplayName = "Whole Skirt Offset"},
-                new BoneMeta("cf_d_sk_00_00"     , "Skirt Front"            , 0, 3f, BodySkirtScl , "")                 {L = true          , LMax = 2f, LDisplayName = "Skirt Front Offset"},
-                new BoneMeta("cf_d_sk_07_00"     , "Skirt Front Sides"      , 0, 3f, BodySkirtScl , "cf_d_sk_01_00")    {L = true          , LMax = 2f, LDisplayName = "Skirt Front Sides Offset"},
-                new BoneMeta("cf_d_sk_06_00"     , "Skirt Sides"            , 0, 3f, BodySkirtScl , "cf_d_sk_02_00")    {L = true          , LMax = 2f, LDisplayName = "Skirt Sides Offset"},
-                new BoneMeta("cf_d_sk_05_00"     , "Skirt Back Sides"       , 0, 3f, BodySkirtScl , "cf_d_sk_03_00")    {L = true          , LMax = 2f, LDisplayName = "Skirt Back Sides Offset"},
-                new BoneMeta("cf_d_sk_04_00"     , "Skirt Back"             , 0, 3f, BodySkirtScl , "")                 {L = true          , LMax = 2f, LDisplayName = "Skirt Back Offset"},
+                new BoneMeta("cf_d_sk_00_00"     , "Skirt Front"            , 0, 3f, BodySkirtScl , "")                 {L = true          , LMax = 2.5f, LDisplayName = "Skirt Front Offset"},
+                new BoneMeta("cf_d_sk_07_00"     , "Skirt Front Sides"      , 0, 3f, BodySkirtScl , "cf_d_sk_01_00")    {L = true          , LMax = 2.5f, LDisplayName = "Skirt Front Sides Offset"},
+                new BoneMeta("cf_d_sk_06_00"     , "Skirt Sides"            , 0, 3f, BodySkirtScl , "cf_d_sk_02_00")    {L = true          , LMax = 2.5f, LDisplayName = "Skirt Sides Offset"},
+                new BoneMeta("cf_d_sk_05_00"     , "Skirt Back Sides"       , 0, 3f, BodySkirtScl , "cf_d_sk_03_00")    {L = true          , LMax = 2.5f, LDisplayName = "Skirt Back Sides Offset"},
+                new BoneMeta("cf_d_sk_04_00"     , "Skirt Back"             , 0, 3f, BodySkirtScl , "")                 {L = true          , LMax = 2.5f, LDisplayName = "Skirt Back Offset"},
 
 
                 new BoneMeta("cf_d_kokan"        , "Genital Area"           , 0, 3f, BodyGenitals , "")                 {L = true          , LMax = 2.5f, LDisplayName = "Genital Area Length"},

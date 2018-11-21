@@ -46,7 +46,8 @@ namespace KKABMX.Core
             "cm_J_dan_f_R",
             "cf_j_kokan",
             "cf_j_toes_L",
-            "cf_j_toes_R"
+            "cf_j_toes_R",
+            "cf_hit_head"
         };
 
         internal static readonly List<BoneController> BoneControllers = new List<BoneController>();
