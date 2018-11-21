@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Globalization;
 using System.Linq;
+using BepInEx.Logging;
 using KKABMX.Core;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using Logger = BepInEx.Logger;
 
 namespace KKABMX.GUI
 {
@@ -92,12 +94,33 @@ namespace KKABMX.GUI
             abmRect.y = Mathf.Min(Screen.height - abmRect.height, Mathf.Max(0, abmRect.y));
         }
 
+        private string _boneAddFieldValue;
         private void LegacyWindow(int id)
         {
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, glo_Slider);
             GUILayout.BeginVertical();
             {
                 GUILayout.Label("Press Right Shift to hide/show this window. Slow, disable it completely in plugin settings if unused.");
+                GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
+                {
+                    GUILayout.Label("Add a new bone to the list. If valid, it will be saved to the card.");
+                    _boneAddFieldValue = GUILayout.TextField(_boneAddFieldValue, GUILayout.ExpandWidth(true));
+                    if (GUILayout.Button("Add"))
+                    {
+                        var bc = FindObjectOfType<BoneController>();
+                        var result = bc.InsertAdditionalModifier(_boneAddFieldValue);
+                        if(result == null)
+                        {
+                            Logger.Log(LogLevel.Message, $"Failed to add bone {_boneAddFieldValue}, make sure the name is correct.");
+                        }
+                        else
+                        {
+                            modifiers = bc.Modifiers.Values.ToArray();
+                            Logger.Log(LogLevel.Message, $"Added bone {_boneAddFieldValue} successfully. Modify it to make it save.");
+                        }
+                    }
+                }
+                GUILayout.EndHorizontal();
 
                 foreach (var mod in modifiers)
                 {

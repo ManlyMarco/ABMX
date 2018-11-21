@@ -77,15 +77,15 @@ namespace KKABMX.Core
             return GetExtDataFilePath(GetLastLoadedFile());
         }
 
-        private BoneModifierBody InsertAdditionalModifier(string boneName)
+        public BoneModifierBody InsertAdditionalModifier(string boneName)
         {
-            var boneModifierBody = new BoneModifierBody(Utilities.ManualBoneId, null, boneName);
             var loopGo = GetRootTransform().FindLoop(boneName);
             if (loopGo == null)
             {
                 Logger.Log(LogLevel.Debug, $"[KKABMX] Manually included bone {boneName} was not found");
                 return null;
             }
+            var boneModifierBody = new BoneModifierBody(Utilities.ManualBoneId, null, boneName);
             boneModifierBody.ManualTarget = loopGo.transform;
             Modifiers.Add(boneModifierBody.BoneName, boneModifierBody);
             return boneModifierBody;
