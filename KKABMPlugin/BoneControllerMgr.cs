@@ -7,6 +7,7 @@ using BepInEx.Logging;
 using ChaCustom;
 using ExtensibleSaveFormat;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Logger = BepInEx.Logger;
 
 namespace KKABMX.Core
@@ -260,12 +261,6 @@ namespace KKABMX.Core
             }
         }
 
-        protected void OnLevelWasLoaded(int level)
-        {
-            InsideMaker = Singleton<CustomBase>.Instance != null;
-            LastLoadedFile = null;
-        }
-
         internal static void Init()
         {
             if (!Instance)
@@ -273,6 +268,10 @@ namespace KKABMX.Core
                 Instance = new GameObject("BoneControllerMgr").AddComponent<BoneControllerMgr>();
                 DontDestroyOnLoad(Instance.gameObject);
                 ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
+                SceneManager.sceneLoaded += (sc, mode) => {
+                    Instance.InsideMaker = Singleton<CustomBase>.Instance != null;
+                    Instance.LastLoadedFile = null;
+                };
             }
         }
 
