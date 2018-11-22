@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections;
+using System.IO;
 using System.Reflection;
 using ChaCustom;
 using Harmony;
@@ -122,7 +123,13 @@ namespace KKABMX.Core
         {
             var component = __instance.charInfo.gameObject.GetComponent<BoneController>();
             if (component != null)
-                BoneControllerMgr.LoadFromPluginData(component, __instance.charInfo.chaFile);
+                BoneControllerMgr.Instance.StartCoroutine(DelayedLoad(component, __instance.charInfo.chaFile));
+        }
+
+        private static IEnumerator DelayedLoad(BoneController controller, ChaFileControl charInfoChaFile)
+        {
+            yield return null;
+            BoneControllerMgr.LoadFromPluginData(controller, charInfoChaFile);
         }
 
         [HarmonyPrefix]
