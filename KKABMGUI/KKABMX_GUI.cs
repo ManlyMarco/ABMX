@@ -60,6 +60,13 @@ namespace KKABMX.GUI
 
                     first = !RegisterSingleControl(category, boneMeta, first, callback);
                 }
+
+                if (ReferenceEquals(category, InterfaceData.BodyHands))
+                {
+                    if (!first)
+                        callback.AddControl(new MakerSeparator(category, this) { TextColor = SettingColor });
+                    RegisterFingerControl(category, callback);
+                }
             }
 
             var bonesInMetadata = InterfaceData.BoneControls.Select(x => x.BoneName).Distinct()
@@ -71,6 +78,73 @@ namespace KKABMX.GUI
                                            $"(isScaleBone={_boneController.Modifiers[unusedBone].ScaleBone}, " +
                                            $"isNotManual={_boneController.Modifiers[unusedBone].IsNotManual})");
             }
+        }
+
+        private void RegisterFingerControl(MakerCategory category, RegisterCustomControlsEvent callback)
+        {
+            var rbSide = callback.AddControl(new MakerRadioButtons(category, this, "Hand to edit", "Both", "Left", "Right") { TextColor = SettingColor });
+            var rbFing = callback.AddControl(new MakerRadioButtons(category, this, "Finger to edit", "All", "1", "2", "3", "4", "5") { TextColor = SettingColor });
+            var rbSegm = callback.AddControl(new MakerRadioButtons(category, this, "Segment to edit", "Base", "Center", "Tip") { TextColor = SettingColor });
+
+            IEnumerable<string> GetBoneNames()
+            {
+                var fingers = rbFing.Value == 0 ? InterfaceData.FingerNamePrefixes : new[] { InterfaceData.FingerNamePrefixes[rbFing.Value - 1] };
+                var segmented = fingers.Select(fName => $"{fName}0{rbSegm.Value + 1}").ToList();
+                var sided = Enumerable.Empty<string>();
+                if (rbSide.Value <= 1)
+                    sided = segmented.Select(s => s + "_L");
+                if (rbSide.Value == 0 || rbSide.Value == 2)
+                    sided = sided.Concat(segmented.Select(s => s + "_R"));
+                return sided;
+            }
+
+            var x = callback.AddControl(new MakerSlider(category, "Scale X", 0, 3, 1, this) { TextColor = SettingColor });
+            var y = callback.AddControl(new MakerSlider(category, "Scale Y", 0, 3, 1, this) { TextColor = SettingColor });
+            var z = callback.AddControl(new MakerSlider(category, "Scale Z", 0, 3, 1, this) { TextColor = SettingColor });
+
+            void UpdateDisplay(int _)
+            {
+                SetSliders(_boneController.Modifiers[GetBoneNames().First()]);
+            }
+
+            var isUpdatingValue = false;
+
+            void SetSliders(BoneModifierBody bone)
+            {
+                isUpdatingValue = true;
+                if (x != null) x.Value = bone.SclMod.x;
+                if (y != null) y.Value = bone.SclMod.y;
+                if (z != null) z.Value = bone.SclMod.z;
+                isUpdatingValue = false;
+            }
+
+            void PushValueToControls()
+            {
+                UpdateDisplay(0);
+            }
+
+            _updateActionList.Add(PushValueToControls);
+            PushValueToControls();
+
+            rbSide.ValueChanged.Subscribe(UpdateDisplay);
+            rbFing.ValueChanged.Subscribe(UpdateDisplay);
+            rbSegm.ValueChanged.Subscribe(UpdateDisplay);
+
+            void PullValuesToBone(float _)
+            {
+                if (isUpdatingValue) return;
+
+                foreach (var boneName in GetBoneNames())
+                {
+                    var bone = _boneController.Modifiers[boneName];
+                    var newValue = new Vector3(x.Value, y.Value, z.Value);
+                    bone.SclMod = newValue;
+                }
+            }
+            var obs = Observer.Create<float>(PullValuesToBone);
+            x?.ValueChanged.Subscribe(obs);
+            y?.ValueChanged.Subscribe(obs);
+            z?.ValueChanged.Subscribe(obs);
         }
 
         private bool RegisterSingleControl(MakerCategory category, BoneMeta boneMeta, bool isFirstElement, RegisterCustomControlsEvent callback)
@@ -87,7 +161,7 @@ namespace KKABMX.GUI
             MakerRadioButtons rb = null;
             if (!string.IsNullOrEmpty(boneMeta.RightBoneName))
             {
-                rb = callback.AddControl(new MakerRadioButtons(category, "Side to edit", "Both", "Left", "Right", this) { TextColor = SettingColor });
+                rb = callback.AddControl(new MakerRadioButtons(category, this, "Side to edit", "Both", "Left", "Right") { TextColor = SettingColor });
             }
 
             var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor }) : null;

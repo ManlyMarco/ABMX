@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using MakerAPI;
+using UniRx;
 
 namespace KKABMX.GUI
 {
     public static class InterfaceData
     {
         public static List<BoneMeta> BoneControls { get; }
+        public static string[] FingerNamePrefixes { get; }
 
         public static readonly MakerCategory FaceAll;
         public static readonly MakerCategory FaceHead;
@@ -76,6 +78,15 @@ namespace KKABMX.GUI
 
             BodyBot = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglBot");
             BodySkirtScl = new MakerCategory("03_ClothesTop", "tglSkirtSclABM", BodyBot.Position + 2, "Skirt");
+
+            FingerNamePrefixes = new[]
+            {
+                "cf_j_thumb",
+                "cf_j_index",
+                "cf_j_middle",
+                "cf_j_ring",
+                "cf_j_little"
+            };
 
             BoneControls = new List<BoneMeta>
             {
