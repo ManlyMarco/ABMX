@@ -172,7 +172,7 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_hit_spine01"    , "Upper Torso Collision"  , 0, 3f, BodyUpper2   , "")                                    ,
                 new BoneMeta("cf_hit_spine02_L"  , "Lower Torso Collision"  , 0, 3f, BodyUpper2   , "")                                    ,
 
-                new BoneMeta("cf_s_siri_L"       , "Ass"                    , 0, 3f, BodyLower    , "cf_s_siri_R")                         ,
+                new BoneMeta("cf_s_siri_L"       , "Ass"                    , 0, 3f, BodyLower    , "cf_s_siri_R")      {L = true          , LMax = 10f, LDisplayName = "Ass Position"},
                 new BoneMeta("cf_hit_siri_L"     , "Ass Collision"          , 0, 3f, BodyLower    , "cf_hit_siri_R")    {X = false         , Y=false},
 
                 new BoneMeta("cf_s_waist01"      , "Upper Waist"            , 0, 3f, BodyLower2   , "")                 {L = true          , LMax = 4f, LDisplayName = "Upper Waist Position"},
