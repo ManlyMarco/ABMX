@@ -12,7 +12,7 @@ using Logger = BepInEx.Logger;
 
 namespace KKABMX.GUI
 {
-    [BepInPlugin("KKABMX.GUI", "KKABMX GUI", "1.0")]
+    [BepInPlugin("KKABMX.GUI", "KKABMX GUI", KKABMX_Core.Version)]
     [BepInDependency(MakerAPI.MakerAPI.GUID)]
     [BepInDependency(KKABMX_Core.GUID)]
     public class KKABMX_GUI : BaseUnityPlugin
