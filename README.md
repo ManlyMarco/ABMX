@@ -20,5 +20,6 @@ This is an upgraded version of the original Koikatu ABM/Bonemod plugin. It fixes
 - Misc bugfixes and improvements
 
 ## Screenshots
+![GUI](https://user-images.githubusercontent.com/39247311/48955340-b734a100-ef4d-11e8-9c23-25d321812e2f.png)
 ![GUI](https://user-images.githubusercontent.com/39247311/48379580-e6891980-e6d4-11e8-91f5-4702c1af1fa2.png)
 ![GUI](https://user-images.githubusercontent.com/39247311/48379581-e6891980-e6d4-11e8-8253-21feed5ac6cb.png)
