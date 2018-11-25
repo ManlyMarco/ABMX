@@ -77,7 +77,7 @@ namespace KKABMX.Core
                     var localScale = new Vector3(_sclBaseline.x * SclMod.x, _sclBaseline.y * SclMod.y,
                         _sclBaseline.z * SclMod.z);
                     target.localScale = localScale;
-                    
+
                     if ((_lenModForceUpdate || Math.Abs(LenMod - 1f) > 0.0001f) && target.localPosition != Vector3.zero && _lenBaseline != 0f)
                     {
                         target.localPosition = target.localPosition / target.localPosition.magnitude * _lenBaseline * LenMod;
@@ -150,11 +150,12 @@ namespace KKABMX.Core
             if (target != null)
             {
                 _sclBaseline = target.localScale;
-                _lenBaseline = target.localPosition.magnitude;
+                if (_lenBaseline == 0f)
+                    _lenBaseline = target.localPosition.magnitude;
                 _hasBaseline = true;
             }
         }
-        
+
         private static bool IsScaleBone(ShapeInfoBase.BoneInfo boneInfo, ShapeInfoBase sibBody, int boneIndex)
         {
             if (boneInfo == null || boneInfo.trfBone == null)
