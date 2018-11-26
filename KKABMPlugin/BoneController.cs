@@ -26,7 +26,7 @@ namespace KKABMX.Core
         public SortedDictionary<string, BoneModifierBody> Modifiers { get; private set; } = new SortedDictionary<string, BoneModifierBody>();
 
         private static readonly int CoordinateCount = Enum.GetValues(typeof(ChaFileDefine.CoordinateType)).Length;
-        private readonly Dictionary<string, Vector3[]> _coordinateModifierData = new Dictionary<string, Vector3[]>();
+        private readonly Dictionary<string, ModifierData[]> _coordinateModifierData = new Dictionary<string, ModifierData[]>();
 
         public ChaFileDefine.CoordinateType CurrentCoordinate => (ChaFileDefine.CoordinateType)_currentCoordinate;
         private int _currentCoordinate;
@@ -140,7 +140,7 @@ namespace KKABMX.Core
             InsertAdditionalModifiers();
 
             foreach (var coordinateBoneName in Utilities.CoordinateBoneNames)
-                _coordinateModifierData[coordinateBoneName] = Enumerable.Repeat(Vector3.one, CoordinateCount).ToArray();
+                _coordinateModifierData[coordinateBoneName] = Enumerable.Range(0, CoordinateCount).Select(_ => new ModifierData()).ToArray();
 
             _currentCoordinate = 0;
             _baseLineKnown = false;
@@ -155,7 +155,7 @@ namespace KKABMX.Core
             {
                 var boneModifierBody = Modifiers[key];
 
-                void SerializeHelper(string boneName, Vector3 sclMod, bool forceWrite)
+                void SerializeHelper(string boneName, Vector3 sclMod, float lenMod, bool forceWrite)
                 {
                     if (!forceWrite && sclMod.Equals(Vector3.one) && boneModifierBody.LenMod.Equals(1f))
                         return;
@@ -168,21 +168,22 @@ namespace KKABMX.Core
                             sclMod.x.ToString(CultureInfo.InvariantCulture),
                             sclMod.y.ToString(CultureInfo.InvariantCulture),
                             sclMod.z.ToString(CultureInfo.InvariantCulture),
-                            boneModifierBody.LenMod.ToString(CultureInfo.InvariantCulture)
+                            lenMod.ToString(CultureInfo.InvariantCulture)
                         });
                     sb.AppendLine(serializedModifier);
                 }
 
                 // Save legacy data even if we save coord-specific, keep it first in order
-                SerializeHelper(boneModifierBody.BoneName, boneModifierBody.SclMod, false);
+                SerializeHelper(boneModifierBody.BoneName, boneModifierBody.SclMod, boneModifierBody.LenMod, false);
 
                 if (_coordinateModifierData.TryGetValue(key, out var data))
                 {
                     for (var i = 0; i < data.Length; i++)
                     {
-                        var sclMod = _currentCoordinate == i ? boneModifierBody.SclMod : data[i];
+                        var sclMod = _currentCoordinate == i ? boneModifierBody.SclMod : data[i].SclMod;
+                        var lenMod = _currentCoordinate == i ? boneModifierBody.LenMod : data[i].LenMod;
                         // Need to force write these so we don't assume we are converting from old bonemod and set something other than Vector3.one
-                        SerializeHelper($"{boneModifierBody.BoneName}__{i}", sclMod, true);
+                        SerializeHelper($"{boneModifierBody.BoneName}__{i}", sclMod, lenMod, true);
                     }
                 }
             }
@@ -284,11 +285,15 @@ namespace KKABMX.Core
 
         private void DeserializeToModifiers(IEnumerable<string> lines)
         {
-            const float emptyMarker = -44f;
+            const float emptyMarker = float.MinValue;
             foreach (var coordDatas in _coordinateModifierData)
             {
                 for (var i = 1; i < coordDatas.Value.Length; i++)
-                    coordDatas.Value[i].x = emptyMarker;
+                {
+                    var modifierData = coordDatas.Value[i];
+                    modifierData.SclMod.x = emptyMarker;
+                    modifierData.LenMod = emptyMarker;
+                }
             }
 
             foreach (var lineText in lines)
@@ -320,7 +325,11 @@ namespace KKABMX.Core
                         continue;
 
                     if (_coordinateModifierData.TryGetValue(boneName, out var data))
-                        data[coordinateId] = new Vector3(x, y, z);
+                    {
+                        data[coordinateId].SclMod = new Vector3(x, y, z);
+                        if (splitValues.Length > 6)
+                            data[coordinateId].LenMod = lenMod;
+                    }
 
                     // Non-coord data is always 1st, so it gets overwritten by coord data if it exists
                     if (coordinateId == 0 || coordinateId == _currentCoordinate)
@@ -343,8 +352,10 @@ namespace KKABMX.Core
             {
                 for (var i = 1; i < coordDatas.Value.Length; i++)
                 {
-                    if (coordDatas.Value[i].x.Equals(emptyMarker))
+                    if (coordDatas.Value[i].SclMod.x.Equals(emptyMarker))
                         coordDatas.Value[i] = coordDatas.Value[0];
+                    if (coordDatas.Value[i].LenMod.Equals(emptyMarker))
+                        coordDatas.Value[i].LenMod = coordDatas.Value[0].LenMod;
                 }
             }
         }
@@ -472,8 +483,13 @@ namespace KKABMX.Core
                 var modifier = FindOrCreateModifierByBoneName(coordData.Key);
                 if (modifier != null)
                 {
-                    coordData.Value[previousId] = modifier.SclMod;
-                    modifier.SclMod = coordData.Value[newId];
+                    var previousModifierData = coordData.Value[previousId];
+                    previousModifierData.SclMod = modifier.SclMod;
+                    previousModifierData.LenMod = modifier.LenMod;
+
+                    var newModifierData = coordData.Value[newId];
+                    modifier.SclMod = newModifierData.SclMod;
+                    modifier.LenMod = newModifierData.LenMod;
                 }
             }
 
@@ -483,6 +499,20 @@ namespace KKABMX.Core
         private void OnDestroy()
         {
             BoneControllerMgr.BoneControllers.Remove(this);
+        }
+
+        private sealed class ModifierData
+        {
+            public Vector3 SclMod;
+            public float LenMod;
+
+            public ModifierData() : this(Vector3.one, 1) { }
+
+            public ModifierData(Vector3 sclMod, float lenMod)
+            {
+                SclMod = sclMod;
+                LenMod = lenMod;
+            }
         }
     }
 }
