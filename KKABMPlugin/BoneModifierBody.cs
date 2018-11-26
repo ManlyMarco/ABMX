@@ -15,7 +15,18 @@ namespace KKABMX.Core
         public Transform ManualTarget { get; internal set; }
         public bool IsNotManual { get; }
 
-        public float LenMod = 1f;
+        private float _lenMod = 1f;
+
+        public float LenMod
+        {
+            get => _lenMod;
+            set
+            {
+                _lenMod = value;
+                _lenModForceUpdate = true;
+            }
+        }
+
         public Vector3 SclMod = Vector3.one;
 
         private bool _hasBaseline;
