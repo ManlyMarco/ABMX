@@ -201,6 +201,8 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_s_thigh01_L"    , "Upper Thigh"            , 0, 3f, BodyThighs   , "cf_s_thigh01_R")   {L = true          , LMax = 3f, LDisplayName = "Upper Thigh Spacing"},
                 new BoneMeta("cf_s_thigh02_L"    , "Center Thigh"           , 0, 3f, BodyThighs   , "cf_s_thigh02_R")   {L = true          , LMax = 3.5f, LDisplayName = "Center Thigh Spacing"},
                 new BoneMeta("cf_s_thigh03_L"    , "Lower Thigh"            , 0, 3f, BodyThighs   , "cf_s_thigh03_R")   {L = true          , LMax = 4f, LDisplayName = "Lower Thigh Spacing"},
+                new BoneMeta("cf_hit_thigh01_L"  , "Upper Thigh Collision"  , 0, 2f, BodyThighs    , "cf_hit_thigh01_R") {X = false         , Y=false},
+                new BoneMeta("cf_hit_thigh02_L"  , "Lower Thigh Collision"  , 0, 2f, BodyThighs    , "cf_hit_thigh02_R") {X = false         , Y=false},
 
                 new BoneMeta("cf_j_leg01_L"      , "Lower Leg"              , 0, 3f, BodyFeet     , "cf_j_leg01_R")                        ,
                 new BoneMeta("cf_s_leg01_L"      , "Upper Calve"            , 0, 3f, BodyFeet     , "cf_s_leg01_R")                        ,

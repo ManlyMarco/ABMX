@@ -172,6 +172,10 @@ namespace KKABMX.Core
             "cf_j_thumb01_R" ,
             "cf_j_thumb02_R" ,
             "cf_j_thumb03_R" ,
+            "cf_hit_thigh01_L",
+            "cf_hit_thigh02_L",
+            "cf_hit_thigh01_R",
+            "cf_hit_thigh02_R"
         };
 
         /// <summary>
