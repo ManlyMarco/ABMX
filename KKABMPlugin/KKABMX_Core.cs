@@ -6,7 +6,7 @@ namespace KKABMX.Core
     [BepInDependency("com.bepis.bepinex.extendedsave")]
     public class KKABMX_Core : BaseUnityPlugin
     {
-        public const string Version = "2.0";
+        public const string Version = "2.1";
         public const string GUID = "KKABMX.Core";
 
         public KKABMX_Core()
