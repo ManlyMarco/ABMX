@@ -77,7 +77,7 @@ namespace KKABMX.GUI
             BodyGenitals = new MakerCategory("01_BodyTop", "tglGenitalsABM", BodyUnderhair.Position + 2, "Genitals");
 
             BodyBot = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglBot");
-            BodySkirtScl = new MakerCategory("03_ClothesTop", "tglSkirtSclABM", BodyBot.Position + 2, "Skirt");
+            BodySkirtScl = new MakerCategory("03_ClothesTop", "tglSkirtSclABM", BodyBot.Position + 2, "Skirt Scale");
 
             FingerNamePrefixes = new[]
             {
