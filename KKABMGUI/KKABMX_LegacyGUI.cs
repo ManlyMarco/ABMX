@@ -193,7 +193,7 @@ namespace KKABMX.GUI
                         }
                         else
                         {
-                            _boneControllerMgr.AdditionalBoneNames.Add(_boneAddFieldValue);
+                            BoneConfiguration.AdditionalBoneNames.Add(_boneAddFieldValue);
                             modifiers = bc.Modifiers.Values.ToArray();
                             Logger.Log(LogLevel.Message, $"Added bone {_boneAddFieldValue} successfully. Modify it to make it save.");
                             _boneAddFieldValue = "";

@@ -172,16 +172,19 @@ namespace KKABMX.Core
             if (boneInfo == null || boneInfo.trfBone == null)
                 return false;
 
-            int[] array = null;
-            if (sibBody is ShapeBodyInfoFemale)
-                array = Utilities.ScaleBodyBonesF;
-            else if (sibBody is ShapeBodyInfoMale)
-                array = Utilities.ScaleBodyBonesM;
-            else if (sibBody is ShapeHeadInfoFemale)
-                array = Utilities.ScaleFaceBonesF;
-            else if (sibBody is ShapeHeadInfoMale)
-                array = Utilities.ScaleFaceBonesM;
-            return array != null && array.Contains(boneIndex);
+            switch (sibBody)
+            {
+                case ShapeBodyInfoFemale _:
+                    return BoneConfiguration.ScaleBodyBonesF.Contains(boneIndex);
+                case ShapeBodyInfoMale _:
+                    return BoneConfiguration.ScaleBodyBonesM.Contains(boneIndex);
+                case ShapeHeadInfoFemale _:
+                    return BoneConfiguration.ScaleFaceBonesF.Contains(boneIndex);
+                case ShapeHeadInfoMale _:
+                    return BoneConfiguration.ScaleFaceBonesM.Contains(boneIndex);
+                default:
+                    return false;
+            }
         }
     }
 }

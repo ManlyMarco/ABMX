@@ -139,7 +139,7 @@ namespace KKABMX.Core
             BoneModifierBody.AddFaceBones(sibFace, Modifiers);
             InsertAdditionalModifiers();
 
-            foreach (var coordinateBoneName in Utilities.CoordinateBoneNames)
+            foreach (var coordinateBoneName in BoneConfiguration.CoordinateBoneNames)
                 _coordinateModifierData[coordinateBoneName] = Enumerable.Range(0, CoordinateCount).Select(_ => new ModifierData()).ToArray();
 
             _currentCoordinate = 0;
@@ -400,7 +400,7 @@ namespace KKABMX.Core
             // 0 = male, else female
             //if (chaControl.fileParam.sex != 0)
 
-            foreach (var boneName in BoneControllerMgr.Instance.AdditionalBoneNames)
+            foreach (var boneName in BoneConfiguration.AdditionalBoneNames)
                 InsertAdditionalModifier(boneName);
         }
 

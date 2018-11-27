@@ -68,6 +68,7 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BoneConfiguration.cs" />
     <Compile Include="BoneController.cs" />
     <Compile Include="BoneControllerMgr.cs" />
     <Compile Include="BoneModifierBody.cs" />

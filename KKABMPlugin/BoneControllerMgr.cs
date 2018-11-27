@@ -14,72 +14,8 @@ namespace KKABMX.Core
 {
     public class BoneControllerMgr : MonoBehaviour
     {
-        private const string BoneDataKey = "boneData";
-        private const string ExtendedSaveId = "KKABMPlugin.ABMData";
-
-        /// <summary>
-        /// Extra bones to handle. Add extra bone names to handle before characters are created.
-        /// </summary>
-        public List<string> AdditionalBoneNames { get; } = new List<string>
-        {
-            "cf_j_shoulder_L",
-            "cf_j_shoulder_R",
-            "cf_j_arm00_L",
-            "cf_j_arm00_R",
-            "cf_j_forearm01_L",
-            "cf_j_forearm01_R",
-            "cf_j_hand_L",
-            "cf_j_hand_R",
-            "cf_j_waist01",
-            "cf_j_waist02",
-            "cf_j_thigh00_L",
-            "cf_j_thigh00_R",
-            "cf_j_leg01_L",
-            "cf_j_leg01_R",
-            "cf_j_leg03_L",
-            "cf_j_leg03_R",
-            "cf_j_foot_L",
-            "cf_j_foot_R",
-            "cf_j_ana",
-            "cm_J_dan109_00",
-            "cm_J_dan100_00",
-            "cm_J_dan_f_L",
-            "cm_J_dan_f_R",
-            "cf_j_kokan",
-            "cf_j_toes_L",
-            "cf_j_toes_R",
-            "cf_hit_head",
-            "cf_j_index01_L" ,
-            "cf_j_index02_L" ,
-            "cf_j_index03_L" ,
-            "cf_j_little01_L",
-            "cf_j_little02_L",
-            "cf_j_little03_L",
-            "cf_j_middle01_L",
-            "cf_j_middle02_L",
-            "cf_j_middle03_L",
-            "cf_j_ring01_L"  ,
-            "cf_j_ring02_L"  ,
-            "cf_j_ring03_L"  ,
-            "cf_j_thumb01_L" ,
-            "cf_j_thumb02_L" ,
-            "cf_j_thumb03_L" ,
-            "cf_j_index01_R" ,
-            "cf_j_index02_R" ,
-            "cf_j_index03_R" ,
-            "cf_j_little01_R",
-            "cf_j_little02_R",
-            "cf_j_little03_R",
-            "cf_j_middle01_R",
-            "cf_j_middle02_R",
-            "cf_j_middle03_R",
-            "cf_j_ring01_R"  ,
-            "cf_j_ring02_R"  ,
-            "cf_j_ring03_R"  ,
-            "cf_j_thumb01_R" ,
-            "cf_j_thumb02_R" ,
-            "cf_j_thumb03_R" ,
-        };
+        private const string ExtDataBoneDataKey = "boneData";
+        private const string ExtDataSaveId = "KKABMPlugin.ABMData";
 
         internal static readonly List<BoneController> BoneControllers = new List<BoneController>();
 
@@ -114,7 +50,7 @@ namespace KKABMX.Core
                 var pluginData = new PluginData
                 {
                     version = boneDataPluginData.version,
-                    data = { [BoneDataKey] = boneDataPluginData.data[BoneDataKey] }
+                    data = { [ExtDataBoneDataKey] = boneDataPluginData.data[ExtDataBoneDataKey] }
                 };
                 SetExtendedCharacterData(dst, pluginData);
             }
@@ -136,7 +72,7 @@ namespace KKABMX.Core
         {
             if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
 
-            return ExtendedSave.GetExtendedDataById(chaFile, ExtendedSaveId);
+            return ExtendedSave.GetExtendedDataById(chaFile, ExtDataSaveId);
         }
 
         public static BoneController GetOrAttachBoneController(ChaControl charInfo)
@@ -151,7 +87,7 @@ namespace KKABMX.Core
         public void LoadAsExtSaveData(string charCardPath, ChaFileControl chaFile, bool clearIfNotFound = true)
         {
             var extDataFilePath = BoneController.GetExtDataFilePath(charCardPath, chaFile.parameter.sex);
-            if (!string.IsNullOrEmpty(extDataFilePath) && File.Exists(extDataFilePath))
+            if (!String.IsNullOrEmpty(extDataFilePath) && File.Exists(extDataFilePath))
             {
                 Logger.Log(LogLevel.Info, $"[KKABMX] Importing external ABM data from file: {extDataFilePath}");
 
@@ -159,7 +95,7 @@ namespace KKABMX.Core
                 var pluginData = new PluginData
                 {
                     version = 1,
-                    data = { [BoneDataKey] = value }
+                    data = { [ExtDataBoneDataKey] = value }
                 };
                 SetExtendedCharacterData(chaFile, pluginData);
                 SetNeedReload();
@@ -174,9 +110,9 @@ namespace KKABMX.Core
         {
             var pluginData = GetExtendedCharacterData(chaFile);
             if (pluginData != null &&
-                pluginData.data.TryGetValue(BoneDataKey, out var value) &&
+                pluginData.data.TryGetValue(ExtDataBoneDataKey, out var value) &&
                 value is string textData &&
-                !string.IsNullOrEmpty(textData))
+                !String.IsNullOrEmpty(textData))
             {
                 Logger.Log(LogLevel.Info, $"[KKABMX] Loading embedded ABM data from card: {chaFile.parameter.fullname}");
                 boneController.LoadFromTextData(textData);
@@ -239,7 +175,7 @@ namespace KKABMX.Core
         {
             if (chaFile == null) throw new ArgumentNullException(nameof(chaFile));
 
-            ExtendedSave.GetAllExtendedData(chaFile)?.Remove(ExtendedSaveId);
+            ExtendedSave.GetAllExtendedData(chaFile)?.Remove(ExtDataSaveId);
         }
 
         private static void SetExtendedCharacterData(ChaFile chaFile, PluginData pluginData)
@@ -249,7 +185,7 @@ namespace KKABMX.Core
 
             Logger.Log(LogLevel.Info, "[KKABMX] Saving embedded ABM data to character card: " +
                 (chaFile.charaFileName ?? chaFile.parameter.fullname ?? "[Unnamed]"));
-            ExtendedSave.SetExtendedDataById(chaFile, ExtendedSaveId, pluginData);
+            ExtendedSave.SetExtendedDataById(chaFile, ExtDataSaveId, pluginData);
         }
 
         public void SetNeedReload()
@@ -292,7 +228,7 @@ namespace KKABMX.Core
             var pluginData = new PluginData
             {
                 version = 1,
-                data = { [BoneDataKey] = boneController.Serialize() }
+                data = { [ExtDataBoneDataKey] = boneController.Serialize() }
             };
 
             return pluginData;
