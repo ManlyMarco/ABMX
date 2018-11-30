@@ -19,7 +19,7 @@ namespace KKABMX.Core
 
         internal static readonly List<BoneController> BoneControllers = new List<BoneController>();
 
-        public bool InsideMaker { get; private set; }
+        internal static bool InsideMaker => MakerAPI.MakerAPI.Instance.InsideMaker;
         public static BoneControllerMgr Instance { get; private set; }
 
         public string LastLoadedFile { get; private set; }
@@ -54,18 +54,6 @@ namespace KKABMX.Core
                 };
                 SetExtendedCharacterData(dst, pluginData);
             }
-        }
-
-        public void EnterCustomScene()
-        {
-            InsideMaker = Singleton<CustomBase>.Instance != null;
-            LastLoadedFile = null;
-        }
-
-        public void ExitCustomScene()
-        {
-            InsideMaker = false;
-            LastLoadedFile = null;
         }
 
         private static PluginData GetExtendedCharacterData(ChaFile chaFile)
@@ -203,10 +191,16 @@ namespace KKABMX.Core
             {
                 Instance = new GameObject("BoneControllerMgr").AddComponent<BoneControllerMgr>();
                 DontDestroyOnLoad(Instance.gameObject);
+
                 ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
-                SceneManager.sceneLoaded += (sc, mode) => {
-                    Instance.InsideMaker = Singleton<CustomBase>.Instance != null;
-                    Instance.LastLoadedFile = null;
+
+                SceneManager.sceneLoaded += (sc, mode) => Instance.LastLoadedFile = null;
+                MakerAPI.MakerAPI.Instance.InsideMakerChanged += (sender, args) => Instance.LastLoadedFile = null;
+
+                MakerAPI.MakerAPI.Instance.CharacterChanged += (sender, args) =>
+                {
+                    if (args.Face || args.Body)
+                        Instance.OnLimitedLoad(args.Filename, args.LoadedChaFile);
                 };
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.IO;
 using System.Reflection;
 using ChaCustom;
 using Harmony;
@@ -33,38 +32,6 @@ namespace KKABMX.Core
         {
             if (!MakerListIsLoading)
                 BoneControllerMgr.GetOrAttachBoneController(__instance);
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ChaFile), "LoadFile", new[] { typeof(BinaryReader), typeof(bool), typeof(bool) })]
-        public static void ChaFileLoadFilePreHook(ChaFile __instance, BinaryReader br, bool noLoadPNG, bool noLoadStatus)
-        {
-            if (!MakerListIsLoading && BoneControllerMgr.Instance != null && BoneControllerMgr.Instance.InsideMaker)
-                lastLoadedChaFile = __instance;
-            else
-                lastLoadedChaFile = null;
-        }
-
-        private static ChaFile lastLoadedChaFile;
-        private static readonly FieldInfo _idolBackButton = typeof(LiveCharaSelectSprite).GetField("btnIdolBack", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(ChaFileControl), "LoadFileLimited", new[]
-        {
-            typeof(string),
-            typeof(byte),
-            typeof(bool),
-            typeof(bool),
-            typeof(bool),
-            typeof(bool),
-            typeof(bool)
-        })]
-        public static void ChaFileControl_LoadLimitedPostHook(string filename, byte sex, bool face, bool body,
-            bool hair,
-            bool parameter, bool coordinate, ChaFileControl __instance)
-        {
-            if ((face || body) && BoneControllerMgr.Instance)
-                BoneControllerMgr.Instance.OnLimitedLoad(filename, lastLoadedChaFile);
         }
 
         [HarmonyPrefix]
@@ -145,21 +112,6 @@ namespace KKABMX.Core
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(CustomScene), "Start")]
-        public static void CustomScene_Start()
-        {
-            BoneControllerMgr.Instance.EnterCustomScene();
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(CustomScene), "OnDestroy")]
-        public static void CustomScene_Destroy()
-        {
-            BoneControllerMgr.Instance.ExitCustomScene();
-            lastLoadedChaFile = null;
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(CvsExit), "ExitSceneRestoreStatus", new[]
         {
             typeof(string)
@@ -168,6 +120,8 @@ namespace KKABMX.Core
         {
             BoneControllerMgr.Instance.OnCustomSceneExitWithSave();
         }
+
+        private static readonly FieldInfo _idolBackButton = typeof(LiveCharaSelectSprite).GetField("btnIdolBack", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(LiveCharaSelectSprite), "Start")]
@@ -187,19 +141,6 @@ namespace KKABMX.Core
         }
 
         // Prevent reading ABM data when loading the list of characters
-        [HarmonyPrefix, HarmonyPatch(typeof(CustomCharaFile), "Initialize")]
-        public static void CustomScenePrefix()
-        {
-            MakerListIsLoading = true;
-        }
-
-        private static bool MakerListIsLoading;
-
-        // Prevent reading ABM data when loading the list of characters
-        [HarmonyPostfix, HarmonyPatch(typeof(CustomCharaFile), "Initialize")]
-        public static void CustomScenePostfix()
-        {
-            MakerListIsLoading = false;
-        }
+        private static bool MakerListIsLoading => MakerAPI.MakerAPI.Instance?.CharaListIsLoading ?? false;
     }
 }

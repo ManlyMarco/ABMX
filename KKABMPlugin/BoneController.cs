@@ -449,7 +449,7 @@ namespace KKABMX.Core
 
         private static bool IsCustomScene()
         {
-            return BoneControllerMgr.Instance.InsideMaker;
+            return BoneControllerMgr.InsideMaker;
         }
 
         private void Awake()
