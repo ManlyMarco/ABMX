@@ -78,6 +78,9 @@ namespace KKABMX.GUI
                                            $"(isScaleBone={_boneController.Modifiers[unusedBone].ScaleBone}, " +
                                            $"isNotManual={_boneController.Modifiers[unusedBone].IsNotManual})");
             }
+
+            BoneControllerMgr.LoadFromMakerCards = true;
+            callback.AddLoadToggle(new MakerLoadToggle("KKABMX")).ValueChanged.Subscribe(b => BoneControllerMgr.LoadFromMakerCards = b);
         }
 
         private void RegisterFingerControl(MakerCategory category, RegisterCustomControlsEvent callback)

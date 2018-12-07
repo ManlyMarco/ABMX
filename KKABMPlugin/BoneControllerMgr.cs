@@ -197,13 +197,15 @@ namespace KKABMX.Core
                 SceneManager.sceneLoaded += (sc, mode) => Instance.LastLoadedFile = null;
                 MakerAPI.MakerAPI.Instance.InsideMakerChanged += (sender, args) => Instance.LastLoadedFile = null;
 
-                MakerAPI.MakerAPI.Instance.CharacterChanged += (sender, args) =>
+                MakerAPI.MakerAPI.Instance.ChaFileLoaded += (sender, args) =>
                 {
-                    if (args.Face || args.Body)
+                    if (LoadFromMakerCards ?? args.Face || args.Body)
                         Instance.OnLimitedLoad(args.Filename, args.LoadedChaFile);
                 };
             }
         }
+
+        public static bool? LoadFromMakerCards;
 
         private IEnumerator ClearReloadFlagCo()
         {
