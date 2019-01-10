@@ -17,6 +17,7 @@ namespace KKABMX.GUI
     [BepInDependency(KKABMX_Core.GUID)]
     public class KKABMX_GUI : BaseUnityPlugin
     {
+        private const int LimitRaiseAmount = 2;
         private static readonly Color SettingColor = new Color(1f, 0.84f, 0.57f);
 
         private BoneController _boneController;
@@ -26,9 +27,14 @@ namespace KKABMX.GUI
         [Description("Shows the old bone list UI in a separate window. Restart the game to apply changes.")]
         public ConfigWrapper<bool> EnableLegacyGui { get; }
 
+        [DisplayName("Increase slider limits 2x")]
+        [Description("Can cause even more horrifying results. Only enable when working on furries and superdeformed charas.")]
+        public ConfigWrapper<bool> RaiseLimits { get; }
+
         public KKABMX_GUI()
         {
             EnableLegacyGui = new ConfigWrapper<bool>(nameof(EnableLegacyGui), this);
+            RaiseLimits = new ConfigWrapper<bool>(nameof(RaiseLimits), this);
         }
 
         private void Start()
@@ -72,7 +78,7 @@ namespace KKABMX.GUI
             var bonesInMetadata = InterfaceData.BoneControls.Select(x => x.BoneName).Distinct()
                 .Concat(InterfaceData.BoneControls.Select(x => x.RightBoneName).Distinct());
 
-            foreach (var unusedBone in _boneController.Modifiers.Keys.Except(bonesInMetadata))
+            foreach (var unusedBone in _boneController.Modifiers.Keys.Except(bonesInMetadata).Where(x => !InterfaceData.FingerNamePrefixes.Any(x.StartsWith)))
             {
                 Logger.Log(LogLevel.Debug, $"[KKABMX_GUI] No GUI data for bone {unusedBone} " +
                                            $"(isScaleBone={_boneController.Modifiers[unusedBone].ScaleBone}, " +
@@ -89,7 +95,7 @@ namespace KKABMX.GUI
             var rbFing = callback.AddControl(new MakerRadioButtons(category, this, "Finger to edit", "All", "1", "2", "3", "4", "5") { TextColor = SettingColor });
             var rbSegm = callback.AddControl(new MakerRadioButtons(category, this, "Segment to edit", "Base", "Center", "Tip") { TextColor = SettingColor });
 
-            IEnumerable<string> GetBoneNames()
+            IEnumerable<string> GetFingerBoneNames()
             {
                 var fingers = rbFing.Value == 0 ? InterfaceData.FingerNamePrefixes : new[] { InterfaceData.FingerNamePrefixes[rbFing.Value - 1] };
                 var segmented = fingers.Select(fName => $"{fName}0{rbSegm.Value + 1}").ToList();
@@ -101,13 +107,14 @@ namespace KKABMX.GUI
                 return sided;
             }
 
-            var x = callback.AddControl(new MakerSlider(category, "Scale X", 0, 3, 1, this) { TextColor = SettingColor });
-            var y = callback.AddControl(new MakerSlider(category, "Scale Y", 0, 3, 1, this) { TextColor = SettingColor });
-            var z = callback.AddControl(new MakerSlider(category, "Scale Z", 0, 3, 1, this) { TextColor = SettingColor });
+            var maxFingerValue = RaiseLimits.Value ? 3 * LimitRaiseAmount : 3;
+            var x = callback.AddControl(new MakerSlider(category, "Scale X", 0, maxFingerValue, 1, this) { TextColor = SettingColor });
+            var y = callback.AddControl(new MakerSlider(category, "Scale Y", 0, maxFingerValue, 1, this) { TextColor = SettingColor });
+            var z = callback.AddControl(new MakerSlider(category, "Scale Z", 0, maxFingerValue, 1, this) { TextColor = SettingColor });
 
             void UpdateDisplay(int _)
             {
-                SetSliders(_boneController.Modifiers[GetBoneNames().First()]);
+                SetSliders(_boneController.Modifiers[GetFingerBoneNames().First()]);
             }
 
             var isUpdatingValue = false;
@@ -137,7 +144,7 @@ namespace KKABMX.GUI
             {
                 if (isUpdatingValue) return;
 
-                foreach (var boneName in GetBoneNames())
+                foreach (var boneName in GetFingerBoneNames())
                 {
                     var bone = _boneController.Modifiers[boneName];
                     var newValue = new Vector3(x.Value, y.Value, z.Value);
@@ -167,10 +174,12 @@ namespace KKABMX.GUI
                 rb = callback.AddControl(new MakerRadioButtons(category, this, "Side to edit", "Both", "Left", "Right") { TextColor = SettingColor });
             }
 
-            var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor }) : null;
-            var y = boneMeta.Y ? callback.AddControl(new MakerSlider(category, boneMeta.YDisplayName, boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor }) : null;
-            var z = boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.ZDisplayName, boneMeta.Min, boneMeta.Max, 1, this) { TextColor = SettingColor }) : null;
-            var l = boneMeta.L ? callback.AddControl(new MakerSlider(category, boneMeta.LDisplayName, boneMeta.LMin, boneMeta.LMax, 1, this) { TextColor = SettingColor }) : null;
+            var max = RaiseLimits.Value ? boneMeta.Max * LimitRaiseAmount : boneMeta.Max;
+            var lMax = RaiseLimits.Value ? boneMeta.LMax * LimitRaiseAmount : boneMeta.LMax;
+            var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, max, 1, this) { TextColor = SettingColor }) : null;
+            var y = boneMeta.Y ? callback.AddControl(new MakerSlider(category, boneMeta.YDisplayName, boneMeta.Min, max, 1, this) { TextColor = SettingColor }) : null;
+            var z = boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.ZDisplayName, boneMeta.Min, max, 1, this) { TextColor = SettingColor }) : null;
+            var l = boneMeta.L ? callback.AddControl(new MakerSlider(category, boneMeta.LDisplayName, boneMeta.LMin, lMax, 1, this) { TextColor = SettingColor }) : null;
 
             var isUpdatingValue = false;
 
