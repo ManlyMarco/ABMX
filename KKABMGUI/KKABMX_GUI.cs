@@ -23,8 +23,9 @@ namespace KKABMX.GUI
         private BoneController _boneController;
         private readonly List<Action> _updateActionList = new List<Action>();
 
-        [DisplayName("Enable legacy bonemod GUI")]
-        [Description("Shows the old bone list UI in a separate window. Restart the game to apply changes.")]
+        [DisplayName("Enable advanced GUI")]
+        [Description("Shows an advanced editor in a separate window in maker. It allows adding new bone sliders and gives unlimited value range.\n\n" +
+                     "You have to restart the game for this to take effect.")]
         public ConfigWrapper<bool> EnableLegacyGui { get; }
 
         [DisplayName("Increase slider limits 2x")]
