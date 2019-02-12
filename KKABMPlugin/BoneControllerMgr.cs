@@ -6,6 +6,7 @@ using System.Linq;
 using BepInEx.Logging;
 using ChaCustom;
 using ExtensibleSaveFormat;
+using KKAPI.Maker;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Logger = BepInEx.Logger;
@@ -19,7 +20,7 @@ namespace KKABMX.Core
 
         internal static readonly List<BoneController> BoneControllers = new List<BoneController>();
 
-        internal static bool InsideMaker => MakerAPI.MakerAPI.Instance.InsideMaker;
+        internal static bool InsideMaker => MakerAPI.InsideMaker;
         public static BoneControllerMgr Instance { get; private set; }
 
         public string LastLoadedFile { get; private set; }
@@ -195,9 +196,9 @@ namespace KKABMX.Core
                 ExtendedSave.CardBeingSaved += Instance.OnBeforeCardSave;
 
                 SceneManager.sceneLoaded += (sc, mode) => Instance.LastLoadedFile = null;
-                MakerAPI.MakerAPI.Instance.InsideMakerChanged += (sender, args) => Instance.LastLoadedFile = null;
+                MakerAPI.InsideMakerChanged += (sender, args) => Instance.LastLoadedFile = null;
 
-                MakerAPI.MakerAPI.Instance.ChaFileLoaded += (sender, args) =>
+                MakerAPI.ChaFileLoaded += (sender, args) =>
                 {
                     if (LoadFromMakerCards ?? args.Face || args.Body)
                         Instance.OnLimitedLoad(args.Filename, args.LoadedChaFile);

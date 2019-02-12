@@ -48,10 +48,9 @@
       <HintPath>..\lib\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MakerAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="KKAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\MakerAPI.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\KKAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

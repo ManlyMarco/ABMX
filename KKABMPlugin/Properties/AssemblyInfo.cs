@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using KKABMX.Core;
 
@@ -31,3 +32,5 @@ using KKABMX.Core;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyFileVersion(KKABMX_Core.Version)]
+
+[assembly: InternalsVisibleTo("KKABMGUI")]

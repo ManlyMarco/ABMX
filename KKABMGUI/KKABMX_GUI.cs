@@ -5,7 +5,9 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using KKABMX.Core;
-using MakerAPI;
+using KKAPI;
+using KKAPI.Maker;
+using KKAPI.Maker.UI;
 using UniRx;
 using UnityEngine;
 using Logger = BepInEx.Logger;
@@ -13,7 +15,7 @@ using Logger = BepInEx.Logger;
 namespace KKABMX.GUI
 {
     [BepInPlugin("KKABMX.GUI", "KKABMX GUI", KKABMX_Core.Version)]
-    [BepInDependency(MakerAPI.MakerAPI.GUID)]
+    [BepInDependency(KoikatuAPI.GUID)]
     [BepInDependency(KKABMX_Core.GUID)]
     public class KKABMX_GUI : BaseUnityPlugin
     {
@@ -40,10 +42,9 @@ namespace KKABMX.GUI
 
         private void Start()
         {
-            var makerApi = MakerAPI.MakerAPI.Instance;
-            makerApi.RegisterCustomSubCategories += OnRegisterCustomSubCategories;
-            makerApi.MakerBaseLoaded += OnEarlyMakerFinishedLoading;
-            makerApi.MakerExiting += OnMakerExiting;
+            MakerAPI.RegisterCustomSubCategories += OnRegisterCustomSubCategories;
+            MakerAPI.MakerBaseLoaded += OnEarlyMakerFinishedLoading;
+            MakerAPI.MakerExiting += OnMakerExiting;
 
             if (EnableLegacyGui.Value)
                 gameObject.AddComponent<KKABMX_LegacyGUI>();

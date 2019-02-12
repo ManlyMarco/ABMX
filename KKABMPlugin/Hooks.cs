@@ -2,6 +2,7 @@
 using System.Reflection;
 using ChaCustom;
 using Harmony;
+using KKAPI.Maker;
 using Studio;
 using UnityEngine;
 using UnityEngine.UI;
@@ -141,6 +142,6 @@ namespace KKABMX.Core
         }
 
         // Prevent reading ABM data when loading the list of characters
-        private static bool MakerListIsLoading => MakerAPI.MakerAPI.Instance?.CharaListIsLoading ?? false;
+        private static bool MakerListIsLoading => MakerAPI.CharaListIsLoading;
     }
 }
