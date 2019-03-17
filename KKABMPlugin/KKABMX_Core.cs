@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using KKAPI.Chara;
 
 namespace KKABMX.Core
 {
@@ -6,18 +7,16 @@ namespace KKABMX.Core
     [BepInDependency("com.bepis.bepinex.extendedsave")]
     public class KKABMX_Core : BaseUnityPlugin
     {
-        internal const string Version = "2.3";
+        internal const string Version = "3.0";
         public const string GUID = "KKABMX.Core";
+        public const string ExtDataGUID = "KKABMPlugin.ABMData";
 
-        public KKABMX_Core()
-        {
-            Hooks.InstallHook();
-        }
+        internal static bool MakerBodyDataLoad { get; set; } = true;
+        internal static bool MakerCardDataLoad { get; set; } = true;
 
-        protected void Start()
+        private void Start()
         {
-            BoneControllerMgr.Init();
-            BoneControllerMgr.Instance.transform.SetParent(transform);
+            CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
         }
     }
 }

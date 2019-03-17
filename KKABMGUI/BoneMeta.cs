@@ -33,6 +33,7 @@ namespace KKABMX.GUI
         public float Min { get; }
         public float Max { get; }
         public MakerCategory Category { get; }
+        public bool UniquePerCoordinate { get; set; } = false;
 
         public bool X { get; set; } = true;
         public bool Y { get; set; } = true;
@@ -41,31 +42,34 @@ namespace KKABMX.GUI
 
         public float LMax
         {
-            get { return _lMax.HasValue ? _lMax.Value : Max; }
-            set { _lMax = value; }
+            get => _lMax ?? Max;
+            set => _lMax = value;
         }
 
         public float LMin { get; set; } = 0.1f;
 
         public string LDisplayName
         {
-            get { return _lDisplayName ?? DisplayName + " Length"; }
-            set { _lDisplayName = value; }
+            get => _lDisplayName ?? DisplayName + " Length";
+            set => _lDisplayName = value;
         }
+
         public string XDisplayName
         {
-            get { return _xDisplayName ?? $"{DisplayName}{XYZPostfix} X"; }
-            set { _xDisplayName = value; }
+            get => _xDisplayName ?? $"{DisplayName}{XYZPostfix} X";
+            set => _xDisplayName = value;
         }
+
         public string YDisplayName
         {
-            get { return _yDisplayName ?? $"{DisplayName}{XYZPostfix} Y"; }
-            set { _yDisplayName = value; }
+            get => _yDisplayName ?? $"{DisplayName}{XYZPostfix} Y";
+            set => _yDisplayName = value;
         }
+
         public string ZDisplayName
         {
-            get { return _zDisplayName ?? $"{DisplayName}{XYZPostfix} Z"; }
-            set { _zDisplayName = value; }
+            get => _zDisplayName ?? $"{DisplayName}{XYZPostfix} Z";
+            set => _zDisplayName = value;
         }
 
         public string XYZPostfix { get; set; } = " Scale";
