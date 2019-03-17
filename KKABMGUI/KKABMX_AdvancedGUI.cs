@@ -140,6 +140,7 @@ namespace KKABMX.GUI
             {
                 GUILayout.Label("Add a new bone to the list. If valid, it will be saved to the card.");
 
+                // todo Use _boneControllerMgr.GetAllPossibleBoneNames() for autocomplete/suggestions
                 _boneAddFieldValue = GUILayout.TextField(_boneAddFieldValue, GUILayout.Width(90));
 
                 if (GUILayout.Button("Add"))

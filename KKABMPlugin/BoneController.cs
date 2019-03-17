@@ -40,6 +40,16 @@ namespace KKABMX.Core
             return Modifiers.FirstOrDefault(x => x.BoneName == boneName);
         }
 
+        /// <summary>
+        /// Get all transform names under the character object that could be bones
+        /// </summary>
+        public IEnumerable<string> GetAllPossibleBoneNames()
+        {
+            if (_boneSearcher.dictObjName == null)
+                _boneSearcher.Initialize(ChaControl.transform);
+            return _boneSearcher.dictObjName.Keys;
+        }
+
         protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
         {
             if (MakerAPI.InsideMaker && !KKABMX_Core.MakerCardDataLoad) return;
@@ -79,7 +89,7 @@ namespace KKABMX.Core
                 }
             }
 
-            StartCoroutine(OnDataChanged());
+            StartCoroutine(OnDataChangedCo());
         }
 
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
@@ -122,9 +132,10 @@ namespace KKABMX.Core
                 modifier.Reset();
 
             Modifiers = null;
-            _baselineKnown = false;
+
             // Stop baseline collection if it's running
             StopAllCoroutines();
+            _baselineKnown = false;
 
             var data = GetExtendedData();
             if (data != null)
@@ -134,18 +145,12 @@ namespace KKABMX.Core
                     switch (data.version)
                     {
                         case 2:
-                            var boneData = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
-                            if (boneData != null)
-                                Modifiers = boneData;
+                            Modifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
                             break;
 
                         case 1:
-                            var convertedData = OldDataConverter.MigrateOldExtData(data);
-                            if (convertedData != null)
-                            {
-                                Modifiers = convertedData;
-                                Logger.Log(LogLevel.Info, $"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter.fullname}");
-                            }
+                            Logger.Log(LogLevel.Info, $"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.charaFileName}");
+                            Modifiers = OldDataConverter.MigrateOldExtData(data);
                             break;
 
                         default:
@@ -161,25 +166,39 @@ namespace KKABMX.Core
             if (Modifiers == null)
                 Modifiers = new List<BoneModifier>();
 
-            StartCoroutine(OnDataChanged());
-        }
-
-        private IEnumerator OnDataChanged()
-        {
-            ModifiersPurgeEmpty();
-
-            // Needed to let accessories load in
-            yield return new WaitForEndOfFrame();
-            
-            ModifiersFillInTransforms();
-
-            NewDataLoaded?.Invoke(this, EventArgs.Empty);
+            StartCoroutine(OnDataChangedCo());
         }
 
         protected override void Start()
         {
             base.Start();
-            CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChanged()));
+            CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
+        }
+
+        private void LateUpdate()
+        {
+            if (_baselineKnown == true)
+            {
+                foreach (var modifier in Modifiers)
+                    modifier.Apply(CurrentCoordinate.Value);
+            }
+            else if (_baselineKnown == false)
+            {
+                _baselineKnown = null;
+                StartCoroutine(CollectBaselineCo());
+            }
+        }
+
+        private IEnumerator OnDataChangedCo()
+        {
+            ModifiersPurgeEmpty();
+
+            // Needed to let accessories load in
+            yield return new WaitForEndOfFrame();
+
+            ModifiersFillInTransforms();
+
+            NewDataLoaded?.Invoke(this, EventArgs.Empty);
         }
 
         private IEnumerator CollectBaselineCo()
@@ -220,20 +239,6 @@ namespace KKABMX.Core
                         array[j].transform.rotation = array2[j].transform.rotation;
                     }
                 }
-            }
-        }
-
-        private void LateUpdate()
-        {
-            if (_baselineKnown == true)
-            {
-                foreach (var modifier in Modifiers)
-                    modifier.Apply(CurrentCoordinate.Value);
-            }
-            else if (_baselineKnown == false)
-            {
-                _baselineKnown = null;
-                StartCoroutine(CollectBaselineCo());
             }
         }
 
