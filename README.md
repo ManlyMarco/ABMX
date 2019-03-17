@@ -5,8 +5,8 @@ Koikatsu! mod that adds more character customization settings to character maker
 You can support development of my plugins through my Patreon page: https://www.patreon.com/ManlyMarco
 
 ## How to use 
-1. Make sure [BepInEx](https://github.com/BepInEx/BepInEx) and [BepisPlugins](https://github.com/bbepis/BepisPlugins) are installed, and your game is updated.
-2. Download the latest release from [here](https://github.com/ManlyMarco/KKABMX/releases).
+1. Make sure at least [BepInEx v4.1](https://github.com/BepInEx/BepInEx), [BepisPlugins r7](https://github.com/bbepis/BepisPlugins) and [KKAPI v1.0](https://github.com/ManlyMarco/KKAPI) are installed, and your game is updated.
+2. Download the latest release from [here](https://github.com/ManlyMarco/KKABMX/releases/latest).
 3. Extract the dll files into the folder `Koikatu\BepInEx` in your game's directory.
 4. Start character maker, you should see new settings and categories show up. ABMX settings are highlighted in orange.
 
