@@ -141,7 +141,7 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_Mouthup"      , "Upper Lip"              , 0, 6f, FaceMouth2   , "")                                    ,
                 new BoneMeta("cf_J_MouthLow"     , "Lower Lip"              , 0, 6f, FaceMouth2   , "")                                    ,
 
-                new BoneMeta("cf_n_height"       , "Body"                   , 0, 2f, BodyAll      , "")                                    ,
+                new BoneMeta("cf_n_height"       , "Body"                   , 0.5f, 1.5f, BodyAll      , "")                                    ,
 
                 new BoneMeta("cf_hit_bust02_L"   , "Breast Collision"       , 0, 3f, BodyBreast   , "cf_hit_bust02_R"){X = false         , Y=false} ,
                 new BoneMeta("cf_d_bust01_L"     , "Breast Scale 1"         , 0, 3f, BodyBreast   , "cf_d_bust01_R")  {XYZPostfix = null} ,
