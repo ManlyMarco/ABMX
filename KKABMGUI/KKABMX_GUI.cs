@@ -54,12 +54,10 @@ namespace KKABMX.GUI
                 foreach (var boneMeta in categoryBones)
                 {
                     if (boneMeta.IsSeparator || !first)
-                    {
                         callback.AddControl(new MakerSeparator(category, this) { TextColor = _settingColor });
-                        first = false;
-                    }
 
                     RegisterSingleControl(category, boneMeta, callback);
+                    first = false;
                 }
 
                 if (ReferenceEquals(category, InterfaceData.BodyHands))
