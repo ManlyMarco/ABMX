@@ -22,10 +22,11 @@ namespace KKABMX.Core
         private readonly FindAssist _boneSearcher = new FindAssist();
         private bool? _baselineKnown;
 
+        public bool NeedsFullRefresh { get; set; }
         public bool NeedsBaselineUpdate { get; set; }
 
         public List<BoneModifier> Modifiers { get; private set; } = new List<BoneModifier>();
-        
+
         public event EventHandler NewDataLoaded;
 
         public void AddModifier(BoneModifier bone)
@@ -179,6 +180,13 @@ namespace KKABMX.Core
         
         private void LateUpdate()
         {
+            if (NeedsFullRefresh)
+            {
+                OnReload(KoikatuAPI.GetCurrentGameMode());
+                NeedsFullRefresh = false;
+                return;
+            }
+
             if (_baselineKnown == true)
             {
                 if (NeedsBaselineUpdate)

@@ -2,6 +2,7 @@
 using Harmony;
 using KKAPI.Chara;
 using KKAPI.Maker;
+using Studio;
 
 namespace KKABMX.Core
 {
@@ -33,6 +34,14 @@ namespace KKABMX.Core
                 var controller = MakerAPI.GetCharacterControl()?.GetComponent<BoneController>();
                 if (controller != null)
                     controller.NeedsBaselineUpdate = true;
+            }
+
+            [HarmonyPostfix, HarmonyPatch(typeof(OCIChar), nameof(OCIChar.ActiveKinematicMode))]
+            public static void ActiveKinematicModePost(OCIChar __instance)
+            {
+                var controller = __instance.charInfo?.GetComponent<BoneController>();
+                if (controller != null)
+                    controller.NeedsFullRefresh = true;
             }
         }
     }
