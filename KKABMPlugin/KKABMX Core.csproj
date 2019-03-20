@@ -71,6 +71,7 @@
     <Compile Include="BoneModifier.cs" />
     <Compile Include="KKABMX_Core.cs" />
     <Compile Include="BoneModifierData.cs" />
+    <Compile Include="KKABMX_Core.Hooks.cs" />
     <Compile Include="OldDataConverter.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
