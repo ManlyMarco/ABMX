@@ -1,5 +1,7 @@
 ﻿using BepInEx;
+using Harmony;
 using KKAPI.Chara;
+using KKAPI.Maker;
 
 namespace KKABMX.Core
 {
@@ -17,6 +19,21 @@ namespace KKABMX.Core
         private void Start()
         {
             CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
+
+            HarmonyInstance.Create(GUID).PatchAll(typeof(Hooks));
+        }
+
+        private static class Hooks
+        {
+            [HarmonyPostfix, HarmonyPatch(typeof(ShapeInfoBase), nameof(ShapeInfoBase.ChangeValue))]
+            public static void ChangeValuePost(bool __result)
+            {
+                if (!__result) return;
+
+                var controller = MakerAPI.GetCharacterControl()?.GetComponent<BoneController>();
+                if (controller != null)
+                    controller.NeedsBaselineUpdate = true;
+            }
         }
     }
 }

@@ -22,8 +22,10 @@ namespace KKABMX.Core
         private readonly FindAssist _boneSearcher = new FindAssist();
         private bool? _baselineKnown;
 
-        public List<BoneModifier> Modifiers { get; private set; } = new List<BoneModifier>();
+        public bool NeedsBaselineUpdate { get; set; }
 
+        public List<BoneModifier> Modifiers { get; private set; } = new List<BoneModifier>();
+        
         public event EventHandler NewDataLoaded;
 
         public void AddModifier(BoneModifier bone)
@@ -174,11 +176,14 @@ namespace KKABMX.Core
             base.Start();
             CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
         }
-
+        
         private void LateUpdate()
         {
             if (_baselineKnown == true)
             {
+                if (NeedsBaselineUpdate)
+                    UpdateBaseline();
+
                 foreach (var modifier in Modifiers)
                     modifier.Apply(CurrentCoordinate.Value);
             }
@@ -187,6 +192,8 @@ namespace KKABMX.Core
                 _baselineKnown = null;
                 StartCoroutine(CollectBaselineCo());
             }
+
+            NeedsBaselineUpdate = false;
         }
 
         private IEnumerator OnDataChangedCo()
@@ -197,6 +204,8 @@ namespace KKABMX.Core
             yield return new WaitForEndOfFrame();
 
             ModifiersFillInTransforms();
+
+            NeedsBaselineUpdate = false;
 
             NewDataLoaded?.Invoke(this, EventArgs.Empty);
         }
@@ -240,6 +249,29 @@ namespace KKABMX.Core
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Partial baseline update.
+        /// Needed mainly to prevent vanilla sliders in chara maker from being overriden by bone modifiers.
+        /// </summary>
+        private void UpdateBaseline()
+        {
+            var distSrc = ChaControl.GetSibFace().GetDictDst();
+            var distSrc2 = ChaControl.GetSibBody().GetDictDst();
+            var affectedBones = new HashSet<Transform>(distSrc.Concat(distSrc2).Select(x => x.Value.trfBone));
+            var affectedModifiers = Modifiers.Where(x => affectedBones.Contains(x.BoneTransform)).ToList();
+
+            // Prevent some scales from being added to the baseline, mostly skirt scale
+            foreach (var boneModifier in affectedModifiers)
+                boneModifier.Reset();
+
+            // Force game to recalculate bone scales. Misses some so we need to reset above
+            ChaControl.UpdateShapeFace();
+            ChaControl.UpdateShapeBody();
+
+            foreach (var boneModifier in affectedModifiers)
+                boneModifier.CollectBaseline();
         }
 
         private void ModifiersFillInTransforms()
