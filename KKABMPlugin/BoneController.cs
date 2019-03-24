@@ -152,7 +152,7 @@ namespace KKABMX.Core
                             break;
 
                         case 1:
-                            Logger.Log(LogLevel.Info, $"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.charaFileName}");
+                            Logger.Log(LogLevel.Debug, $"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.charaFileName}");
                             Modifiers = OldDataConverter.MigrateOldExtData(data);
                             break;
 
