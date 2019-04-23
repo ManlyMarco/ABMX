@@ -165,9 +165,9 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_s_shoulder02_L" , "Shoulder"               , 0, 3f, BodyUpper    , "cf_s_shoulder02_R") {L = true         , LMax = 10f, LDisplayName = "Shoulder Shape"},
                 new BoneMeta("cf_hit_shoulder_L" , "Shoulder Collision"     , 0, 3f, BodyUpper    , "cf_hit_shoulder_R")                   ,
 
-                new BoneMeta("cf_s_spine01"      , "Lower Torso Scale 1"    , 0, 3f, BodyUpper2   , "")                {XYZPostfix = null  ,L = true, LMax = 4f, LDisplayName = "Spine Curve 1"},
-                new BoneMeta("cf_s_spine02"      , "Lower Torso Scale 2"    , 0, 3f, BodyUpper2   , "")                {XYZPostfix = null  ,L = true, LMax = 4f, LDisplayName = "Spine Curve 2"},
-                new BoneMeta("cf_s_spine03"      , "Lower Torso Scale 3"    , 0, 3f, BodyUpper2   , "")                {XYZPostfix = null} ,
+                new BoneMeta("cf_s_spine03"      , "Upper Torso Scale"      , 0, 3f, BodyUpper2   , "")                {XYZPostfix = null} ,
+                new BoneMeta("cf_s_spine02"      , "Middle Torso Scale"     , 0, 3f, BodyUpper2   , "")                {XYZPostfix = null  ,L = true, LMax = 4f, LDisplayName = "Spine Curve 2"},
+                new BoneMeta("cf_s_spine01"      , "Lower Torso Scale"      , 0, 3f, BodyUpper2   , "")                {XYZPostfix = null  ,L = true, LMax = 4f, LDisplayName = "Spine Curve 1"},
                 new BoneMeta("cf_hit_spine01"    , "Upper Torso Collision"  , 0, 3f, BodyUpper2   , "")                                    ,
                 new BoneMeta("cf_hit_spine02_L"  , "Lower Torso Collision"  , 0, 3f, BodyUpper2   , "")                                    ,
 
