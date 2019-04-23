@@ -129,40 +129,41 @@ namespace KKABMX.Core
 
         protected override void OnReload(GameMode currentGameMode, bool maintainState)
         {
-            if (maintainState) return;
-
             foreach (var modifier in Modifiers)
                 modifier.Reset();
-
-            Modifiers = null;
 
             // Stop baseline collection if it's running
             StopAllCoroutines();
             _baselineKnown = false;
 
-            var data = GetExtendedData();
-            if (data != null)
+            if (!maintainState)
             {
-                try
+                Modifiers = null;
+
+                var data = GetExtendedData();
+                if (data != null)
                 {
-                    switch (data.version)
+                    try
                     {
-                        case 2:
-                            Modifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
-                            break;
+                        switch (data.version)
+                        {
+                            case 2:
+                                Modifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
+                                break;
 
-                        case 1:
-                            Logger.Log(LogLevel.Debug, $"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter?.fullname}");
-                            Modifiers = OldDataConverter.MigrateOldExtData(data);
-                            break;
+                            case 1:
+                                Logger.Log(LogLevel.Debug, $"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter?.fullname}");
+                                Modifiers = OldDataConverter.MigrateOldExtData(data);
+                                break;
 
-                        default:
-                            throw new NotSupportedException($"Save version {data.version} is not supported");
+                            default:
+                                throw new NotSupportedException($"Save version {data.version} is not supported");
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(LogLevel.Error, "[KKABMX] Failed to load extended data - " + ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Log(LogLevel.Error, "[KKABMX] Failed to load extended data - " + ex);
+                    }
                 }
             }
 
@@ -182,7 +183,7 @@ namespace KKABMX.Core
         {
             if (NeedsFullRefresh)
             {
-                OnReload(KoikatuAPI.GetCurrentGameMode(), false);
+                OnReload(KoikatuAPI.GetCurrentGameMode(), true);
                 NeedsFullRefresh = false;
                 return;
             }
