@@ -6,6 +6,7 @@ using BepInEx;
 using BepInEx.Logging;
 using KKABMX.Core;
 using KKAPI;
+using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
 using KKAPI.Maker.UI.Sidebar;
@@ -70,13 +71,18 @@ namespace KKABMX.GUI
             }
 
             callback.AddLoadToggle(new MakerLoadToggle("Bonemod"))
-                .ValueChanged.Subscribe(b => KKABMX_Core.MakerBodyDataLoad = b);
+                .ValueChanged.Subscribe(b => GetRegistration().MaintainState = !b);
 
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
-                .ValueChanged.Subscribe(b => KKABMX_Core.MakerCardDataLoad = b);
+                .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
             callback.AddSidebarControl(new SidebarToggle("Show advanced bonemod controls", false, this))
                 .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
+        }
+
+        private static CharacterApi.ControllerRegistration GetRegistration()
+        {
+            return CharacterApi.GetRegisteredBehaviour(typeof(BoneController));
         }
 
         private void RegisterFingerControl(MakerCategory category, RegisterCustomControlsEvent callback)
@@ -336,8 +342,9 @@ namespace KKABMX.GUI
             _updateActionList.Clear();
             _boneController = null;
 
-            KKABMX_Core.MakerBodyDataLoad = true;
-            KKABMX_Core.MakerCardDataLoad = true;
+            var reg = GetRegistration();
+            reg.MaintainState = false;
+            reg.MaintainCoordinateState = false;
 
             Destroy(gameObject.GetComponent<KKABMX_AdvancedGUI>());
         }

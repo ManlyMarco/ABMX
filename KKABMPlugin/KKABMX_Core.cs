@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using Harmony;
 using KKAPI.Chara;
 
@@ -12,11 +13,11 @@ namespace KKABMX.Core
         public const string GUID = "KKABMX.Core";
         public const string ExtDataGUID = "KKABMPlugin.ABMData";
 
-        internal static bool MakerBodyDataLoad { get; set; } = true;
-        internal static bool MakerCardDataLoad { get; set; } = true;
-
         private void Start()
         {
+            if(!KKAPI.KoikatuAPI.CheckRequiredPlugin(this, KKAPI.KoikatuAPI.GUID, new Version(KKAPI.KoikatuAPI.VersionConst)))
+                return;
+
             CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
 
             HarmonyInstance.Create(GUID).PatchAll(typeof(Hooks));

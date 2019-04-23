@@ -53,9 +53,9 @@ namespace KKABMX.Core
             return _boneSearcher.dictObjName.Keys;
         }
 
-        protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
+        protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate, bool maintainState)
         {
-            if (MakerAPI.InsideMaker && !KKABMX_Core.MakerCardDataLoad) return;
+            if (maintainState) return;
 
             // Clear previous data for this coordinate from coord specific modifiers
             foreach (var modifier in Modifiers.Where(x => x.IsCoordinateSpecific()))
@@ -127,9 +127,9 @@ namespace KKABMX.Core
             SetExtendedData(data);
         }
 
-        protected override void OnReload(GameMode currentGameMode)
+        protected override void OnReload(GameMode currentGameMode, bool maintainState)
         {
-            if (MakerAPI.InsideMaker && !KKABMX_Core.MakerBodyDataLoad) return;
+            if (maintainState) return;
 
             foreach (var modifier in Modifiers)
                 modifier.Reset();
@@ -182,7 +182,7 @@ namespace KKABMX.Core
         {
             if (NeedsFullRefresh)
             {
-                OnReload(KoikatuAPI.GetCurrentGameMode());
+                OnReload(KoikatuAPI.GetCurrentGameMode(), false);
                 NeedsFullRefresh = false;
                 return;
             }
