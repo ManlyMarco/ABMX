@@ -2,9 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
-using ExtensibleSaveFormat;
 using UnityEngine;
-using Logger = BepInEx.Logger;
+using Logger = KKABMX.Core.KKABMX_Core;
+
+#if KK
+using ExtensibleSaveFormat;
+#elif EC
+using EC.Core.ExtensibleSaveFormat;
+#endif
 
 namespace KKABMX.Core
 {

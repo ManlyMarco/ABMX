@@ -4,12 +4,18 @@ using System.Linq;
 using MessagePack;
 using UnityEngine;
 
+#if KK
+using CoordinateType = ChaFileDefine.CoordinateType;
+#elif EC
+using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
+#endif
+
 namespace KKABMX.Core
 {
     [MessagePackObject]
     public sealed class BoneModifier
     {
-        internal static readonly int CoordinateCount = Enum.GetValues(typeof(ChaFileDefine.CoordinateType)).Length;
+        internal static readonly int CoordinateCount = Enum.GetValues(typeof(CoordinateType)).Length;
 
         private const float LenBaselineUninitializedVal = 0f;
 
@@ -54,7 +60,7 @@ namespace KKABMX.Core
         // Needs a public set to make serializing work
         public BoneModifierData[] CoordinateModifiers { get; set; }
 
-        public void Apply(ChaFileDefine.CoordinateType coordinate)
+        public void Apply(CoordinateType coordinate)
         {
             if (BoneTransform == null) return;
 
@@ -90,7 +96,7 @@ namespace KKABMX.Core
             _hasBaseline = true;
         }
 
-        public BoneModifierData GetModifier(ChaFileDefine.CoordinateType coordinate)
+        public BoneModifierData GetModifier(CoordinateType coordinate)
         {
             if (CoordinateModifiers.Length == 1) return CoordinateModifiers[0];
             return CoordinateModifiers[(int) coordinate];

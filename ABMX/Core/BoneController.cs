@@ -3,15 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
-using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
-using KKAPI.Maker;
 using MessagePack;
-using Studio;
 using UniRx;
 using UnityEngine;
-using Logger = BepInEx.Logger;
+using Logger = KKABMX.Core.KKABMX_Core;
+
+#if KK
+using ExtensibleSaveFormat;
+using CoordinateType = ChaFileDefine.CoordinateType;
+#elif EC
+using EC.Core.ExtensibleSaveFormat;
+using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
+#endif
 
 namespace KKABMX.Core
 {
@@ -28,6 +33,10 @@ namespace KKABMX.Core
         public List<BoneModifier> Modifiers { get; private set; } = new List<BoneModifier>();
 
         public event EventHandler NewDataLoaded;
+
+#if EC
+        public BehaviorSubject<CoordinateType> CurrentCoordinate = new BehaviorSubject<CoordinateType>(CoordinateType.School01);
+#endif
 
         public void AddModifier(BoneModifier bone)
         {
@@ -178,7 +187,7 @@ namespace KKABMX.Core
             base.Start();
             CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
         }
-        
+
         private void LateUpdate()
         {
             if (NeedsFullRefresh)
@@ -224,7 +233,8 @@ namespace KKABMX.Core
             yield return new WaitForEndOfFrame();
             while (ChaControl.animBody == null) yield break;
 
-            var pvCopy = ChaControl.animBody.gameObject.GetComponent<PVCopy>();
+#if KK
+            var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             var currentPvCopy = new bool[4];
             if (pvCopy != null)
             {
@@ -234,6 +244,7 @@ namespace KKABMX.Core
                     pvCopy[i] = false;
                 }
             }
+#endif
 
             yield return new WaitForEndOfFrame();
 
@@ -244,6 +255,7 @@ namespace KKABMX.Core
 
             yield return new WaitForEndOfFrame();
 
+#if KK
             if (pvCopy != null)
             {
                 var array = pvCopy.GetPvArray();
@@ -258,6 +270,7 @@ namespace KKABMX.Core
                     }
                 }
             }
+#endif
         }
 
         /// <summary>

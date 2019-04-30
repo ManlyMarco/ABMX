@@ -5,7 +5,7 @@ using BepInEx.Logging;
 using KKABMX.Core;
 using KKAPI.Maker;
 using UnityEngine;
-using Logger = BepInEx.Logger;
+using Logger = KKABMX.Core.KKABMX_Core;
 
 namespace KKABMX.GUI
 {
@@ -79,7 +79,11 @@ namespace KKABMX.GUI
                 {
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
                     {
+#if KK
                         var modData = mod.GetModifier(MakerAPI.GetCurrentCoordinateType());
+#elif EC
+                        var modData = mod.GetModifier(KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01);
+#endif
                         var v3 = modData.ScaleModifier;
                         var len = modData.LengthModifier;
 

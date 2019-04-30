@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>4f7ab98b-6652-4778-a077-236d029e294d</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>ABMX</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Core\BoneController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifierData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\OldDataConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GUI\BoneMeta.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GUI\InterfaceData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GUI\KKABMX_AdvancedGUI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
+  </ItemGroup>
+</Project>

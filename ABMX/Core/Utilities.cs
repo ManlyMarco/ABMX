@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using Studio;
 using UnityEngine;
 
 namespace KKABMX.Core
@@ -10,11 +9,23 @@ namespace KKABMX.Core
         //public static readonly string MakerDefaultFileName = "ill_default_female.png";
         public const int ManualBoneId = -1;
 
-        private static readonly FieldInfo FieldPvCopyBone = typeof(PVCopy).GetField("bone",
+#if KK
+        private static readonly FieldInfo FieldPvCopyBone = typeof(Studio.PVCopy).GetField("bone",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-        private static readonly FieldInfo FieldPvCopyPv = typeof(PVCopy).GetField("pv",
+        private static readonly FieldInfo FieldPvCopyPv = typeof(Studio.PVCopy).GetField("pv",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        public static GameObject[] GetBoneArray(this Studio.PVCopy pvCopy)
+        {
+            return (GameObject[])FieldPvCopyBone.GetValue(pvCopy);
+        }
+
+        public static GameObject[] GetPvArray(this Studio.PVCopy pvCopy)
+        {
+            return (GameObject[])FieldPvCopyPv.GetValue(pvCopy);
+        }
+#endif
 
         private static readonly PropertyInfo FieldChaControlSibBody = typeof(ChaControl).GetProperty("sibBody",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetField);
@@ -24,16 +35,6 @@ namespace KKABMX.Core
 
         private static readonly FieldInfo FieldShapeInfoBaseDictDst = typeof(ShapeInfoBase).GetField("dictDst",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetField);
-
-        public static GameObject[] GetBoneArray(this PVCopy pvCopy)
-        {
-            return (GameObject[])FieldPvCopyBone.GetValue(pvCopy);
-        }
-
-        public static GameObject[] GetPvArray(this PVCopy pvCopy)
-        {
-            return (GameObject[])FieldPvCopyPv.GetValue(pvCopy);
-        }
 
         public static ShapeInfoBase GetSibFace(this ChaControl chaControl)
         {

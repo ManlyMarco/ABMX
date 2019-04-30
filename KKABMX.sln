@@ -3,11 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KKABMX Core", "KKABMPlugin\KKABMX Core.csproj", "{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KKABMX", "KKABMX\KKABMX.csproj", "{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KKABMX GUI", "KKABMGUI\KKABMX GUI.csproj", "{288732FD-1D63-45F0-815E-7EB938B6E064}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECABMX", "ECABMX\ECABMX.csproj", "{288732FD-1D63-45F0-815E-7EB938B6E064}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ABMX", "ABMX\ABMX.shproj", "{4F7AB98B-6652-4778-A077-236D029E294D}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ABMX\ABMX.projitems*{288732fd-1d63-45f0-815e-7eb938b6e064}*SharedItemsImports = 4
+		ABMX\ABMX.projitems*{4f7ab98b-6652-4778-a077-236d029e294d}*SharedItemsImports = 13
+		ABMX\ABMX.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
