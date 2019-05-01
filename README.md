@@ -7,7 +7,7 @@ You can support development of my plugins through my Patreon page: https://www.p
 ## How to use 
 1. Make sure that the [latest KKAPI/ECAPI](https://github.com/ManlyMarco/KKAPI) (depending on your game) is installed, and your game is updated.
 2. Download the latest release from [here](https://github.com/ManlyMarco/KKABMX/releases/latest).
-3. Extract the dll files into the folder `Koikatu\BepInEx` in your game's directory.
+3. Place the dll file(s) into the folder `Koikatu\BepInEx` in your game's directory in case of Koikatsu version, and inside `BepInEx\plugins` in case of EmotionCreators version. You only need the version specific for your game.
 4. Start character maker, you should see new settings and categories show up. ABMX settings are highlighted in orange.
 
 ## Changes from original ABM
