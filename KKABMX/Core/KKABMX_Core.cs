@@ -21,7 +21,7 @@ namespace KKABMX.Core
 
             CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
 
-            HarmonyInstance.Create(GUID).PatchAll(typeof(Hooks));
+            Hooks.Init();
         }
 
         public static void Log(LogLevel logLevel, string text)

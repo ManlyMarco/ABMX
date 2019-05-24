@@ -1,4 +1,5 @@
-﻿using Harmony;
+﻿using System.Linq;
+using Harmony;
 using KKAPI.Maker;
 using Studio;
 
@@ -8,7 +9,15 @@ namespace KKABMX.Core
     {
         private static class Hooks
         {
-            [HarmonyPostfix, HarmonyPatch(typeof(ShapeInfoBase), nameof(ShapeInfoBase.ChangeValue))]
+            public static void Init()
+            {
+                var i = HarmonyInstance.Create(GUID);
+                i.PatchAll(typeof(Hooks));
+
+                foreach (var target in AccessTools.GetDeclaredMethods(typeof(ShapeInfoBase)).Where(x => x.Name == nameof(ShapeInfoBase.ChangeValue)))
+                    i.Patch(target, null, new HarmonyMethod(typeof(Hooks), nameof(ChangeValuePost)));
+            }
+
             public static void ChangeValuePost(bool __result)
             {
                 if (!__result) return;
