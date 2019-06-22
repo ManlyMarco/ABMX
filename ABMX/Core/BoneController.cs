@@ -210,7 +210,7 @@ namespace KKABMX.Core
             else if (_baselineKnown == false)
             {
                 _baselineKnown = null;
-                StartCoroutine(CollectBaselineCo());
+                CollectBaseline();
             }
 
             NeedsBaselineUpdate = false;
@@ -230,11 +230,20 @@ namespace KKABMX.Core
             NewDataLoaded?.Invoke(this, EventArgs.Empty);
         }
 
+        private void CollectBaseline()
+        {
+            if (ChaControl.animBody == null) return;
+
+            foreach (var modifier in Modifiers)
+                modifier.CollectBaseline();
+
+            _baselineKnown = true;
+
+            StartCoroutine(CollectBaselineCo());
+        }
+
         private IEnumerator CollectBaselineCo()
         {
-            yield return new WaitForEndOfFrame();
-            while (ChaControl.animBody == null) yield break;
-
 #if KK
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             var currentPvCopy = new bool[4];
@@ -245,21 +254,9 @@ namespace KKABMX.Core
                     currentPvCopy[i] = pvCopy[i];
                     pvCopy[i] = false;
                 }
-            }
-#endif
 
-            yield return new WaitForEndOfFrame();
+                yield return new WaitForEndOfFrame();
 
-            foreach (var modifier in Modifiers)
-                modifier.CollectBaseline();
-
-            _baselineKnown = true;
-
-            yield return new WaitForEndOfFrame();
-
-#if KK
-            if (pvCopy != null)
-            {
                 var array = pvCopy.GetPvArray();
                 var array2 = pvCopy.GetBoneArray();
                 for (var j = 0; j < 4; j++)
