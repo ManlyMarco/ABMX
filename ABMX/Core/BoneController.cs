@@ -20,6 +20,8 @@ using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 
 namespace KKABMX.Core
 {
+    // Run the LateUpdate after everything else
+    [DefaultExecutionOrder(10000)]
     public class BoneController : CharaCustomFunctionController
     {
         private const string ExtDataBoneDataKey = "boneData";
