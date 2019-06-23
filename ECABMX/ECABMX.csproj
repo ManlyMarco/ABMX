@@ -66,8 +66,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="EC.Core.ExtensibleSaveFormat">
-      <HintPath>..\..\..\EC\EC_CorePlugins\bin\EC.Core.ExtensibleSaveFormat.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\EC\EC_CorePlugins\bin\BepInEx\plugins\EC_CorePlugins\EC.Core.ExtensibleSaveFormat.dll</HintPath>
     </Reference>
     <Reference Include="ECAPI">
       <HintPath>..\..\KKAPI\bin\ECAPI.dll</HintPath>
