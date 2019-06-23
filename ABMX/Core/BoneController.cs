@@ -29,6 +29,8 @@ namespace KKABMX.Core
         private readonly FindAssist _boneSearcher = new FindAssist();
         private bool? _baselineKnown;
 
+        public static List<BoneEffect> AdditionalBoneEffects { get; } = new List<BoneEffect>();
+
         public bool NeedsFullRefresh { get; set; }
         public bool NeedsBaselineUpdate { get; set; }
 
@@ -108,9 +110,9 @@ namespace KKABMX.Core
 
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
         {
-            ModifiersPurgeEmpty();
-
-            var toSave = Modifiers.Where(x => x.IsCoordinateSpecific())
+            var toSave = Modifiers
+                .Where(x => !x.IsEmpty())
+                .Where(x => x.IsCoordinateSpecific())
                 .ToDictionary(x => x.BoneName, x => x.GetModifier(CurrentCoordinate.Value));
 
             if (toSave.Count == 0)
@@ -125,16 +127,16 @@ namespace KKABMX.Core
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            ModifiersPurgeEmpty();
+            var toSave = Modifiers.Where(x => !x.IsEmpty()).ToList();
 
-            if (Modifiers.Count == 0)
+            if (toSave.Count == 0)
             {
                 SetExtendedData(null);
                 return;
             }
 
             var data = new PluginData { version = 2 };
-            data.data.Add(ExtDataBoneDataKey, LZ4MessagePackSerializer.Serialize(Modifiers));
+            data.data.Add(ExtDataBoneDataKey, LZ4MessagePackSerializer.Serialize(toSave));
             SetExtendedData(data);
         }
 
@@ -205,7 +207,14 @@ namespace KKABMX.Core
                     UpdateBaseline();
 
                 foreach (var modifier in Modifiers)
-                    modifier.Apply(CurrentCoordinate.Value);
+                {
+                    var additionalModifiers = AdditionalBoneEffects
+                        .Select(x => x.GetEffect(modifier.BoneName, this, CurrentCoordinate.Value))
+                        .Where(x => x != null)
+                        .ToList();
+
+                    modifier.Apply(CurrentCoordinate.Value, additionalModifiers);
+                }
             }
             else if (_baselineKnown == false)
             {
@@ -218,14 +227,24 @@ namespace KKABMX.Core
 
         private IEnumerator OnDataChangedCo()
         {
-            ModifiersPurgeEmpty();
+            foreach (var modifier in Modifiers.Where(x => x.IsEmpty()).ToList())
+            {
+                modifier.Reset();
+                Modifiers.Remove(modifier);
+            }
+
+            // Add any modifiers that will be used by the AdditionalBoneEffects if they don't already exist
+            foreach (var boneName in AdditionalBoneEffects.SelectMany(x => x.GetAffectedBones(this)).Except(Modifiers.Select(x => x.BoneName)))
+            {
+                Modifiers.Add(new BoneModifier(boneName));
+            }
 
             // Needed to let accessories load in
             yield return new WaitForEndOfFrame();
 
             ModifiersFillInTransforms();
 
-            NeedsBaselineUpdate = false;
+            NeedsBaselineUpdate = true;
 
             NewDataLoaded?.Invoke(this, EventArgs.Empty);
         }
@@ -239,12 +258,14 @@ namespace KKABMX.Core
 
             _baselineKnown = true;
 
+#if KK
             StartCoroutine(CollectBaselineCo());
+#endif
         }
 
+#if KK
         private IEnumerator CollectBaselineCo()
         {
-#if KK
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             var currentPvCopy = new bool[4];
             if (pvCopy != null)
@@ -269,8 +290,8 @@ namespace KKABMX.Core
                     }
                 }
             }
-#endif
         }
+#endif
 
         /// <summary>
         /// Partial baseline update.
@@ -317,15 +338,6 @@ namespace KKABMX.Core
                         goto Retry;
                     }
                 }
-            }
-        }
-
-        private void ModifiersPurgeEmpty()
-        {
-            foreach (var modifier in Modifiers.Where(x => x.IsEmpty()).ToList())
-            {
-                modifier.Reset();
-                Modifiers.Remove(modifier);
             }
         }
     }

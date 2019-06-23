@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\BoneEffect.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifierData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OldDataConverter.cs" />

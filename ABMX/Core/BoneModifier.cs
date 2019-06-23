@@ -55,16 +55,19 @@ namespace KKABMX.Core
 
         [IgnoreMember]
         public Transform BoneTransform { get; internal set; }
-        
+
         [Key(1)]
         // Needs a public set to make serializing work
         public BoneModifierData[] CoordinateModifiers { get; set; }
 
-        public void Apply(CoordinateType coordinate)
+        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers)
         {
             if (BoneTransform == null) return;
 
             var modifier = GetModifier(coordinate);
+
+            if (additionalModifiers.Count > 0)
+                modifier = CombineModifiers(modifier, additionalModifiers);
 
             if (CanApply(modifier))
             {
@@ -83,6 +86,23 @@ namespace KKABMX.Core
                     }
                 }
             }
+        }
+
+        private static BoneModifierData CombineModifiers(BoneModifierData baseModifier, IEnumerable<BoneModifierData> additionalModifiers)
+        {
+            var scale = baseModifier.ScaleModifier;
+            var len = baseModifier.LengthModifier;
+
+            foreach (var additionalModifier in additionalModifiers)
+            {
+                scale = new Vector3(
+                    scale.x * additionalModifier.ScaleModifier.x,
+                    scale.y * additionalModifier.ScaleModifier.y,
+                    scale.z * additionalModifier.ScaleModifier.z);
+                len *= additionalModifier.LengthModifier;
+            }
+
+            return new BoneModifierData(scale, len);
         }
 
         public void CollectBaseline()
