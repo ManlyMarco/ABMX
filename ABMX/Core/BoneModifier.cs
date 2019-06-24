@@ -21,8 +21,10 @@ namespace KKABMX.Core
 
         private bool _hasBaseline;
         private float _lenBaseline = LenBaselineUninitializedVal;
-        private bool _lenModForceUpdate;
         private Vector3 _sclBaseline = Vector3.one;
+
+        private bool _lenModForceUpdate;
+        private bool _lenModWasNegative;
 
         private bool _forceApply;
 
@@ -30,7 +32,7 @@ namespace KKABMX.Core
         /// Create empty modifier that is not coordinate specific
         /// </summary>
         /// <param name="boneName">Name of the bone transform to affect</param>
-        public BoneModifier(string boneName) : this(boneName, new[] {new BoneModifierData()}) { }
+        public BoneModifier(string boneName) : this(boneName, new[] { new BoneModifierData() }) { }
 
         /// <param name="boneName">Name of the bone transform to affect</param>
         /// <param name="coordinateModifiers">
@@ -81,7 +83,19 @@ namespace KKABMX.Core
                     // todo don't run if lenMod was never used?
                     if (BoneTransform.localPosition != Vector3.zero && HasLenBaseline())
                     {
-                        BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * _lenBaseline * modifier.LengthModifier;
+                        // Prevent position turning to 0 and breaking the logic
+                        var lenModNegative = modifier.LengthModifier < 0;
+                        var lenTrimmed = Mathf.Max(0.1f, Mathf.Abs(modifier.LengthModifier));
+
+                        // Handle negative position modifiers, needed to prevent position sign changing on every frame (since negative modifier.LengthModifier would constantly flip it)
+                        if (_lenModWasNegative != lenModNegative)
+                        {
+                            _lenModWasNegative = lenModNegative;
+                            lenTrimmed *= -1f;
+                        }
+
+                        BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * _lenBaseline * lenTrimmed;
+
                         _lenModForceUpdate = false;
                     }
                 }
@@ -111,7 +125,10 @@ namespace KKABMX.Core
 
             _sclBaseline = BoneTransform.localScale;
             if (!HasLenBaseline())
+            {
                 _lenBaseline = BoneTransform.localPosition.magnitude;
+                _lenModWasNegative = false;
+            }
 
             _hasBaseline = true;
         }
@@ -119,7 +136,7 @@ namespace KKABMX.Core
         public BoneModifierData GetModifier(CoordinateType coordinate)
         {
             if (CoordinateModifiers.Length == 1) return CoordinateModifiers[0];
-            return CoordinateModifiers[(int) coordinate];
+            return CoordinateModifiers[(int)coordinate];
         }
 
         public bool IsEmpty()
@@ -150,9 +167,12 @@ namespace KKABMX.Core
         public void MakeNonCoordinateSpecific()
         {
             if (IsCoordinateSpecific())
-                CoordinateModifiers = new []{ CoordinateModifiers[0] };
+                CoordinateModifiers = new[] { CoordinateModifiers[0] };
         }
 
+        /// <summary>
+        /// Resets bone transform values to their original values
+        /// </summary>
         public void Reset()
         {
             if (BoneTransform == null) return;
@@ -161,7 +181,12 @@ namespace KKABMX.Core
             {
                 BoneTransform.localScale = _sclBaseline;
                 if (BoneTransform.localPosition != Vector3.zero && HasLenBaseline())
-                    BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * _lenBaseline;
+                {
+                    var baseline = _lenBaseline;
+                    // Flip position back to normal if necessary
+                    if (_lenModWasNegative) baseline *= -1f;
+                    BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * baseline;
+                }
             }
         }
 
