@@ -29,12 +29,13 @@ namespace KKABMX.Core
         private readonly FindAssist _boneSearcher = new FindAssist();
         private bool? _baselineKnown;
 
-        public static List<BoneEffect> AdditionalBoneEffects { get; } = new List<BoneEffect>();
-
         public bool NeedsFullRefresh { get; set; }
         public bool NeedsBaselineUpdate { get; set; }
 
         public List<BoneModifier> Modifiers { get; private set; } = new List<BoneModifier>();
+
+        public IEnumerable<BoneEffect> AdditionalBoneEffects => _additionalBoneEffects;
+        private readonly List<BoneEffect> _additionalBoneEffects = new List<BoneEffect>();
 
         public event EventHandler NewDataLoaded;
 
@@ -48,6 +49,25 @@ namespace KKABMX.Core
             Modifiers.Add(bone);
             ModifiersFillInTransforms();
             bone.CollectBaseline();
+        }
+
+        /// <summary>
+        /// Add specified bone effect and update state to make it work. If the effect is already added then this does nothing.
+        /// </summary>
+        public void AddBoneEffect(BoneEffect effect)
+        {
+            if (_additionalBoneEffects.Contains(effect)) return;
+
+            _additionalBoneEffects.Add(effect);
+
+            var newEffects = effect.GetAffectedBones(this).Except(Modifiers.Select(x => x.BoneName)).ToList();
+            if (newEffects.Any())
+            {
+                foreach (var boneName in newEffects)
+                    Modifiers.Add(new BoneModifier(boneName));
+                ModifiersFillInTransforms();
+                NeedsBaselineUpdate = true;
+            }
         }
 
         public BoneModifier GetModifier(string boneName)
@@ -208,7 +228,7 @@ namespace KKABMX.Core
 
                 foreach (var modifier in Modifiers)
                 {
-                    var additionalModifiers = AdditionalBoneEffects
+                    var additionalModifiers = _additionalBoneEffects
                         .Select(x => x.GetEffect(modifier.BoneName, this, CurrentCoordinate.Value))
                         .Where(x => x != null)
                         .ToList();
@@ -234,7 +254,7 @@ namespace KKABMX.Core
             }
 
             // Add any modifiers that will be used by the AdditionalBoneEffects if they don't already exist
-            foreach (var boneName in AdditionalBoneEffects.SelectMany(x => x.GetAffectedBones(this)).Except(Modifiers.Select(x => x.BoneName)))
+            foreach (var boneName in _additionalBoneEffects.SelectMany(x => x.GetAffectedBones(this)).Except(Modifiers.Select(x => x.BoneName)))
             {
                 Modifiers.Add(new BoneModifier(boneName));
             }
