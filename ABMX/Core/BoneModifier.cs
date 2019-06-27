@@ -24,7 +24,8 @@ namespace KKABMX.Core
         private Vector3 _sclBaseline = Vector3.one;
 
         private bool _lenModForceUpdate;
-        private bool _lenModWasNegative;
+        private bool _lenModNeedsPositionRestore;
+        private Vector3 _positionBaseline;
 
         private bool _forceApply;
 
@@ -80,21 +81,20 @@ namespace KKABMX.Core
 
                 if (_lenModForceUpdate || modifier.HasLength())
                 {
-                    // todo don't run if lenMod was never used?
-                    if (BoneTransform.localPosition != Vector3.zero && HasLenBaseline())
+                    var localPosition = BoneTransform.localPosition;
+                    if ((localPosition != Vector3.zero || _positionBaseline != Vector3.zero) && HasLenBaseline())
                     {
-                        // Prevent position turning to 0 and breaking the logic
-                        var lenModNegative = modifier.LengthModifier < 0;
-                        var lenTrimmed = Mathf.Max(0.1f, Mathf.Abs(modifier.LengthModifier));
-
-                        // Handle negative position modifiers, needed to prevent position sign changing on every frame (since negative modifier.LengthModifier would constantly flip it)
-                        if (_lenModWasNegative != lenModNegative)
+                        // Handle negative position modifiers, needed to prevent position sign changing on every frame
+                        // (since negative modifier.LengthModifier would constantly flip it)
+                        // Also needed for values near 0 to prevent losing the position data
+                        if (modifier.LengthModifier < 0.1f)
                         {
-                            _lenModWasNegative = lenModNegative;
-                            lenTrimmed *= -1f;
+                            // Fall back to more aggresive mode
+                            localPosition = _positionBaseline;
+                            _lenModNeedsPositionRestore = true;
                         }
 
-                        BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * _lenBaseline * lenTrimmed;
+                        BoneTransform.localPosition = localPosition / localPosition.magnitude * _lenBaseline * modifier.LengthModifier;
 
                         _lenModForceUpdate = false;
                     }
@@ -127,7 +127,8 @@ namespace KKABMX.Core
             if (!HasLenBaseline())
             {
                 _lenBaseline = BoneTransform.localPosition.magnitude;
-                _lenModWasNegative = false;
+                _positionBaseline = BoneTransform.localPosition;
+                _lenModNeedsPositionRestore = false;
             }
 
             _hasBaseline = true;
@@ -184,8 +185,15 @@ namespace KKABMX.Core
                 {
                     var baseline = _lenBaseline;
                     // Flip position back to normal if necessary
-                    if (_lenModWasNegative) baseline *= -1f;
-                    BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * baseline;
+                    if (_lenModNeedsPositionRestore)
+                    {
+                        BoneTransform.localPosition = _positionBaseline;
+                        _lenModNeedsPositionRestore = false;
+                    }
+                    else
+                    {
+                        BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * baseline;
+                    }
                 }
             }
         }
