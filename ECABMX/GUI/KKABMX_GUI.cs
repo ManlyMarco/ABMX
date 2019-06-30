@@ -25,7 +25,12 @@ namespace KKABMX.GUI
 
         private BoneController _boneController;
         private readonly List<Action> _updateActionList = new List<Action>();
-        
+
+        private static MakerLoadToggle _faceLoadToggle;
+        private static MakerLoadToggle _bodyLoadToggle;
+        internal static bool LoadFace => _faceLoadToggle == null || _faceLoadToggle.Value;
+        internal static bool LoadBody => _bodyLoadToggle == null || _bodyLoadToggle.Value;
+
         public ConfigWrapper<bool> RaiseLimits { get; }
 
         public KKABMX_GUI()
@@ -67,8 +72,8 @@ namespace KKABMX.GUI
                 }
             }
 
-            callback.AddLoadToggle(new MakerLoadToggle("Bonemod"))
-                .ValueChanged.Subscribe(b => GetRegistration().MaintainState = !b);
+            _faceLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Face Bonemod"));
+            _bodyLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Body Bonemod"));
 
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
@@ -342,6 +347,9 @@ namespace KKABMX.GUI
             var reg = GetRegistration();
             reg.MaintainState = false;
             reg.MaintainCoordinateState = false;
+
+            _bodyLoadToggle = null;
+            _faceLoadToggle = null;
 
             Destroy(gameObject.GetComponent<KKABMX_AdvancedGUI>());
         }

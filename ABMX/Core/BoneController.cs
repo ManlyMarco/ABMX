@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
+using IllusionUtility.GetUtility;
 using KKAPI;
 using KKAPI.Chara;
 using MessagePack;
@@ -169,10 +170,9 @@ namespace KKABMX.Core
             StopAllCoroutines();
             _baselineKnown = false;
 
-            if (!maintainState)
+            if (!maintainState && (GUI.KKABMX_GUI.LoadBody || GUI.KKABMX_GUI.LoadFace))
             {
-                Modifiers = null;
-
+                var newModifiers = new List<BoneModifier>();
                 var data = GetExtendedData();
                 if (data != null)
                 {
@@ -181,12 +181,12 @@ namespace KKABMX.Core
                         switch (data.version)
                         {
                             case 2:
-                                Modifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
+                                newModifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
                                 break;
 
                             case 1:
                                 Logger.Log(LogLevel.Debug, $"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter?.fullname}");
-                                Modifiers = OldDataConverter.MigrateOldExtData(data);
+                                newModifiers = OldDataConverter.MigrateOldExtData(data);
                                 break;
 
                             default:
@@ -198,10 +198,30 @@ namespace KKABMX.Core
                         Logger.Log(LogLevel.Error, "[KKABMX] Failed to load extended data - " + ex);
                     }
                 }
-            }
 
-            if (Modifiers == null)
-                Modifiers = new List<BoneModifier>();
+                if (GUI.KKABMX_GUI.LoadBody && GUI.KKABMX_GUI.LoadFace)
+                {
+                    Modifiers = newModifiers;
+                }
+                else
+                {
+                    var headRoot = transform.FindLoop("cf_j_head");
+                    var headBones = new HashSet<string>(headRoot.GetComponentsInChildren<Transform>().Select(x => x.name));
+                    headBones.Add(headRoot.name);
+                    if (GUI.KKABMX_GUI.LoadFace)
+                    {
+                        Modifiers.RemoveAll(x => headBones.Contains(x.BoneName));
+                        Modifiers.AddRange(newModifiers.Where(x => headBones.Contains(x.BoneName)));
+                    }
+                    else if (GUI.KKABMX_GUI.LoadBody)
+                    {
+                        var bodyBones = new HashSet<string>(transform.FindLoop("BodyTop").GetComponentsInChildren<Transform>().Select(x => x.name).Except(headBones));
+
+                        Modifiers.RemoveAll(x => bodyBones.Contains(x.BoneName));
+                        Modifiers.AddRange(newModifiers.Where(x => bodyBones.Contains(x.BoneName)));
+                    }
+                }
+            }
 
             StartCoroutine(OnDataChangedCo());
         }
