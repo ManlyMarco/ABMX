@@ -210,6 +210,7 @@ namespace KKABMX.GUI
                 if (rb != null)
                 {
                     var bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate);
+                    if (bone2 == null) throw new ArgumentNullException(nameof(bone2));
                     if (bone.ScaleModifier != bone2.ScaleModifier)
                     {
                         if (rb.Value == 0)
@@ -334,7 +335,16 @@ namespace KKABMX.GUI
             _boneController.NewDataLoaded += (s, args) =>
             {
                 foreach (var action in _updateActionList)
-                    action();
+                {
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception ex)
+                    {
+                        KKABMX_Core.Log(LogLevel.Error, ex.ToString());
+                    }
+                }
             };
 
             gameObject.AddComponent<KKABMX_AdvancedGUI>().enabled = false;
