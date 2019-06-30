@@ -17,10 +17,8 @@ namespace KKABMX.Core
     {
         internal static readonly int CoordinateCount = Enum.GetValues(typeof(CoordinateType)).Length;
 
-        private const float LenBaselineUninitializedVal = 0f;
-
         private bool _hasBaseline;
-        private float _lenBaseline = LenBaselineUninitializedVal;
+        private float _lenBaseline;
         private Vector3 _sclBaseline = Vector3.one;
 
         private bool _lenModForceUpdate;
@@ -181,11 +179,11 @@ namespace KKABMX.Core
             if (_hasBaseline)
             {
                 BoneTransform.localScale = _sclBaseline;
-                if (BoneTransform.localPosition != Vector3.zero && HasLenBaseline())
+                if (HasLenBaseline())
                 {
                     var baseline = _lenBaseline;
                     // Flip position back to normal if necessary
-                    if (_lenModNeedsPositionRestore)
+                    if (_lenModNeedsPositionRestore || BoneTransform.localPosition == Vector3.zero)
                     {
                         BoneTransform.localPosition = _positionBaseline;
                         _lenModNeedsPositionRestore = false;
@@ -222,7 +220,7 @@ namespace KKABMX.Core
 
         private bool HasLenBaseline()
         {
-            return !Equals(_lenBaseline, LenBaselineUninitializedVal);
+            return _positionBaseline != Vector3.zero;
         }
     }
 }
