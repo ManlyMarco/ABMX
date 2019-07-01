@@ -79,9 +79,9 @@ namespace KKABMX.Core
 
                 if (_lenModForceUpdate || modifier.HasLength())
                 {
-                    var localPosition = BoneTransform.localPosition;
-                    if ((localPosition != Vector3.zero || _positionBaseline != Vector3.zero) && HasLenBaseline())
+                    if (HasLenBaseline())
                     {
+                        var localPosition = BoneTransform.localPosition;
                         // Handle negative position modifiers, needed to prevent position sign changing on every frame
                         // (since negative modifier.LengthModifier would constantly flip it)
                         // Also needed for values near 0 to prevent losing the position data

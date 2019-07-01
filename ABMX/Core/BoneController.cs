@@ -291,7 +291,12 @@ namespace KKABMX.Core
 
         private void CollectBaseline()
         {
-            if (ChaControl.animBody == null) return;
+            StartCoroutine(CollectBaselineCo());
+        }
+
+        private IEnumerator CollectBaselineCo()
+        {
+            yield return new WaitForEndOfFrame();
 
             foreach (var modifier in Modifiers)
                 modifier.CollectBaseline();
@@ -299,13 +304,8 @@ namespace KKABMX.Core
             _baselineKnown = true;
 
 #if KK
-            StartCoroutine(CollectBaselineCo());
-#endif
-        }
+            if (ChaControl.animBody == null) yield break;
 
-#if KK
-        private IEnumerator CollectBaselineCo()
-        {
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             var currentPvCopy = new bool[4];
             if (pvCopy != null)
@@ -330,8 +330,8 @@ namespace KKABMX.Core
                     }
                 }
             }
-        }
 #endif
+        }
 
         /// <summary>
         /// Partial baseline update.
