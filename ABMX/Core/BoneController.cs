@@ -6,6 +6,7 @@ using BepInEx.Logging;
 using IllusionUtility.GetUtility;
 using KKAPI;
 using KKAPI.Chara;
+using Manager;
 using MessagePack;
 using UniRx;
 using UnityEngine;
@@ -37,6 +38,7 @@ namespace KKABMX.Core
 
         public IEnumerable<BoneEffect> AdditionalBoneEffects => _additionalBoneEffects;
         private readonly List<BoneEffect> _additionalBoneEffects = new List<BoneEffect>();
+        private bool _isDuringHScene;
 
         public event EventHandler NewDataLoaded;
 
@@ -230,9 +232,17 @@ namespace KKABMX.Core
         {
             base.Start();
             CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
+            _isDuringHScene = "H".Equals(Scene.Instance.LoadSceneName, StringComparison.Ordinal);
         }
 
         private void LateUpdate()
+        {
+            // In H scenes the update is called from a hook to fix an ordering issue
+            if (!_isDuringHScene)
+                DoUpdate();
+        }
+
+        internal void DoUpdate()
         {
             if (NeedsFullRefresh)
             {
@@ -253,7 +263,7 @@ namespace KKABMX.Core
                         .Where(x => x != null)
                         .ToList();
 
-                    modifier.Apply(CurrentCoordinate.Value, additionalModifiers);
+                    modifier.Apply(CurrentCoordinate.Value, additionalModifiers, _isDuringHScene);
                 }
             }
             else if (_baselineKnown == false)

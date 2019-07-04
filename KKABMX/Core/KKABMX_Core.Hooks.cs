@@ -34,6 +34,14 @@ namespace KKABMX.Core
                 if (controller != null)
                     controller.NeedsFullRefresh = true;
             }
+
+            [HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "LateUpdate")]
+            public static void HScenePostUpdateHook(HSceneProc __instance)
+            {
+                __instance.flags.player?.transform?.GetComponent<BoneController>()?.DoUpdate();
+                foreach (var heroine in __instance.flags.lstHeroine)
+                    heroine?.chaCtrl?.GetComponent<BoneController>()?.DoUpdate();
+            }
         }
     }
 }

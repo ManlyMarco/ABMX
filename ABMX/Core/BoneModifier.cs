@@ -61,7 +61,7 @@ namespace KKABMX.Core
         // Needs a public set to make serializing work
         public BoneModifierData[] CoordinateModifiers { get; set; }
 
-        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers)
+        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers, bool isDuringHScene)
         {
             if (BoneTransform == null) return;
 
@@ -85,7 +85,7 @@ namespace KKABMX.Core
                         // Handle negative position modifiers, needed to prevent position sign changing on every frame
                         // (since negative modifier.LengthModifier would constantly flip it)
                         // Also needed for values near 0 to prevent losing the position data
-                        if (modifier.LengthModifier < 0.1f)
+                        if (modifier.LengthModifier < 0.1f || isDuringHScene)
                         {
                             // Fall back to more aggresive mode
                             localPosition = _positionBaseline;
