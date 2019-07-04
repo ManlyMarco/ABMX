@@ -35,6 +35,14 @@ namespace KKABMX.Core
                     controller.NeedsFullRefresh = true;
             }
 
+            [HarmonyPostfix, HarmonyPatch(typeof(OCIChar), nameof(OCIChar.LoadAnime))]
+            public static void LoadAnimePost(OCIChar __instance)
+            {
+                var controller = __instance.charInfo?.GetComponent<BoneController>();
+                if (controller != null)
+                    controller.NeedsFullRefresh = true;
+            }
+
             [HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), "LateUpdate")]
             public static void HScenePostUpdateHook(HSceneProc __instance)
             {
