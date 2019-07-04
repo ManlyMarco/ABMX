@@ -2,7 +2,7 @@
 {
     internal static class Metadata
     {
-        public const string Version = "3.2.2";
+        public const string Version = "3.2.3";
         public const string GUID = "KKABMX.Core";
         public const string ExtDataGUID = "KKABMPlugin.ABMData";
     }
