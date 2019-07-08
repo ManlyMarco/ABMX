@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using BepInEx;
 using BepInEx.Logging;
 using Harmony;
@@ -18,6 +19,12 @@ namespace KKABMX.Core
         {
             if(!KKAPI.KoikatuAPI.CheckRequiredPlugin(this, KKAPI.KoikatuAPI.GUID, new Version(KKAPI.KoikatuAPI.VersionConst)))
                 return;
+
+            if (File.Exists(Path.Combine(Paths.PluginPath, "KKABMPlugin.dll")) || File.Exists(Path.Combine(Paths.PluginPath, "KKABMGUI.dll")))
+            {
+                Log(LogLevel.Message | LogLevel.Error, "Old version of ABM found! Remove KKABMPlugin.dll and KKABMGUI.dll and restart the game.");
+                return;
+            }
 
             CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
 
