@@ -22,8 +22,6 @@ using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 
 namespace KKABMX.Core
 {
-    // Need to run before some IK stuff to not break it
-    [DefaultExecutionOrder(-10000)]
     public class BoneController : CharaCustomFunctionController
     {
         private const string ExtDataBoneDataKey = "boneData";
@@ -294,7 +292,7 @@ namespace KKABMX.Core
 
             ModifiersFillInTransforms();
 
-            NeedsBaselineUpdate = true;
+            NeedsBaselineUpdate = false;
 
             NewDataLoaded?.Invoke(this, EventArgs.Empty);
         }
@@ -307,15 +305,9 @@ namespace KKABMX.Core
         private IEnumerator CollectBaselineCo()
         {
             yield return new WaitForEndOfFrame();
-
-            foreach (var modifier in Modifiers)
-                modifier.CollectBaseline();
-
-            _baselineKnown = true;
+            while (ChaControl.animBody == null) yield break;
 
 #if KK
-            if (ChaControl.animBody == null) yield break;
-
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             var currentPvCopy = new bool[4];
             if (pvCopy != null)
@@ -325,9 +317,21 @@ namespace KKABMX.Core
                     currentPvCopy[i] = pvCopy[i];
                     pvCopy[i] = false;
                 }
+            }
+#endif
 
-                yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
 
+            foreach (var modifier in Modifiers)
+                modifier.CollectBaseline();
+
+            _baselineKnown = true;
+
+            yield return new WaitForEndOfFrame();
+
+#if KK
+            if (pvCopy != null)
+            {
                 var array = pvCopy.GetPvArray();
                 var array2 = pvCopy.GetBoneArray();
                 for (var j = 0; j < 4; j++)
