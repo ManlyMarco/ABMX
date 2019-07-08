@@ -75,7 +75,14 @@ namespace KKABMX.GUI
             {
                 DrawHeader();
 
-                foreach (var mod in (_onlyShowAdditional ? _boneControllerMgr.Modifiers.Where(x => _addedBones.Contains(x.BoneName)) : _boneControllerMgr.Modifiers))
+                var shownModifiers = _onlyShowAdditional ? 
+                    _boneControllerMgr.Modifiers.Where(x => _addedBones.Contains(x.BoneName)) : 
+                    _boneControllerMgr.Modifiers.OrderBy(x=>x.BoneName);
+
+                if (!string.IsNullOrEmpty(_boneAddFieldValue))
+                    shownModifiers = shownModifiers.Where(x => x.BoneName.Contains(_boneAddFieldValue));
+
+                foreach (var mod in shownModifiers)
                 {
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
                     {
@@ -142,10 +149,10 @@ namespace KKABMX.GUI
         {
             GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
             {
-                GUILayout.Label("Add a new bone to the list. If valid, it will be saved to the card.");
+                GUILayout.Label("Add a new bone to the list or search existing bones");
 
                 // todo Use _boneControllerMgr.GetAllPossibleBoneNames() for autocomplete/suggestions
-                _boneAddFieldValue = GUILayout.TextField(_boneAddFieldValue, GUILayout.Width(90));
+                _boneAddFieldValue = GUILayout.TextField(_boneAddFieldValue, GUILayout.Width(110));
 
                 if (GUILayout.Button("Add"))
                 {
