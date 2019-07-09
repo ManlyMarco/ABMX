@@ -31,10 +31,12 @@ namespace KKABMX.GUI
         internal static bool LoadFace => _faceLoadToggle == null || _faceLoadToggle.Value;
         internal static bool LoadBody => _bodyLoadToggle == null || _bodyLoadToggle.Value;
 
+        public ConfigWrapper<bool> IsAdvancedMode { get; }
         public ConfigWrapper<bool> RaiseLimits { get; }
 
         public KKABMX_GUI()
         {
+            IsAdvancedMode = Config.Wrap("", "Use Advanced Mode", "Let you control the scale on all axes. Can skew the model if you set an uneven scale.", false);
             RaiseLimits = Config.Wrap("", "Increase slider limits 2x", "Can cause even more horrifying results. Only enable when working on furries and superdeformed charas.", false);
         }
 
@@ -78,6 +80,9 @@ namespace KKABMX.GUI
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
+            callback.AddSidebarControl(new SidebarToggle("Use advanced bonemod controls", IsAdvancedMode.Value, this))
+                .ValueChanged.Subscribe(b => IsAdvancedMode.Value = b);
+
             callback.AddSidebarControl(new SidebarToggle("Show advanced bonemod controls", false, this))
                 .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
         }
@@ -105,10 +110,12 @@ namespace KKABMX.GUI
                 return sided;
             }
 
+            var active = true;
             var maxFingerValue = RaiseLimits.Value ? 3 * LimitRaiseAmount : 3;
             var x = callback.AddControl(new MakerSlider(category, "Scale X", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
             var y = callback.AddControl(new MakerSlider(category, "Scale Y", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
             var z = callback.AddControl(new MakerSlider(category, "Scale Z", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
+            var v = callback.AddControl(new MakerSlider(category, "Scale", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
 
             void UpdateDisplay(int _)
             {
@@ -125,12 +132,15 @@ namespace KKABMX.GUI
                 if (x != null) x.Value = mod.x;
                 if (y != null) y.Value = mod.y;
                 if (z != null) z.Value = mod.z;
+                if (v != null) v.Value = (mod.x + mod.y + mod.z) / 3f;
                 isUpdatingValue = false;
             }
 
             void PushValueToControls()
             {
                 UpdateDisplay(0);
+
+                ActivateSlider();
             }
 
             _updateActionList.Add(PushValueToControls);
@@ -149,7 +159,9 @@ namespace KKABMX.GUI
                     var bone = _boneController.GetModifier(boneName);
                     var modifier = bone?.GetModifier(_boneController.CurrentCoordinate.Value);
                     var prevValue = modifier?.ScaleModifier ?? Vector3.one;
-                    var newValue = new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z);
+                    var newValue = IsAdvancedMode.Value || !IsEven()
+                        ? new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z)
+                        : new Vector3(v?.Value ?? prevValue.x, v?.Value ?? prevValue.y, v?.Value ?? prevValue.z);
                     if (modifier == null)
                     {
                         if (bone != null)
@@ -163,12 +175,40 @@ namespace KKABMX.GUI
                     }
                     modifier.ScaleModifier = newValue;
                 }
+
+                SetSliders(active
+                    ? new Vector3(x?.Value ?? 1f, y?.Value ?? 1f, z?.Value ?? 1f)
+                    : new Vector3(v?.Value ?? 1f, v?.Value ?? 1f, v?.Value ?? 1f));
             }
 
             var obs = Observer.Create<float>(PullValuesToBone);
             x?.ValueChanged.Subscribe(obs);
             y?.ValueChanged.Subscribe(obs);
             z?.ValueChanged.Subscribe(obs);
+            v?.ValueChanged.Subscribe(obs);
+
+            bool IsEven()
+            {
+                var isEven = true;
+                float? value = null;
+                if (x != null) { if (!value.HasValue) value = x.Value; else isEven &= value == x.Value; }
+                if (y != null) { if (!value.HasValue) value = y.Value; else isEven &= value == y.Value; }
+                if (z != null) { if (!value.HasValue) value = z.Value; else isEven &= value == z.Value; }
+                return isEven;
+            }
+
+            void ActivateSlider()
+            {
+                active = IsAdvancedMode.Value || !IsEven();
+                if (x != null) { foreach (var ctrl in x.ControlObjects) ctrl?.SetActive(active); }
+                if (y != null) { foreach (var ctrl in y.ControlObjects) ctrl?.SetActive(active); }
+                if (z != null) { foreach (var ctrl in z.ControlObjects) ctrl?.SetActive(active); }
+                if (v != null) { foreach (var ctrl in v.ControlObjects) ctrl?.SetActive(!active); }
+            }
+
+            IsAdvancedMode.SettingChanged += (sender, e) => ActivateSlider();
+
+            ActivateSlider();
         }
 
         private void RegisterSingleControl(MakerCategory category, BoneMeta boneMeta, RegisterCustomControlsEvent callback)
@@ -179,22 +219,25 @@ namespace KKABMX.GUI
                 rb = callback.AddControl(new MakerRadioButtons(category, this, "Side to edit", "Both", "Left", "Right") { TextColor = _settingColor });
             }
 
+            var active = true;
             var max = RaiseLimits.Value ? boneMeta.Max * LimitRaiseAmount : boneMeta.Max;
             var lMax = RaiseLimits.Value ? boneMeta.LMax * LimitRaiseAmount : boneMeta.LMax;
             var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
             var y = boneMeta.Y ? callback.AddControl(new MakerSlider(category, boneMeta.YDisplayName, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
             var z = boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.ZDisplayName, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
+            var v = (boneMeta.X || boneMeta.Y || boneMeta.Z) ? callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + boneMeta.XYZPostfix, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
             var l = boneMeta.L ? callback.AddControl(new MakerSlider(category, boneMeta.LDisplayName, boneMeta.LMin, lMax, 1, this) { TextColor = _settingColor }) : null;
 
             var isUpdatingValue = false;
 
-            void SetSliders(Vector3 mod, float lenMod)
+            void SetSliders(Vector3 mod, float? lenMod = null)
             {
                 isUpdatingValue = true;
                 if (x != null) x.Value = mod.x;
                 if (y != null) y.Value = mod.y;
                 if (z != null) z.Value = mod.z;
-                if (l != null) l.Value = lenMod;
+                if (v != null) v.Value = (mod.x + mod.y + mod.z) / 3f;
+                if (l != null && lenMod.HasValue) l.Value = lenMod.Value;
                 isUpdatingValue = false;
             }
 
@@ -230,6 +273,8 @@ namespace KKABMX.GUI
                 }
 
                 SetSliders(bone.ScaleModifier, bone.LengthModifier);
+
+                ActivateSlider();
             }
 
             _updateActionList.Add(PushValueToControls);
@@ -256,7 +301,9 @@ namespace KKABMX.GUI
 
                 var modifier = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
                 var prevValue = modifier?.ScaleModifier ?? Vector3.one;
-                var newValue = new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z);
+                var newValue = active
+                    ? new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z)
+                    : new Vector3(v?.Value ?? prevValue.x, v?.Value ?? prevValue.y, v?.Value ?? prevValue.z);
                 if (modifier == null)
                 {
                     var hasLen = l != null && Math.Abs(l.Value - 1f) > 0.001;
@@ -293,13 +340,38 @@ namespace KKABMX.GUI
 
                 modifier.ScaleModifier = newValue;
                 if (l != null) modifier.LengthModifier = l.Value;
+                SetSliders(newValue);
             }
 
             var obs = Observer.Create<float>(PullValuesToBone);
             x?.ValueChanged.Subscribe(obs);
             y?.ValueChanged.Subscribe(obs);
             z?.ValueChanged.Subscribe(obs);
+            v?.ValueChanged.Subscribe(obs);
             l?.ValueChanged.Subscribe(obs);
+
+            bool IsEven()
+            {
+                var isEven = true;
+                float? value = null;
+                if (x != null) { if (!value.HasValue) value = x.Value; else isEven &= value == x.Value; }
+                if (y != null) { if (!value.HasValue) value = y.Value; else isEven &= value == y.Value; }
+                if (z != null) { if (!value.HasValue) value = z.Value; else isEven &= value == z.Value; }
+                return isEven;
+            }
+
+            void ActivateSlider()
+            {
+                active = IsAdvancedMode.Value || !IsEven();
+                if (x != null) { foreach (var ctrl in x.ControlObjects) ctrl?.SetActive(active); }
+                if (y != null) { foreach (var ctrl in y.ControlObjects) ctrl?.SetActive(active); }
+                if (z != null) { foreach (var ctrl in z.ControlObjects) ctrl?.SetActive(active); }
+                if (v != null) { foreach (var ctrl in v.ControlObjects) ctrl?.SetActive(!active); }
+            }
+
+            IsAdvancedMode.SettingChanged += (sender, e) => ActivateSlider();
+
+            ActivateSlider();
         }
 
         private BoneModifierData GetBoneModifier(string boneName, bool coordinateUnique)
