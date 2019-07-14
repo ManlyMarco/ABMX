@@ -147,17 +147,21 @@ namespace KKABMX.GUI
                 foreach (var boneName in GetFingerBoneNames())
                 {
                     var bone = _boneController.GetModifier(boneName);
-                    var newValue = new Vector3(x.Value, y.Value, z.Value);
-                    if (bone == null)
+                    var modifier = bone?.GetModifier(_boneController.CurrentCoordinate.Value);
+                    var prevValue = modifier?.ScaleModifier ?? Vector3.one;
+                    var newValue = new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z);
+                    if (modifier == null)
                     {
-                        if (newValue == Vector3.one) return;
+                        if (bone != null)
+                            return;
+                        if (newValue == Vector3.one)
+                            return;
 
                         bone = new BoneModifier(boneName);
                         _boneController.AddModifier(bone);
+                        modifier = bone.GetModifier(_boneController.CurrentCoordinate.Value);
                     }
-
-                    var mod = bone.GetModifier(_boneController.CurrentCoordinate.Value);
-                    mod.ScaleModifier = newValue;
+                    modifier.ScaleModifier = newValue;
                 }
             }
 
@@ -250,16 +254,16 @@ namespace KKABMX.GUI
             {
                 if (isUpdatingValue) return;
 
-                var bone = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
-                var prevValue = bone?.ScaleModifier ?? Vector3.one;
-                var newValue = new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.y);
-                if (bone == null)
+                var modifier = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
+                var prevValue = modifier?.ScaleModifier ?? Vector3.one;
+                var newValue = new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z);
+                if (modifier == null)
                 {
                     var hasLen = l != null && Math.Abs(l.Value - 1f) > 0.001;
                     if (newValue == Vector3.one && !hasLen) return;
 
                     _boneController.AddModifier(new BoneModifier(boneMeta.BoneName));
-                    bone = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
+                    modifier = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
                 }
 
                 if (rb != null)
@@ -287,8 +291,8 @@ namespace KKABMX.GUI
                     }
                 }
 
-                bone.ScaleModifier = newValue;
-                if (l != null) bone.LengthModifier = l.Value;
+                modifier.ScaleModifier = newValue;
+                if (l != null) modifier.LengthModifier = l.Value;
             }
 
             var obs = Observer.Create<float>(PullValuesToBone);
