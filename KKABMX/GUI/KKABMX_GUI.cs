@@ -161,11 +161,9 @@ namespace KKABMX.GUI
                             return;
 
                         if (bone == null)
-                        {
                             bone = new BoneModifier(boneName);
-                            _boneController.AddModifier(bone);
-                        }
 
+                        _boneController.AddModifier(bone);
                         modifier = bone.GetModifier(_boneController.CurrentCoordinate.Value);
                     }
 
