@@ -78,10 +78,10 @@ namespace KKABMX.GUI
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
-            callback.AddSidebarControl(new SidebarToggle("Use advanced bonemod controls", XyzMode, KKABMX_Core.Instance))
+            callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
                 .ValueChanged.Subscribe(b => XyzMode = b);
 
-            callback.AddSidebarControl(new SidebarToggle("Show advanced bonemod controls", false, KKABMX_Core.Instance))
+            callback.AddSidebarControl(new SidebarToggle("Advanced Bonemod Window", false, KKABMX_Core.Instance))
                 .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
         }
 
@@ -181,7 +181,7 @@ namespace KKABMX.GUI
                     ? new Vector3(x?.Value ?? 1f, y?.Value ?? 1f, z?.Value ?? 1f)
                     : new Vector3(v?.Value ?? 1f, v?.Value ?? 1f, v?.Value ?? 1f));
             }
-            
+
             bool IsAdvanced()
             {
                 if (XyzMode) return true;
@@ -247,6 +247,7 @@ namespace KKABMX.GUI
                 if (bone == null)
                 {
                     SetSliders(Vector3.one, 1f);
+                    ActivateSliders();
                     return;
                 }
 

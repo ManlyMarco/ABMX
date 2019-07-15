@@ -8,7 +8,7 @@ using KKAPI.Chara;
 
 namespace KKABMX.Core
 {
-    [BepInPlugin(GUID, "KKABMX Core", Version)]
+    [BepInPlugin(GUID, "KKABMX", Version)]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
     public partial class KKABMX_Core : BaseUnityPlugin
     {
