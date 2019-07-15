@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GUI\BoneMeta.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\InterfaceData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\KKABMX_AdvancedGUI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GUI\KKABMX_GUI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
   </ItemGroup>
 </Project>

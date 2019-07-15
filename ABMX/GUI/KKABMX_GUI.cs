@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BepInEx;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using KKABMX.Core;
-using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
@@ -15,36 +12,36 @@ using UnityEngine;
 
 namespace KKABMX.GUI
 {
-    [BepInPlugin("KKABMX.GUI", "KKABMX GUI", KKABMX_Core.Version)]
-    [BepInDependency(KoikatuAPI.GUID)]
-    [BepInDependency(KKABMX_Core.GUID)]
-    public class KKABMX_GUI : BaseUnityPlugin
+    public class KKABMX_GUI : MonoBehaviour
     {
         private const int LimitRaiseAmount = 2;
         private static readonly Color _settingColor = new Color(1f, 0.84f, 0.57f);
 
         private BoneController _boneController;
         private readonly List<Action> _updateActionList = new List<Action>();
-        private readonly List<EventHandler> _settingChangedList = new List<EventHandler>();
 
         private static MakerLoadToggle _faceLoadToggle;
         private static MakerLoadToggle _bodyLoadToggle;
         internal static bool LoadFace => _faceLoadToggle == null || _faceLoadToggle.Value;
         internal static bool LoadBody => _bodyLoadToggle == null || _bodyLoadToggle.Value;
 
-        public ConfigWrapper<bool> IsAdvancedMode { get; }
-        public ConfigWrapper<bool> RaiseLimits { get; }
+        internal static void OnIsAdvancedModeChanged(object sender, EventArgs args) => IsAdvancedModeChanged?.Invoke(sender, args);
+        private static event EventHandler IsAdvancedModeChanged;
 
-        public KKABMX_GUI()
+        public static bool XyzMode
         {
-            IsAdvancedMode = Config.Wrap("", "Use Advanced Mode", "Let you control the scale on all axes. Can skew the model if you set an uneven scale.", false);
-            RaiseLimits = Config.Wrap("", "Increase slider limits 2x", "Can cause even more horrifying results. Only enable when working on furries and superdeformed charas.", false);
+            get => KKABMX_Core.XyzMode.Value;
+            set => KKABMX_Core.XyzMode.Value = value;
+        }
+
+        public static bool RaiseLimits
+        {
+            get => KKABMX_Core.RaiseLimits.Value;
+            set => KKABMX_Core.RaiseLimits.Value = value;
         }
 
         private void Start()
         {
-            KoikatuAPI.CheckRequiredPlugin(this, KoikatuAPI.GUID, new Version(KoikatuAPI.VersionConst));
-
             MakerAPI.RegisterCustomSubCategories += OnRegisterCustomSubCategories;
             MakerAPI.MakerBaseLoaded += OnEarlyMakerFinishedLoading;
             MakerAPI.MakerExiting += OnMakerExiting;
@@ -60,7 +57,7 @@ namespace KKABMX.GUI
                 foreach (var boneMeta in categoryBones)
                 {
                     if (boneMeta.IsSeparator || !first)
-                        callback.AddControl(new MakerSeparator(category, this) { TextColor = _settingColor });
+                        callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
 
                     RegisterSingleControl(category, boneMeta, callback);
                     first = false;
@@ -69,7 +66,7 @@ namespace KKABMX.GUI
                 if (ReferenceEquals(category, InterfaceData.BodyHands))
                 {
                     if (!first)
-                        callback.AddControl(new MakerSeparator(category, this) { TextColor = _settingColor });
+                        callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
 
                     RegisterFingerControl(category, callback);
                 }
@@ -81,10 +78,10 @@ namespace KKABMX.GUI
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
-            callback.AddSidebarControl(new SidebarToggle("Use advanced bonemod controls", IsAdvancedMode.Value, this))
-                .ValueChanged.Subscribe(b => IsAdvancedMode.Value = b);
+            callback.AddSidebarControl(new SidebarToggle("Use advanced bonemod controls", XyzMode, KKABMX_Core.Instance))
+                .ValueChanged.Subscribe(b => XyzMode = b);
 
-            callback.AddSidebarControl(new SidebarToggle("Show advanced bonemod controls", false, this))
+            callback.AddSidebarControl(new SidebarToggle("Show advanced bonemod controls", false, KKABMX_Core.Instance))
                 .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
         }
 
@@ -95,9 +92,9 @@ namespace KKABMX.GUI
 
         private void RegisterFingerControl(MakerCategory category, RegisterCustomControlsEvent callback)
         {
-            var rbSide = callback.AddControl(new MakerRadioButtons(category, this, "Hand to edit", "Both", "Left", "Right") { TextColor = _settingColor });
-            var rbFing = callback.AddControl(new MakerRadioButtons(category, this, "Finger to edit", "All", "1", "2", "3", "4", "5") { TextColor = _settingColor });
-            var rbSegm = callback.AddControl(new MakerRadioButtons(category, this, "Segment to edit", "Base", "Center", "Tip") { TextColor = _settingColor });
+            var rbSide = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Hand to edit", "Both", "Left", "Right") { TextColor = _settingColor });
+            var rbFing = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Finger to edit", "All", "1", "2", "3", "4", "5") { TextColor = _settingColor });
+            var rbSegm = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Segment to edit", "Base", "Center", "Tip") { TextColor = _settingColor });
 
             IEnumerable<string> GetFingerBoneNames()
             {
@@ -112,11 +109,11 @@ namespace KKABMX.GUI
             }
 
             var isAdvanced = true;
-            var maxFingerValue = RaiseLimits.Value ? 3 * LimitRaiseAmount : 3;
-            var x = callback.AddControl(new MakerSlider(category, "Scale X", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
-            var y = callback.AddControl(new MakerSlider(category, "Scale Y", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
-            var z = callback.AddControl(new MakerSlider(category, "Scale Z", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
-            var v = callback.AddControl(new MakerSlider(category, "Scale", 0, maxFingerValue, 1, this) { TextColor = _settingColor });
+            var maxFingerValue = RaiseLimits ? 3 * LimitRaiseAmount : 3;
+            var x = callback.AddControl(new MakerSlider(category, "Scale X", 0, maxFingerValue, 1, KKABMX_Core.Instance) { TextColor = _settingColor });
+            var y = callback.AddControl(new MakerSlider(category, "Scale Y", 0, maxFingerValue, 1, KKABMX_Core.Instance) { TextColor = _settingColor });
+            var z = callback.AddControl(new MakerSlider(category, "Scale Z", 0, maxFingerValue, 1, KKABMX_Core.Instance) { TextColor = _settingColor });
+            var v = callback.AddControl(new MakerSlider(category, "Scale", 0, maxFingerValue, 1, KKABMX_Core.Instance) { TextColor = _settingColor });
 
             void UpdateDisplay(int _)
             {
@@ -164,7 +161,7 @@ namespace KKABMX.GUI
                     var newValue = isAdvanced
                         ? new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z)
                         : new Vector3(v?.Value ?? prevValue.x, v?.Value ?? prevValue.y, v?.Value ?? prevValue.z);
-                        
+
                     if (modifier == null)
                     {
                         if (newValue == Vector3.one)
@@ -203,7 +200,7 @@ namespace KKABMX.GUI
 
             void ActivateSlider()
             {
-                isAdvanced = IsAdvancedMode.Value || !IsEven();
+                isAdvanced = XyzMode || !IsEven();
                 if (x != null) { foreach (var ctrl in x.ControlObjects) ctrl?.SetActive(isAdvanced); }
                 if (y != null) { foreach (var ctrl in y.ControlObjects) ctrl?.SetActive(isAdvanced); }
                 if (z != null) { foreach (var ctrl in z.ControlObjects) ctrl?.SetActive(isAdvanced); }
@@ -216,8 +213,7 @@ namespace KKABMX.GUI
             }
 
             EventHandler settingChangedHandler = OnSettingChanged;
-            _settingChangedList.Add(settingChangedHandler);
-            IsAdvancedMode.SettingChanged += settingChangedHandler;
+            IsAdvancedModeChanged += settingChangedHandler;
             ActivateSlider();
         }
 
@@ -226,17 +222,17 @@ namespace KKABMX.GUI
             MakerRadioButtons rb = null;
             if (!string.IsNullOrEmpty(boneMeta.RightBoneName))
             {
-                rb = callback.AddControl(new MakerRadioButtons(category, this, "Side to edit", "Both", "Left", "Right") { TextColor = _settingColor });
+                rb = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Side to edit", "Both", "Left", "Right") { TextColor = _settingColor });
             }
 
             var isAdvanced = true;
-            var max = RaiseLimits.Value ? boneMeta.Max * LimitRaiseAmount : boneMeta.Max;
-            var lMax = RaiseLimits.Value ? boneMeta.LMax * LimitRaiseAmount : boneMeta.LMax;
-            var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
-            var y = boneMeta.Y ? callback.AddControl(new MakerSlider(category, boneMeta.YDisplayName, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
-            var z = boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.ZDisplayName, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
-            var v = (boneMeta.X || boneMeta.Y || boneMeta.Z) ? callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + boneMeta.XYZPostfix, boneMeta.Min, max, 1, this) { TextColor = _settingColor }) : null;
-            var l = boneMeta.L ? callback.AddControl(new MakerSlider(category, boneMeta.LDisplayName, boneMeta.LMin, lMax, 1, this) { TextColor = _settingColor }) : null;
+            var max = RaiseLimits ? boneMeta.Max * LimitRaiseAmount : boneMeta.Max;
+            var lMax = RaiseLimits ? boneMeta.LMax * LimitRaiseAmount : boneMeta.LMax;
+            var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
+            var y = boneMeta.Y ? callback.AddControl(new MakerSlider(category, boneMeta.YDisplayName, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
+            var z = boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.ZDisplayName, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
+            var v = (boneMeta.X || boneMeta.Y || boneMeta.Z) ? callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + boneMeta.XYZPostfix, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
+            var l = boneMeta.L ? callback.AddControl(new MakerSlider(category, boneMeta.LDisplayName, boneMeta.LMin, lMax, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
 
             var isUpdatingValue = false;
 
@@ -373,7 +369,7 @@ namespace KKABMX.GUI
 
             void ActivateSlider()
             {
-                isAdvanced = IsAdvancedMode.Value || !IsEven();
+                isAdvanced = XyzMode || !IsEven();
                 if (x != null) { foreach (var ctrl in x.ControlObjects) ctrl?.SetActive(isAdvanced); }
                 if (y != null) { foreach (var ctrl in y.ControlObjects) ctrl?.SetActive(isAdvanced); }
                 if (z != null) { foreach (var ctrl in z.ControlObjects) ctrl?.SetActive(isAdvanced); }
@@ -386,8 +382,7 @@ namespace KKABMX.GUI
             }
 
             EventHandler settingChangedHandler = OnSettingChanged;
-            _settingChangedList.Add(settingChangedHandler);
-            IsAdvancedMode.SettingChanged += settingChangedHandler;
+            IsAdvancedModeChanged += settingChangedHandler;
             ActivateSlider();
         }
 
@@ -400,7 +395,7 @@ namespace KKABMX.GUI
             if (coordinateUnique)
                 boneMod.MakeCoordinateSpecific();
 
-            return boneMod.GetModifier(KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01);
+            return boneMod.GetModifier(_boneController.CurrentCoordinate.Value);
         }
 
         private static void OnRegisterCustomSubCategories(object sender, RegisterSubCategoriesEvent e)
@@ -418,7 +413,7 @@ namespace KKABMX.GUI
             _boneController = FindObjectOfType<BoneController>();
             if (_boneController == null)
             {
-                Logger.Log(LogLevel.Error, "[KKABMX_GUI] Failed to find a BoneController or there are no bone modifiers");
+                KKABMX_Core.Log(LogLevel.Error, "[KKABMX_GUI] Failed to find a BoneController or there are no bone modifiers");
                 return;
             }
 
@@ -444,11 +439,7 @@ namespace KKABMX.GUI
 
         private void OnMakerExiting(object sender, EventArgs e)
         {
-            foreach (var eventHandler in _settingChangedList)
-            {
-                IsAdvancedMode.SettingChanged -= eventHandler;
-            }
-            _settingChangedList.Clear();
+            IsAdvancedModeChanged = null;
 
             _updateActionList.Clear();
             _boneController = null;

@@ -1,8 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using BepInEx;
 using BepInEx.Logging;
-using Harmony;
+using KKABMX.GUI;
 using KKAPI.Chara;
 
 namespace KKABMX.Core
@@ -15,9 +16,21 @@ namespace KKABMX.Core
         public const string GUID = Metadata.GUID;
         public const string ExtDataGUID = Metadata.ExtDataGUID;
 
+        [DisplayName(Metadata.XyzModeName)]
+        [Description(Metadata.XyzModeDesc)]
+        public static ConfigWrapper<bool> XyzMode { get; private set; }
+
+        [DisplayName(Metadata.RaiseLimitsName)]
+        [Description(Metadata.RaiseLimitsDesc)]
+        public static ConfigWrapper<bool> RaiseLimits { get; private set; }
+
+        internal static KKABMX_Core Instance { get; private set; }
+
         private void Start()
         {
-            if(!KKAPI.KoikatuAPI.CheckRequiredPlugin(this, KKAPI.KoikatuAPI.GUID, new Version(KKAPI.KoikatuAPI.VersionConst)))
+            Instance = this;
+
+            if (!KKAPI.KoikatuAPI.CheckRequiredPlugin(this, KKAPI.KoikatuAPI.GUID, new Version(KKAPI.KoikatuAPI.VersionConst)))
                 return;
 
             if (File.Exists(Path.Combine(Paths.PluginPath, "KKABMPlugin.dll")) || File.Exists(Path.Combine(Paths.PluginPath, "KKABMGUI.dll")))
@@ -25,6 +38,12 @@ namespace KKABMX.Core
                 Log(LogLevel.Message | LogLevel.Error, "Old version of ABM found! Remove KKABMPlugin.dll and KKABMGUI.dll and restart the game.");
                 return;
             }
+
+            XyzMode = new ConfigWrapper<bool>("XYZ-Scale-Mode", this, false);
+            RaiseLimits = new ConfigWrapper<bool>("RaiseLimits", this, false);
+            XyzMode.SettingChanged += KKABMX_GUI.OnIsAdvancedModeChanged;
+
+            gameObject.AddComponent<KKABMX_GUI>();
 
             CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
 

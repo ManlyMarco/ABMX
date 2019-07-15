@@ -41,7 +41,6 @@
   <ItemGroup>
     <Compile Include="Core\KKABMX_Core.cs" />
     <Compile Include="Core\KKABMX_Core.Hooks.cs" />
-    <Compile Include="GUI\KKABMX_GUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +101,9 @@
       <HintPath>..\..\..\EC\EC_CorePlugins\lib\UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="GUI\" />
   </ItemGroup>
   <Import Project="..\ABMX\ABMX.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

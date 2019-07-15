@@ -5,5 +5,15 @@
         public const string Version = "3.2.4";
         public const string GUID = "KKABMX.Core";
         public const string ExtDataGUID = "KKABMPlugin.ABMData";
+
+        public const string XyzModeName = "Use XYZ scale sliders";
+        public const string XyzModeDesc = "When enabled, all scale sliders are split into XYZ sliders (one for each direction). " +
+                                               "Cards made with this option will automatically enable it for relevant sliders.\n\n" +
+                                               "Note that using uneven scaling on some parts can skew the model in some animations, especially in H mode.\n\n" +
+                                               "The setting takes effect immediately.";
+
+        public const string RaiseLimitsName = "Increase slider limits 2x";
+        public const string RaiseLimitsDesc = "Can cause even more horrifying results. Only enable when working on furries and superdeformed charas.\n\n" +
+                                              "Need to restart maker for the setting to take effect.";
     }
 }
