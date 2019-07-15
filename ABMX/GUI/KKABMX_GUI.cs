@@ -138,7 +138,7 @@ namespace KKABMX.GUI
             {
                 UpdateDisplay(0);
 
-                ActivateSlider();
+                ActivateSliders();
             }
 
             _updateActionList.Add(PushValueToControls);
@@ -181,40 +181,32 @@ namespace KKABMX.GUI
                     ? new Vector3(x?.Value ?? 1f, y?.Value ?? 1f, z?.Value ?? 1f)
                     : new Vector3(v?.Value ?? 1f, v?.Value ?? 1f, v?.Value ?? 1f));
             }
+            
+            bool IsAdvanced()
+            {
+                if (XyzMode) return true;
+                if (x == null || y == null || z == null) return true;
+                var slidersAreEqual = Mathf.Approximately(x.Value, y.Value) && Mathf.Approximately(x.Value, z.Value);
+                return !slidersAreEqual;
+            }
+
+            void ActivateSliders()
+            {
+                isAdvanced = IsAdvanced();
+                x?.Visible.OnNext(isAdvanced);
+                y?.Visible.OnNext(isAdvanced);
+                z?.Visible.OnNext(isAdvanced);
+                v?.Visible.OnNext(!isAdvanced);
+            }
+
+            IsAdvancedModeChanged += (_, __) => ActivateSliders();
+            ActivateSliders();
 
             var obs = Observer.Create<float>(PullValuesToBone);
             x?.ValueChanged.Subscribe(obs);
             y?.ValueChanged.Subscribe(obs);
             z?.ValueChanged.Subscribe(obs);
             v?.ValueChanged.Subscribe(obs);
-
-            bool IsEven()
-            {
-                var isEven = true;
-                float? value = null;
-                if (x != null) { if (!value.HasValue) value = x.Value; else isEven &= value == x.Value; }
-                if (y != null) { if (!value.HasValue) value = y.Value; else isEven &= value == y.Value; }
-                if (z != null) { if (!value.HasValue) value = z.Value; else isEven &= value == z.Value; }
-                return isEven;
-            }
-
-            void ActivateSlider()
-            {
-                isAdvanced = XyzMode || !IsEven();
-                if (x != null) { foreach (var ctrl in x.ControlObjects) ctrl?.SetActive(isAdvanced); }
-                if (y != null) { foreach (var ctrl in y.ControlObjects) ctrl?.SetActive(isAdvanced); }
-                if (z != null) { foreach (var ctrl in z.ControlObjects) ctrl?.SetActive(isAdvanced); }
-                if (v != null) { foreach (var ctrl in v.ControlObjects) ctrl?.SetActive(!isAdvanced); }
-            }
-
-            void OnSettingChanged(object sender, EventArgs e)
-            {
-                ActivateSlider();
-            }
-
-            EventHandler settingChangedHandler = OnSettingChanged;
-            IsAdvancedModeChanged += settingChangedHandler;
-            ActivateSlider();
         }
 
         private void RegisterSingleControl(MakerCategory category, BoneMeta boneMeta, RegisterCustomControlsEvent callback)
@@ -231,7 +223,8 @@ namespace KKABMX.GUI
             var x = boneMeta.X ? callback.AddControl(new MakerSlider(category, boneMeta.XDisplayName, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
             var y = boneMeta.Y ? callback.AddControl(new MakerSlider(category, boneMeta.YDisplayName, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
             var z = boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.ZDisplayName, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
-            var v = (boneMeta.X || boneMeta.Y || boneMeta.Z) ? callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + boneMeta.XYZPostfix, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
+            var v = boneMeta.X && boneMeta.Y && boneMeta.Z ? callback.AddControl(new MakerSlider(category, boneMeta.DisplayName + boneMeta.XYZPostfix, boneMeta.Min, max, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
+
             var l = boneMeta.L ? callback.AddControl(new MakerSlider(category, boneMeta.LDisplayName, boneMeta.LMin, lMax, 1, KKABMX_Core.Instance) { TextColor = _settingColor }) : null;
 
             var isUpdatingValue = false;
@@ -280,7 +273,7 @@ namespace KKABMX.GUI
 
                 SetSliders(bone.ScaleModifier, bone.LengthModifier);
 
-                ActivateSlider();
+                ActivateSliders();
             }
 
             _updateActionList.Add(PushValueToControls);
@@ -350,40 +343,32 @@ namespace KKABMX.GUI
                 SetSliders(newValue);
             }
 
+            bool IsAdvanced()
+            {
+                if (XyzMode) return true;
+                if (x == null || y == null || z == null) return true;
+                var slidersAreEqual = Mathf.Approximately(x.Value, y.Value) && Mathf.Approximately(x.Value, z.Value);
+                return !slidersAreEqual;
+            }
+
+            void ActivateSliders()
+            {
+                isAdvanced = IsAdvanced();
+                x?.Visible.OnNext(isAdvanced);
+                y?.Visible.OnNext(isAdvanced);
+                z?.Visible.OnNext(isAdvanced);
+                v?.Visible.OnNext(!isAdvanced);
+            }
+
+            IsAdvancedModeChanged += (_, __) => ActivateSliders();
+            ActivateSliders();
+
             var obs = Observer.Create<float>(PullValuesToBone);
             x?.ValueChanged.Subscribe(obs);
             y?.ValueChanged.Subscribe(obs);
             z?.ValueChanged.Subscribe(obs);
             v?.ValueChanged.Subscribe(obs);
             l?.ValueChanged.Subscribe(obs);
-
-            bool IsEven()
-            {
-                var isEven = true;
-                float? value = null;
-                if (x != null) { if (!value.HasValue) value = x.Value; else isEven &= value == x.Value; }
-                if (y != null) { if (!value.HasValue) value = y.Value; else isEven &= value == y.Value; }
-                if (z != null) { if (!value.HasValue) value = z.Value; else isEven &= value == z.Value; }
-                return isEven;
-            }
-
-            void ActivateSlider()
-            {
-                isAdvanced = XyzMode || !IsEven();
-                if (x != null) { foreach (var ctrl in x.ControlObjects) ctrl?.SetActive(isAdvanced); }
-                if (y != null) { foreach (var ctrl in y.ControlObjects) ctrl?.SetActive(isAdvanced); }
-                if (z != null) { foreach (var ctrl in z.ControlObjects) ctrl?.SetActive(isAdvanced); }
-                if (v != null) { foreach (var ctrl in v.ControlObjects) ctrl?.SetActive(!isAdvanced); }
-            }
-
-            void OnSettingChanged(object sender, EventArgs e)
-            {
-                ActivateSlider();
-            }
-
-            EventHandler settingChangedHandler = OnSettingChanged;
-            IsAdvancedModeChanged += settingChangedHandler;
-            ActivateSlider();
         }
 
         private BoneModifierData GetBoneModifier(string boneName, bool coordinateUnique)
