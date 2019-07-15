@@ -159,21 +159,24 @@ namespace KKABMX.GUI
                 {
                     var bone = _boneController.GetModifier(boneName);
                     var modifier = bone?.GetModifier(_boneController.CurrentCoordinate.Value);
+
                     var prevValue = modifier?.ScaleModifier ?? Vector3.one;
                     var newValue = isAdvanced
                         ? new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z)
                         : new Vector3(v?.Value ?? prevValue.x, v?.Value ?? prevValue.y, v?.Value ?? prevValue.z);
+                        
                     if (modifier == null)
                     {
-                        if (bone != null)
-                            return;
                         if (newValue == Vector3.one)
                             return;
 
-                        bone = new BoneModifier(boneName);
+                        if (bone == null)
+                            bone = new BoneModifier(boneName);
+
                         _boneController.AddModifier(bone);
                         modifier = bone.GetModifier(_boneController.CurrentCoordinate.Value);
                     }
+
                     modifier.ScaleModifier = newValue;
                 }
 

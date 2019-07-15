@@ -150,17 +150,24 @@ namespace KKABMX.GUI
                 foreach (var boneName in GetFingerBoneNames())
                 {
                     var bone = _boneController.GetModifier(boneName);
-                    var newValue = new Vector3(x.Value, y.Value, z.Value);
-                    if (bone == null)
-                    {
-                        if (newValue == Vector3.one) return;
+                    var modifier = bone?.GetModifier(_boneController.CurrentCoordinate.Value);
 
-                        bone = new BoneModifier(boneName);
+                    var prevValue = modifier?.ScaleModifier ?? Vector3.one;
+                    var newValue = new Vector3(x?.Value ?? prevValue.x, y?.Value ?? prevValue.y, z?.Value ?? prevValue.z);
+
+                    if (modifier == null)
+                    {
+                        if (newValue == Vector3.one)
+                            return;
+
+                        if (bone == null)
+                            bone = new BoneModifier(boneName);
+
                         _boneController.AddModifier(bone);
+                        modifier = bone.GetModifier(_boneController.CurrentCoordinate.Value);
                     }
 
-                    var mod = bone.GetModifier(_boneController.CurrentCoordinate.Value);
-                    mod.ScaleModifier = newValue;
+                    modifier.ScaleModifier = newValue;
                 }
             }
 
