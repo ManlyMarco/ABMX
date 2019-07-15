@@ -235,13 +235,6 @@ namespace KKABMX.Core
 
         private void LateUpdate()
         {
-            // In H scenes the update is called from a hook to fix an ordering issue
-            if (!_isDuringHScene)
-                DoUpdate();
-        }
-
-        internal void DoUpdate()
-        {
             if (NeedsFullRefresh)
             {
                 OnReload(KoikatuAPI.GetCurrentGameMode(), true);
