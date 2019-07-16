@@ -143,15 +143,14 @@ namespace KKABMX.GUI
 
                 new BoneMeta("cf_n_height"       , "Body"                   , 0.5f, 1.5f, BodyAll      , "")                                    ,
 
-                new BoneMeta("cf_hit_bust02_L"   , "Breast Collision"       , 0, 3f, BodyBreast   , "cf_hit_bust02_R"){X = false         , Y=false} ,
-                new BoneMeta("cf_d_bust01_L"     , "Breast Scale 1"         , 0, 3f, BodyBreast   , "cf_d_bust01_R")  {XYZPostfix = null} ,
-
+                new BoneMeta("cf_d_bust01_L"     , "Breast Scale 1"         , 0, 3f, BodyBreast2  , "cf_d_bust01_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_d_bust02_L"     , "Breast Scale 2"         , 0, 3f, BodyBreast2  , "cf_d_bust02_R")  {XYZPostfix = null}  ,
                 new BoneMeta("cf_d_bust03_L"     , "Breast Scale 3"         , 0, 3f, BodyBreast2  , "cf_d_bust03_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_s_bust00_L"     , "Extra Breast Scale 1"   , 0, 3f, BodyBreast2  , "cf_s_bust00_R")  {XYZPostfix = null , L = true , LMax = 5f, LDisplayName = "Breast Protrusion"},
                 new BoneMeta("cf_s_bust01_L"     , "Extra Breast Scale 2"   , 0, 3f, BodyBreast2  , "cf_s_bust01_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_s_bust02_L"     , "Extra Breast Scale 3"   , 0, 3f, BodyBreast2  , "cf_s_bust02_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_s_bust03_L"     , "Extra Breast Scale 4"   , 0, 3f, BodyBreast2  , "cf_s_bust03_R")  {XYZPostfix = null} ,
+                new BoneMeta("cf_hit_bust02_L"   , "Breast Collision"       , 0, 3f, BodyBreast2  , "cf_hit_bust02_R"){X = false         , Y=false} ,
 
                 new BoneMeta("cf_s_bnip01_L"     , "Areola Scale 1"         , 0, 3f, BodyNipples  , "cf_s_bnip01_R")  {XYZPostfix = null},
                 new BoneMeta("cf_s_bnip025_L"    , "Areola Scale 2"         , 0, 3f, BodyNipples  , "cf_s_bnip025_R") {XYZPostfix = null},
