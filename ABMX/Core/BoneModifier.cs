@@ -85,7 +85,7 @@ namespace KKABMX.Core
                         // Handle negative position modifiers, needed to prevent position sign changing on every frame
                         // (since negative modifier.LengthModifier would constantly flip it)
                         // Also needed for values near 0 to prevent losing the position data
-                        if (modifier.LengthModifier < 0.1f || isDuringHScene)
+                        if (modifier.LengthModifier < 0.1f || localPosition == Vector3.zero || isDuringHScene)
                         {
                             // Fall back to more aggresive mode
                             localPosition = _positionBaseline;
