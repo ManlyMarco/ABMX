@@ -175,8 +175,8 @@ namespace KKABMX.GUI
 
                 new BoneMeta("cf_s_waist01"      , "Upper Waist"            , 0, 3f, BodyLower2   , "")                 {L = true          , LMax = 4f, LDisplayName = "Upper Waist Position"},
                 new BoneMeta("cf_s_waist02"      , "Lower Waist"            , 0, 3f, BodyLower2   , "")                 {L = true          , LMax = 4f, LDisplayName = "Lower Waist Position"},
-                new BoneMeta("cf_j_waist01"      , "Waist & Leg Scale 1"    , 0, 3f, BodyLower2   , "")                {XYZPostfix = null} ,
-                new BoneMeta("cf_j_waist02"      , "Waist & Leg Scale 2"    , 0, 3f, BodyLower2   , "")                {XYZPostfix = null} ,
+                new BoneMeta("cf_j_waist01"      , "Waist & Leg Scale 1"    , 0, 3f, BodyLower2   , "")                 {XYZPostfix = null},
+                new BoneMeta("cf_j_waist02"      , "Waist & Leg Scale 2"    , 0, 3f, BodyLower2   , "")                 {XYZPostfix = null},
                 new BoneMeta("cf_hit_berry"      , "Belly Collision"        , 0, 3f, BodyLower2   , "")                 { Y=false}         ,
                 new BoneMeta("cf_hit_waist_L"    , "Waist Collision"        , 0, 3f, BodyLower2   , "")                 { Y=false}         ,
 
@@ -191,8 +191,8 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_s_forearm02_L"  , "Forearm Thickness 2"    , 0, 3f, BodyForearms , "cf_s_forearm02_R") {XYZPostfix = null},
 
                 new BoneMeta("cf_s_wrist_L"      , "Wrist"                  , 0, 3f, BodyHands    , "cf_s_wrist_R")                        ,
-                new BoneMeta("cf_j_hand_L"       , "Hand Scale 1"           , 0, 3f, BodyHands    , "cf_j_hand_R")                         ,
-                new BoneMeta("cf_s_hand_L"       , "Hand Scale 2"           , 0, 3f, BodyHands    , "cf_s_hand_R")                         ,
+                new BoneMeta("cf_j_hand_L"       , "Hand Scale 1"           , 0, 3f, BodyHands    , "cf_j_hand_R")      {XYZPostfix = null},
+                new BoneMeta("cf_s_hand_L"       , "Hand Scale 2"           , 0, 3f, BodyHands    , "cf_s_hand_R")      {XYZPostfix = null},
                 new BoneMeta("cf_hit_arm_L"      , "Hand Collision"         , 0, 3f, BodyHands    , "cf_hit_arm_R")                        ,
 
                 new BoneMeta("cf_j_thigh00_L"    , "Thigh & Leg"            , 0, 3f, BodyThighs   , "cf_j_thigh00_R")   {L = true          , LMax = 2f, LDisplayName = "Leg Spacing"},
