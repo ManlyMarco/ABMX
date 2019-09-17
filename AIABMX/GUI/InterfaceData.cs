@@ -86,18 +86,20 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_Kosi01"          , "Pelvis & Legs"     , 0   , 1.5f, MakerConstants.Body.Lower    , "")                    {Y = false}        ,
                 new BoneMeta("cf_J_Kosi02"          , "Hips & Legs"       , 0   , 1.5f, MakerConstants.Body.Lower    , "")                    {Y = false}        ,
 
-                new BoneMeta("cf_J_ArmUp01_s_L"     , "Upper arm Deltoids", 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmUp01_s_R")    {Y = false}        ,
-                new BoneMeta("cf_J_ArmUp02_s_L"     , "Upper arm Triceps" , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmUp02_s_R")    {Y = false}        ,
-                new BoneMeta("cf_J_ArmUp03_s_L"     , "Upper arm Lower"   , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmUp03_s_R")    {Y = false}        ,
+                new BoneMeta("cf_J_ArmUp00_L"       , "Whole Arm"         , 0   , 1.5f, MakerConstants.Body.Arm      , "cf_J_ArmUp00_R")      {L = true          , LMax = 2f  , LDisplayName = "Arm Offset"}       ,
+                new BoneMeta("cf_J_ArmUp01_s_L"     , "Upper Arm Deltoids", 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmUp01_s_R")    {Y = false}        ,
+                new BoneMeta("cf_J_ArmUp02_s_L"     , "Upper Arm Triceps" , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmUp02_s_R")    {Y = false}        ,
+                new BoneMeta("cf_J_ArmUp03_s_L"     , "Upper Arm Lower"   , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmUp03_s_R")    {Y = false}        ,
                 new BoneMeta("cf_J_ArmElboura_s_L"  , "Elbow"             , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmElboura_s_R") {Y = false}        ,
-                new BoneMeta("cf_J_ArmElbo_low_s_L" , "Elbow cap"         , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmElbo_low_s_R"){Y = false}        ,
+                new BoneMeta("cf_J_ArmElbo_low_s_L" , "Elbow Cap"         , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmElbo_low_s_R"){Y = false}        ,
 
                 new BoneMeta("cf_J_ArmLow01_s_L"    , "Forearm Upper"     , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmLow01_s_R")   {Y = false}        ,
                 new BoneMeta("cf_J_ArmLow02_s_L"    , "Forearm Lower"     , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_ArmLow02_s_R")   {Y = false}        ,
 
                 new BoneMeta("cf_J_Hand_Wrist_s_L"  , "Wrist"             , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_Hand_Wrist_s_R") {Y = false}        ,
-                new BoneMeta("cf_J_Hand_s_L"        , "Hand Scale 1"      , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_Hand_s_R")                          ,
+                new BoneMeta("cf_J_Hand_s_L"        , "Hand"              , 0   , 3f  , MakerConstants.Body.Arm      , "cf_J_Hand_s_R")                          ,
 
+                new BoneMeta("cf_J_LegUp00_L"       , "Whole Leg"         , 0   , 1.5f, MakerConstants.Body.Leg      , "cf_J_LegUp00_R")      {L = true          , LMax = 2f  , LDisplayName = "Leg Offset"}       ,
                 new BoneMeta("cf_J_LegUpDam_s_L"    , "Outer Upper Thigh" , 0   , 3f  , MakerConstants.Body.Leg      , "cf_J_LegUpDam_s_R")   {Y = false}        ,
                 new BoneMeta("cf_J_LegUp01_s_L"     , "Upper Thigh"       , 0   , 3f  , MakerConstants.Body.Leg      , "cf_J_LegUp01_s_R")    {Y = false}        ,
                 new BoneMeta("cf_J_LegUp02_s_L"     , "Center Thigh"      , 0   , 3f  , MakerConstants.Body.Leg      , "cf_J_LegUp02_s_R")    {Y = false}        ,

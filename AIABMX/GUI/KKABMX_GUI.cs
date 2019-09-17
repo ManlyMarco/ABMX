@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BepInEx.Logging;
 using KKABMX.Core;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
-using KKAPI.Maker.UI.Sidebar;
 using UniRx;
 using UnityEngine;
 
@@ -80,11 +78,11 @@ namespace KKABMX.GUI
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
-//            callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
-//                .ValueChanged.Subscribe(b => XyzMode = b);
-//
-//            callback.AddSidebarControl(new SidebarToggle("Advanced Bonemod Window", false, KKABMX_Core.Instance))
-//                .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
+            //            callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
+            //                .ValueChanged.Subscribe(b => XyzMode = b);
+            //
+            //            callback.AddSidebarControl(new SidebarToggle("Advanced Bonemod Window", false, KKABMX_Core.Instance))
+            //                .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
         }
 
         private static CharacterApi.ControllerRegistration GetRegistration()
@@ -439,7 +437,7 @@ namespace KKABMX.GUI
             _bodyLoadToggle = null;
             _faceLoadToggle = null;
 
-            Destroy(gameObject.GetComponent<KKABMX_AdvancedGUI>());
+            if (gameObject) Destroy(gameObject.GetComponent<KKABMX_AdvancedGUI>());
         }
     }
 }
