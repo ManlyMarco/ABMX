@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECABMX", "ECABMX\ECABMX.csp
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ABMX", "ABMX\ABMX.shproj", "{4F7AB98B-6652-4778-A077-236D029E294D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIABMX", "AIABMX\AIABMX.csproj", "{0AA2D102-3E37-448F-801F-7CD3CF791CD7}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ABMX\ABMX.projitems*{288732fd-1d63-45f0-815e-7eb938b6e064}*SharedItemsImports = 4
@@ -28,6 +30,10 @@ Global
 		{288732FD-1D63-45F0-815E-7EB938B6E064}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{288732FD-1D63-45F0-815E-7EB938B6E064}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{288732FD-1D63-45F0-815E-7EB938B6E064}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AA2D102-3E37-448F-801F-7CD3CF791CD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AA2D102-3E37-448F-801F-7CD3CF791CD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AA2D102-3E37-448F-801F-7CD3CF791CD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AA2D102-3E37-448F-801F-7CD3CF791CD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
