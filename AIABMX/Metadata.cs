@@ -2,7 +2,9 @@
 {
     internal static class Metadata
     {
-        public const string Version = "3.3";
+        public const string Version = "3.4";
+        public const string GUID = "KKABMX.Core";
+        public const string ExtDataGUID = "KKABMPlugin.ABMData";
 
         public const string XyzModeName = "Use XYZ scale sliders";
         public const string XyzModeDesc = "When enabled, all scale sliders in maker are split into XYZ sliders (one for each direction). " +
