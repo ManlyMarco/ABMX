@@ -62,7 +62,7 @@ namespace KKABMX.GUI
                 }
 
                 // todo separate category?
-                if (ReferenceEquals(category, MakerConstants.Body.Arm))
+                if (Equals(category, MakerConstants.Body.Arm))
                 {
                     if (!first)
                         callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });

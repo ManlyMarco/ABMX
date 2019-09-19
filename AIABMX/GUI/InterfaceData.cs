@@ -12,11 +12,11 @@ namespace KKABMX.GUI
         {
             FingerNamePrefixes = new[]
             {
-                "cf_J_Hand_thumb",
-                "cf_J_Hand_index",
-                "cf_J_Hand_middle",
-                "cf_J_Hand_ring",
-                "cf_J_Hand_little"
+                "cf_J_Hand_Thumb",
+                "cf_J_Hand_Index",
+                "cf_J_Hand_Middle",
+                "cf_J_Hand_Ring",
+                "cf_J_Hand_Little"
             };
             BoneControls = new List<BoneMeta>
             {
