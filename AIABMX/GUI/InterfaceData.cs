@@ -22,7 +22,8 @@ namespace KKABMX.GUI
             {
                 new BoneMeta("cf_J_FaceBase"        , "Head"              , 0   , 2f  , MakerConstants.Face.All      , "")                    {L = true          , LMax = 5f  , LDisplayName = "Head Position"}    ,
                 new BoneMeta("cf_J_Head_s"          , "Head + Neck"       , 0   , 2f  , MakerConstants.Face.All      , "")                                       ,
-                new BoneMeta("cf_J_FaceLowBase"     , "Lower Head All"    , 0   , 2f  , MakerConstants.Face.All      , "")                                       ,
+                // Causes problems when stock slider "lower depth" is changed
+                //new BoneMeta("cf_J_FaceLowBase"     , "Lower Head All"    , 0   , 2f  , MakerConstants.Face.All      , "")                                       ,
                 new BoneMeta("cf_J_FaceLow_s"       , "Lower Head Cheek"  , 0   , 2f  , MakerConstants.Face.All      , "")                                       ,
                 new BoneMeta("cf_J_FaceUp_ty"       , "Upper Head"        , 0   , 2f  , MakerConstants.Face.All      , "")                                       ,
                 new BoneMeta("cf_J_FaceUp_tz"       , "Upper Front Head"  , 0   , 2f  , MakerConstants.Face.All      , "")                                       ,
