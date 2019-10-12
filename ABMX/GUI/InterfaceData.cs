@@ -146,7 +146,7 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_d_bust01_L"     , "Breast Scale 1"         , 0, 3f, BodyBreast2  , "cf_d_bust01_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_d_bust02_L"     , "Breast Scale 2"         , 0, 3f, BodyBreast2  , "cf_d_bust02_R")  {XYZPostfix = null}  ,
                 new BoneMeta("cf_d_bust03_L"     , "Breast Scale 3"         , 0, 3f, BodyBreast2  , "cf_d_bust03_R")  {XYZPostfix = null} ,
-                new BoneMeta("cf_s_bust00_L"     , "Extra Breast Scale 1"   , 0, 3f, BodyBreast2  , "cf_s_bust00_R")  {XYZPostfix = null , L = true , LMax = 5f, LDisplayName = "Breast Protrusion"},
+                new BoneMeta("cf_s_bust00_L"     , "Extra Breast Scale 1"   , 0, 3f, BodyBreast2  , "cf_s_bust00_R")  {XYZPostfix = null} , // L = true , LMax = 5f, LDisplayName = "Breast Protrusion"}, - Conflicts with vanilla breast vertical position slider
                 new BoneMeta("cf_s_bust01_L"     , "Extra Breast Scale 2"   , 0, 3f, BodyBreast2  , "cf_s_bust01_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_s_bust02_L"     , "Extra Breast Scale 3"   , 0, 3f, BodyBreast2  , "cf_s_bust02_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_s_bust03_L"     , "Extra Breast Scale 4"   , 0, 3f, BodyBreast2  , "cf_s_bust03_R")  {XYZPostfix = null} ,
