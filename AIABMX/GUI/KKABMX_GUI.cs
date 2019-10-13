@@ -242,19 +242,11 @@ namespace KKABMX.GUI
 
             void PushValueToControls()
             {
-                var bone = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
-
-                if (bone == null)
-                {
-                    SetSliders(Vector3.one, 1f);
-                    ActivateSliders();
-                    return;
-                }
+                var bone = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate) ?? BoneModifierData.Default;
 
                 if (rb != null)
                 {
-                    var bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate);
-                    if (bone2 == null) throw new ArgumentNullException(nameof(bone2));
+                    var bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate) ?? BoneModifierData.Default;
                     if (bone.ScaleModifier != bone2.ScaleModifier)
                     {
                         if (rb.Value == 0)

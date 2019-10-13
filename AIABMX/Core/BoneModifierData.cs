@@ -7,6 +7,8 @@ namespace KKABMX.Core
     [MessagePackObject]
     public sealed class BoneModifierData
     {
+        public static readonly BoneModifierData Default = new BoneModifierData();
+
         [Key(0)]
         public Vector3 ScaleModifier;
 
