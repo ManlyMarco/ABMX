@@ -83,6 +83,7 @@ namespace KKABMX.Core
             return _boneSearcher.dictObjName.Keys;
         }
 
+        /* No coordinate saving in AIS
         protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate, bool maintainState)
         {
             if (maintainState) return;
@@ -140,7 +141,7 @@ namespace KKABMX.Core
                 pluginData.data.Add(ExtDataBoneDataKey, LZ4MessagePackSerializer.Serialize(toSave));
                 SetCoordinateExtendedData(coordinate, pluginData);
             }
-        }
+        }*/
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
