@@ -1,15 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+#if AI
+using AIChara;
+#endif
 
 namespace KKABMX.Core
 {
     public static class Utilities
     {
-        //public static readonly string MakerDefaultFileName = "ill_default_female.png";
+        [Obsolete]
         public const int ManualBoneId = -1;
 
-#if KK
+#if KK || AI
         private static readonly FieldInfo FieldPvCopyBone = typeof(Studio.PVCopy).GetField("bone",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 

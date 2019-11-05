@@ -4,12 +4,7 @@ using System.Linq;
 using BepInEx.Logging;
 using UnityEngine;
 using Logger = KKABMX.Core.KKABMX_Core;
-
-#if KK
 using ExtensibleSaveFormat;
-#elif EC
-using EC.Core.ExtensibleSaveFormat;
-#endif
 
 namespace KKABMX.Core
 {

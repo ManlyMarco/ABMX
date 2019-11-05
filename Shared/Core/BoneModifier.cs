@@ -148,9 +148,12 @@ namespace KKABMX.Core
         /// </summary>
         public bool IsCoordinateSpecific()
         {
+#if AI
             // No coordinate saving in AIS
-            //return CoordinateModifiers.Length == CoordinateCount;
             return false;
+#else
+            return CoordinateModifiers.Length == CoordinateCount;
+#endif
         }
 
         /// <summary>
@@ -158,9 +161,8 @@ namespace KKABMX.Core
         /// </summary>
         public void MakeCoordinateSpecific()
         {
-            // No coordinate saving in AIS
-            //if (!IsCoordinateSpecific())
-            //    CoordinateModifiers = Enumerable.Range(0, CoordinateCount).Select(_ => CoordinateModifiers[0].Clone()).ToArray();
+            if (!IsCoordinateSpecific())
+                CoordinateModifiers = Enumerable.Range(0, CoordinateCount).Select(_ => CoordinateModifiers[0].Clone()).ToArray();
         }
 
         /// <summary>
@@ -168,9 +170,8 @@ namespace KKABMX.Core
         /// </summary>
         public void MakeNonCoordinateSpecific()
         {
-            // No coordinate saving in AIS
-            //if (IsCoordinateSpecific())
-            //    CoordinateModifiers = new[] { CoordinateModifiers[0] };
+            if (IsCoordinateSpecific())
+                CoordinateModifiers = new[] { CoordinateModifiers[0] };
         }
 
         /// <summary>

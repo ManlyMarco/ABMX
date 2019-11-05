@@ -18,7 +18,7 @@
     <DebugType>embedded</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\..\..\_ai\AI-SyoujyoTrial\Bepinex\plugins\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;AI</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>
@@ -28,7 +28,7 @@
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;AI</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
@@ -69,12 +69,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
     <Reference Include="UniRx">
       <HintPath>..\lib\ai\UniRx.dll</HintPath>
       <Private>False</Private>
@@ -102,19 +96,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\BoneController.cs" />
-    <Compile Include="Core\BoneEffect.cs" />
-    <Compile Include="Core\BoneModifier.cs" />
-    <Compile Include="Core\BoneModifierData.cs" />
     <Compile Include="Core\KKABMX_Core.cs" />
     <Compile Include="Core\KKABMX_Core.Hooks.cs" />
-    <Compile Include="Core\Utilities.cs" />
-    <Compile Include="GUI\BoneMeta.cs" />
     <Compile Include="GUI\InterfaceData.cs" />
-    <Compile Include="GUI\KKABMX_AdvancedGUI.cs" />
     <Compile Include="GUI\KKABMX_GUI.cs" />
-    <Compile Include="Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy $(OutDir)AIABMX.dll D:\Games\AI-Syoujyo\Bepinex\plugins</PostBuildEvent>

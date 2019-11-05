@@ -40,13 +40,12 @@
     <DocumentationFile>..\bin\ECABMX.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Core\KKABMX_Core.cs" />
     <Compile Include="Core\KKABMX_Core.Hooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\0Harmony.dll</HintPath>
+      <HintPath>..\lib\bepin5\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
@@ -58,19 +57,19 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\BepInEx.dll</HintPath>
+      <HintPath>..\lib\bepin5\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Harmony">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\BepInEx.Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="EC.Core.ExtensibleSaveFormat">
-      <HintPath>..\..\..\EC\EC_CorePlugins\bin\BepInEx\plugins\EC_CorePlugins\EC.Core.ExtensibleSaveFormat.dll</HintPath>
+      <HintPath>..\lib\bepin5\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ECAPI">
       <HintPath>..\..\KKAPI\bin\ECAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="EC_ExtensibleSaveFormat">
+      <HintPath>..\lib\ec\EC_ExtensibleSaveFormat.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="IL">
@@ -104,6 +103,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup />
-  <Import Project="..\ABMX\ABMX.projitems" Label="Shared" />
+  <Import Project="..\Shared_KKEC\Shared_KKEC.projitems" Label="Shared" />
+  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

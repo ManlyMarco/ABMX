@@ -1,10 +1,10 @@
-﻿using System.ComponentModel;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using KKABMX.GUI;
 using KKAPI;
 using KKAPI.Chara;
+using KKAPI.Maker;
 
 namespace KKABMX.Core
 {
@@ -16,12 +16,7 @@ namespace KKABMX.Core
         public const string GUID = Metadata.GUID;
         public const string ExtDataGUID = Metadata.ExtDataGUID;
 
-        [DisplayName(Metadata.XyzModeName)]
-        [Description(Metadata.XyzModeDesc)]
         internal static ConfigWrapper<bool> XyzMode { get; private set; }
-
-        [DisplayName(Metadata.RaiseLimitsName)]
-        [Description(Metadata.RaiseLimitsDesc)]
         internal static ConfigWrapper<bool> RaiseLimits { get; private set; }
 
         internal static KKABMX_Core Instance { get; private set; }
@@ -40,6 +35,8 @@ namespace KKABMX.Core
 
                 var showAdv = Config.Wrap("Maker", "Show Advanced Bonemod Window", "", false);
                 showAdv.SettingChanged += (sender, args) => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = showAdv.Value;
+
+                MakerAPI.MakerFinishedLoading += (sender, args) => showAdv.Value = false;
 
                 gameObject.AddComponent<KKABMX_GUI>();
             }

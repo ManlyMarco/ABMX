@@ -187,7 +187,7 @@ namespace KKABMX.Core
                     }
                     catch (Exception ex)
                     {
-                        Logger.Logger.LogError( "[KKABMX] Failed to load extended data - " + ex);
+                        Logger.Logger.LogError("[KKABMX] Failed to load extended data - " + ex);
                     }
                 }
 
@@ -292,8 +292,7 @@ namespace KKABMX.Core
             yield return new WaitForEndOfFrame();
             while (ChaControl.animBody == null) yield break;
 
-#if KK
-            // TODO when studio comes
+#if KK || AI
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             var currentPvCopy = new bool[4];
             if (pvCopy != null)
@@ -315,7 +314,7 @@ namespace KKABMX.Core
 
             yield return new WaitForEndOfFrame();
 
-#if KK
+#if KK || AI
             if (pvCopy != null)
             {
                 var array = pvCopy.GetPvArray();

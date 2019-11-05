@@ -34,34 +34,37 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\lib\0Harmony.dll</HintPath>
+      <HintPath>..\lib\bepin5\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\lib\kk\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\..\..\Games\Koikatsu\Koikatu_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>..\lib\kk\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\lib\BepInEx.dll</HintPath>
+      <HintPath>..\lib\bepin5\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx.Harmony">
+      <HintPath>..\lib\bepin5\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ExtensibleSaveFormat">
-      <HintPath>..\lib\ExtensibleSaveFormat.dll</HintPath>
+      <HintPath>..\lib\kk\ExtensibleSaveFormat.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="KKAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\KKAPI.dll</HintPath>
+    <Reference Include="KKAPI">
+      <HintPath>..\..\KKAPI\bin\KKAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="UnityEngine">
-      <HintPath>..\lib\UnityEngine.dll</HintPath>
+      <HintPath>..\lib\kk\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -69,11 +72,11 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\KKABMX_Core.cs" />
     <Compile Include="Core\KKABMX_Core.Hooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="..\ABMX\ABMX.projitems" Label="Shared" />
+  <Import Project="..\Shared_KKEC\Shared_KKEC.projitems" Label="Shared" />
+  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,4 +1,5 @@
-﻿using Harmony;
+﻿using BepInEx.Harmony;
+using HarmonyLib;
 using KKAPI.Maker;
 
 namespace KKABMX.Core
@@ -7,6 +8,11 @@ namespace KKABMX.Core
     {
         private static class Hooks
         {
+            public static void Init()
+            {
+                HarmonyWrapper.PatchAll(typeof(Hooks));
+            }
+
             [HarmonyPostfix, HarmonyPatch(typeof(ShapeInfoBase), nameof(ShapeInfoBase.ChangeValue), typeof(int), typeof(float))]
             public static void ChangeValuePost(bool __result)
             {

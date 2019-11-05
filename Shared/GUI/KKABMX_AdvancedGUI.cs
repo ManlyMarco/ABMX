@@ -80,8 +80,13 @@ namespace KKABMX.GUI
                 {
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
                     {
-                        //todo var modData = mod.GetModifier(MakerAPI.GetCurrentCoordinateType());
+#if KK
+                        var modData = mod.GetModifier(MakerAPI.GetCurrentCoordinateType());
+#elif EC
+                        var modData = mod.GetModifier(KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01);
+#elif AI
                         var modData = mod.GetModifier(CoordinateType.Unknown);
+#endif
 
                         var v3 = modData.ScaleModifier;
                         var len = modData.LengthModifier;
@@ -109,12 +114,14 @@ namespace KKABMX.GUI
 
                         GUILayout.BeginHorizontal(_gloSlider);
                         {
+#if AI
                             GUILayout.Label("X / Y / Z / Length", GUILayout.Width(BoneNameWidth));
-                            //todo
-                            // if (GUILayout.Toggle(mod.IsCoordinateSpecific(), "Per coordinate", GUILayout.Width(BoneNameWidth)))
-                            //     mod.MakeCoordinateSpecific();
-                            // else
-                            //     mod.MakeNonCoordinateSpecific();
+#else
+                            if (GUILayout.Toggle(mod.IsCoordinateSpecific(), "Per coordinate", GUILayout.Width(BoneNameWidth)))
+                                mod.MakeCoordinateSpecific();
+                            else
+                                mod.MakeNonCoordinateSpecific();
+#endif
 
                             float.TryParse(GUILayout.TextField(v3.x.ToString(CultureInfo.InvariantCulture), _gsInput, _gloSliderWidth, _gloHeight), out v3.x);
                             float.TryParse(GUILayout.TextField(v3.y.ToString(CultureInfo.InvariantCulture), _gsInput, _gloSliderWidth, _gloHeight), out v3.y);

@@ -12,11 +12,10 @@ using UniRx;
 using UnityEngine;
 using Logger = KKABMX.Core.KKABMX_Core;
 
-#if KK
 using ExtensibleSaveFormat;
+#if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
-using EC.Core.ExtensibleSaveFormat;
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 #endif
 
