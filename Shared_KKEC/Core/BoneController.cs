@@ -13,6 +13,7 @@ using UnityEngine;
 using Logger = KKABMX.Core.KKABMX_Core;
 
 using ExtensibleSaveFormat;
+using KKAPI.Maker;
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
@@ -59,15 +60,6 @@ namespace KKABMX.Core
             if (_additionalBoneEffects.Contains(effect)) return;
 
             _additionalBoneEffects.Add(effect);
-
-            var newEffects = effect.GetAffectedBones(this).Except(Modifiers.Select(x => x.BoneName)).ToList();
-            if (newEffects.Any())
-            {
-                foreach (var boneName in newEffects)
-                    Modifiers.Add(new BoneModifier(boneName));
-                ModifiersFillInTransforms();
-                NeedsBaselineUpdate = true;
-            }
         }
 
         public BoneModifier GetModifier(string boneName)
@@ -246,15 +238,7 @@ namespace KKABMX.Core
                 if (NeedsBaselineUpdate)
                     UpdateBaseline();
 
-                foreach (var modifier in Modifiers)
-                {
-                    var additionalModifiers = _additionalBoneEffects
-                        .Select(x => x.GetEffect(modifier.BoneName, this, CurrentCoordinate.Value))
-                        .Where(x => x != null)
-                        .ToList();
-
-                    modifier.Apply(CurrentCoordinate.Value, additionalModifiers, _isDuringHScene);
-                }
+                ApplyEffects();
             }
             else if (_baselineKnown == false)
             {
@@ -265,18 +249,59 @@ namespace KKABMX.Core
             NeedsBaselineUpdate = false;
         }
 
+        private void ApplyEffects()
+        {
+            var toUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
+
+            for (var i = 0; i < _additionalBoneEffects.Count; i++)
+            {
+                var additionalBoneEffect = _additionalBoneEffects[i];
+                var affectedBones = additionalBoneEffect.GetAffectedBones(this);
+                foreach (var affectedBone in affectedBones)
+                {
+                    var effect = additionalBoneEffect.GetEffect(affectedBone, this, CurrentCoordinate.Value);
+                    if (effect != null && !effect.IsEmpty())
+                    {
+                        var modifier = Modifiers.Find(x => string.Equals(x.BoneName, affectedBone, StringComparison.Ordinal));
+                        if (modifier == null)
+                        {
+                            modifier = new BoneModifier(affectedBone);
+                            AddModifier(modifier);
+                        }
+
+                        if (!toUpdate.TryGetValue(modifier, out var list))
+                        {
+                            list = new List<BoneModifierData>();
+                            toUpdate[modifier] = list;
+                        }
+                        list.Add(effect);
+                    }
+                }
+            }
+
+            for (var i = 0; i < Modifiers.Count; i++)
+            {
+                var modifier = Modifiers[i];
+                if (!toUpdate.TryGetValue(modifier, out var list))
+                {
+                    // Clean up no longer necessary modifiers
+                    if (!MakerAPI.InsideMaker && modifier.IsEmpty())
+                    {
+                        modifier.Reset();
+                        Modifiers.Remove(modifier);
+                    }
+                }
+
+                modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
+            }
+        }
+
         private IEnumerator OnDataChangedCo()
         {
             foreach (var modifier in Modifiers.Where(x => x.IsEmpty()).ToList())
             {
                 modifier.Reset();
                 Modifiers.Remove(modifier);
-            }
-
-            // Add any modifiers that will be used by the AdditionalBoneEffects if they don't already exist
-            foreach (var boneName in _additionalBoneEffects.SelectMany(x => x.GetAffectedBones(this)).Except(Modifiers.Select(x => x.BoneName)))
-            {
-                Modifiers.Add(new BoneModifier(boneName));
             }
 
             // Needed to let accessories load in

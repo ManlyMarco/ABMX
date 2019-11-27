@@ -67,7 +67,7 @@ namespace KKABMX.Core
 
             var modifier = GetModifier(coordinate);
 
-            if (additionalModifiers.Count > 0)
+            if (additionalModifiers != null && additionalModifiers.Count > 0)
                 modifier = CombineModifiers(modifier, additionalModifiers);
 
             if (CanApply(modifier))
@@ -140,7 +140,12 @@ namespace KKABMX.Core
 
         public bool IsEmpty()
         {
-            return CoordinateModifiers.All(x => x.IsEmpty());
+            for (var i = 0; i < CoordinateModifiers.Length; i++)
+            {
+                if (!CoordinateModifiers[i].IsEmpty())
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>

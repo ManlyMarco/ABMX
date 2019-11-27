@@ -1,5 +1,4 @@
-﻿using System;
-using MessagePack;
+﻿using MessagePack;
 using UnityEngine;
 
 namespace KKABMX.Core
@@ -25,22 +24,22 @@ namespace KKABMX.Core
 
         public BoneModifierData Clone()
         {
-            return (BoneModifierData) MemberwiseClone();
+            return (BoneModifierData)MemberwiseClone();
         }
 
         public bool HasLength()
         {
-            return Math.Abs(LengthModifier - 1f) > 0.001f;
+            return LengthModifier != 1;
         }
 
         public bool HasScale()
         {
-            return ScaleModifier != Vector3.one;
+            return ScaleModifier.x != 1 || ScaleModifier.y != 1 || ScaleModifier.z != 1;
         }
 
         public bool IsEmpty()
         {
-            return !HasLength() && !HasScale();
+            return ScaleModifier.x == 1 && ScaleModifier.y == 1 && ScaleModifier.z == 1 && LengthModifier == 1;
         }
 
         public void Clear()
