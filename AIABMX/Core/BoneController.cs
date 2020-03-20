@@ -318,10 +318,12 @@ namespace KKABMX.Core
 
 #if KK || AI
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
-            var currentPvCopy = new bool[4];
+            bool[] currentPvCopy = null;
             if (pvCopy != null)
             {
-                for (var i = 0; i < 4; i++)
+                var pvCount = pvCopy.GetPvArray().Length;
+                currentPvCopy = new bool[pvCount];
+                for (var i = 0; i < currentPvCopy.Length; i++)
                 {
                     currentPvCopy[i] = pvCopy[i];
                     pvCopy[i] = false;
@@ -331,6 +333,10 @@ namespace KKABMX.Core
 
             yield return new WaitForEndOfFrame();
 
+            // Ensure that the baseline is correct
+            ChaControl.updateShapeFace = true;
+            ChaControl.updateShapeBody = true;
+            ChaControl.LateUpdateForce();
             foreach (var modifier in Modifiers)
                 modifier.CollectBaseline();
 
@@ -343,7 +349,7 @@ namespace KKABMX.Core
             {
                 var array = pvCopy.GetPvArray();
                 var array2 = pvCopy.GetBoneArray();
-                for (var j = 0; j < 4; j++)
+                for (var j = 0; j < currentPvCopy.Length; j++)
                 {
                     if (currentPvCopy[j] && array2[j] && array[j])
                     {
