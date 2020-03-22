@@ -340,7 +340,8 @@ namespace KKABMX.Core
             yield return new WaitForEndOfFrame();
 
             // Ensure that the baseline is correct
-            ChaControl.UpdateForce();
+            ChaControl.updateShapeFace = true;
+            ChaControl.updateShapeBody = true;
             ChaControl.LateUpdateForce();
 
             foreach (var modifier in Modifiers)
