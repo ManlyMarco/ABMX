@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
 using UnityEngine;
+using Logger = KKABMX.Core.KKABMX_Core;
 
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
@@ -20,6 +21,8 @@ namespace KKABMX.Core
         private bool _hasBaseline;
         private float _lenBaseline;
         private Vector3 _sclBaseline = Vector3.one;
+        private Vector3 _posBaseline = Vector3.zero;
+        private Quaternion _rotBaseline = new Quaternion(); 
 
         private bool _lenModForceUpdate;
         private bool _lenModNeedsPositionRestore;
@@ -61,7 +64,7 @@ namespace KKABMX.Core
         // Needs a public set to make serializing work
         public BoneModifierData[] CoordinateModifiers { get; set; }
 
-        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers, bool isDuringHScene)
+        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers, bool isDuringHScene, List<string> noRotationBones)
         {
             if (BoneTransform == null) return;
 
@@ -77,6 +80,11 @@ namespace KKABMX.Core
                     _sclBaseline.y * modifier.ScaleModifier.y,
                     _sclBaseline.z * modifier.ScaleModifier.z);
 
+                if (!noRotationBones.Contains(BoneTransform.name))
+                {
+                    BoneTransform.localRotation = _rotBaseline * Quaternion.Euler(modifier.RotationModifier);
+                }
+                
                 if (_lenModForceUpdate || modifier.HasLength())
                 {
                     if (HasLenBaseline())
@@ -95,7 +103,21 @@ namespace KKABMX.Core
                         BoneTransform.localPosition = localPosition / localPosition.magnitude * _lenBaseline * modifier.LengthModifier;
 
                         _lenModForceUpdate = false;
+
+                        BoneTransform.localPosition = new Vector3(
+                            BoneTransform.localPosition.x + modifier.PositionModifier.x,
+                            BoneTransform.localPosition.y + modifier.PositionModifier.y,
+                            BoneTransform.localPosition.z + modifier.PositionModifier.z
+                            );
                     }
+                    else
+                    {
+                        BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
+                    }
+                }
+                else
+                {
+                    BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
                 }
             }
         }
@@ -104,6 +126,8 @@ namespace KKABMX.Core
         {
             var scale = baseModifier.ScaleModifier;
             var len = baseModifier.LengthModifier;
+            var position = baseModifier.PositionModifier;
+            var rotation = baseModifier.RotationModifier;
 
             foreach (var additionalModifier in additionalModifiers)
             {
@@ -114,7 +138,7 @@ namespace KKABMX.Core
                 len *= additionalModifier.LengthModifier;
             }
 
-            return new BoneModifierData(scale, len);
+            return new BoneModifierData(scale, len, position, rotation);
         }
 
         public void CollectBaseline()
@@ -122,6 +146,12 @@ namespace KKABMX.Core
             if (BoneTransform == null) return;
 
             _sclBaseline = BoneTransform.localScale;
+            _posBaseline = BoneTransform.localPosition;
+            //if (BoneName.Contains("Mune"))
+            //{
+                _rotBaseline = BoneTransform.localRotation;
+            //}
+
             if (!HasLenBaseline())
             {
                 _lenBaseline = BoneTransform.localPosition.magnitude;
@@ -189,6 +219,8 @@ namespace KKABMX.Core
             if (_hasBaseline)
             {
                 BoneTransform.localScale = _sclBaseline;
+                BoneTransform.localRotation = _rotBaseline;
+                BoneTransform.localPosition = _posBaseline;
                 if (HasLenBaseline())
                 {
                     var baseline = _lenBaseline;
@@ -203,12 +235,17 @@ namespace KKABMX.Core
                         BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * baseline;
                     }
                 }
+                else
+                {
+
+                }
             }
         }
 
         private bool CanApply(BoneModifierData data)
         {
-            if (!data.IsEmpty())
+            //if (!data.IsEmpty())
+            if (true)
             {
                 _forceApply = true;
                 return true;

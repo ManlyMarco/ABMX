@@ -14,12 +14,27 @@ namespace KKABMX.Core
         [Key(1)]
         public float LengthModifier;
 
-        public BoneModifierData() : this(Vector3.one, 1) { }
+        [Key(2)]
+        public Vector3 PositionModifier;
 
-        public BoneModifierData(Vector3 scaleModifier, float lengthModifier)
+        [Key(3)]
+        public Vector3 RotationModifier;
+
+        [IgnoreMember]
+        public bool scaleSymmetry = true;
+        [IgnoreMember]
+        public bool rotSymmetry = true;
+        [IgnoreMember]
+        public bool posSymmetry = true;
+
+        public BoneModifierData() : this(Vector3.one, 1, Vector3.zero, Vector3.zero) { }
+
+        public BoneModifierData(Vector3 scaleModifier, float lengthModifier, Vector3 positionModifier, Vector3 rotationModifier)
         {
             ScaleModifier = scaleModifier;
             LengthModifier = lengthModifier;
+            PositionModifier = positionModifier;
+            RotationModifier = rotationModifier;
         }
 
         public BoneModifierData Clone()
@@ -34,17 +49,20 @@ namespace KKABMX.Core
 
         public bool HasScale()
         {
-            return ScaleModifier.x != 1 || ScaleModifier.y != 1 || ScaleModifier.z != 1;
+            return ScaleModifier != Vector3.one || PositionModifier != Vector3.zero || RotationModifier != Vector3.zero;
         }
+
 
         public bool IsEmpty()
         {
-            return ScaleModifier.x == 1 && ScaleModifier.y == 1 && ScaleModifier.z == 1 && LengthModifier == 1;
+            return ScaleModifier == Vector3.one && PositionModifier == Vector3.zero && RotationModifier == Vector3.zero && LengthModifier == 1;
         }
 
         public void Clear()
         {
             ScaleModifier = Vector3.one;
+            RotationModifier = Vector3.zero;
+            PositionModifier = Vector3.zero;
             LengthModifier = 1;
         }
     }
