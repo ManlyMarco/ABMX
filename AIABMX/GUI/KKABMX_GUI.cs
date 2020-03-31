@@ -410,8 +410,6 @@ namespace KKABMX.GUI
                 }
             };
 
-            gameObject.AddComponent<KKABMX_AdvancedGUI>().enabled = false;
-
             RegisterCustomControls(e);
         }
 
@@ -428,8 +426,6 @@ namespace KKABMX.GUI
 
             _bodyLoadToggle = null;
             _faceLoadToggle = null;
-
-            if (gameObject) Destroy(gameObject.GetComponent<KKABMX_AdvancedGUI>());
         }
     }
 }

@@ -3,6 +3,13 @@
     internal static class Metadata
     {
         public const string Version = "3.5.3";
+#if AI
+        public const string Name = "AIABMX (BonemodX)";
+#elif KK
+        public const string Name = "KKABMX (BonemodX)";
+#elif EC
+        public const string Name = "ECABMX (BonemodX)";
+#endif
         public const string GUID = "KKABMX.Core";
         public const string ExtDataGUID = "KKABMPlugin.ABMData";
 

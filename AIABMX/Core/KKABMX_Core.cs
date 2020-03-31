@@ -1,52 +1,26 @@
 ﻿using System.Collections.Generic;
 using BepInEx;
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using KKABMX.GUI;
-using KKAPI;
-using KKAPI.Chara;
 using KKAPI.Maker;
+using KKAPI.Studio;
 
 namespace KKABMX.Core
 {
-    [BepInPlugin(GUID, "AIABMX (BonemodX)", Version)]
-    [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public partial class KKABMX_Core : BaseUnityPlugin
     {
-        internal const string Version = Metadata.Version;
-        public const string GUID = Metadata.GUID;
-        public const string ExtDataGUID = Metadata.ExtDataGUID;
-
-        internal static ConfigEntry<bool> XyzMode { get; private set; }
-        internal static ConfigEntry<bool> RaiseLimits { get; private set; }
-        internal static ConfigEntry<bool> TransparentAdvancedWindow { get; private set; }
-
-        internal static KKABMX_Core Instance { get; private set; }
-        internal static new ManualLogSource Logger { get; private set; }
-
-        private void Start()
+        private void Awake()
         {
-            Instance = this;
-            Logger = base.Logger;
-
-            if (KoikatuAPI.GetCurrentGameMode() != GameMode.Studio)
+            if (!StudioAPI.InsideStudio)
             {
-                XyzMode = Config.Bind("Maker", Metadata.XyzModeName, false, Metadata.XyzModeDesc);
-                RaiseLimits = Config.Bind("Maker", Metadata.RaiseLimitsName, false, Metadata.RaiseLimitsDesc);
-                TransparentAdvancedWindow = Config.Bind("General", Metadata.AdvTransparencyName, false, Metadata.AdvTransparencyDesc);
-                XyzMode.SettingChanged += KKABMX_GUI.OnIsAdvancedModeChanged;
-
+                // todo bodge, implement proper toggle
                 var showAdv = Config.Bind("Maker", "Show Advanced Bonemod Window", false);
-                showAdv.SettingChanged += (sender, args) => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = showAdv.Value;
-
-                MakerAPI.MakerFinishedLoading += (sender, args) => showAdv.Value = false;
-
-                gameObject.AddComponent<KKABMX_GUI>();
+                showAdv.SettingChanged += (sender, args) => KKABMX_AdvancedGUI.Enabled = showAdv.Value;
+                MakerAPI.MakerFinishedLoading += (sender, args) =>
+                {
+                    KKABMX_AdvancedGUI.CurrentBoneController = MakerAPI.GetCharacterControl().GetComponent<BoneController>();
+                    showAdv.Value = false;
+                };
             }
-
-            CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
-
-            Hooks.Init();
         }
 
         // Bones that misbehave with rotation adjustments

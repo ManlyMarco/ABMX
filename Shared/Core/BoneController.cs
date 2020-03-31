@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using IllusionUtility.GetUtility;
 using KKAPI;
@@ -10,7 +9,6 @@ using Manager;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
-using KKAPI.Maker;
 using UniRx;
 
 namespace KKABMX.Core
@@ -334,7 +332,7 @@ namespace KKABMX.Core
                 if (!toUpdate.TryGetValue(modifier, out var list))
                 {
                     // Clean up no longer necessary modifiers
-                    if (!MakerAPI.InsideMaker && modifier.IsEmpty())
+                    if (!GUI.KKABMX_AdvancedGUI.Enabled && modifier.IsEmpty())
                     {
                         modifier.Reset();
                         Modifiers.Remove(modifier);

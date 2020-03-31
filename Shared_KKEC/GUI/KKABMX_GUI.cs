@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BepInEx.Logging;
 using KKABMX.Core;
 using KKAPI.Chara;
 using KKAPI.Maker;
@@ -391,7 +390,7 @@ namespace KKABMX.GUI
             _boneController = FindObjectOfType<BoneController>();
             if (_boneController == null)
             {
-                KKABMX_Core.Log(LogLevel.Error, "[KKABMX_GUI] Failed to find a BoneController or there are no bone modifiers");
+                KKABMX_Core.Logger.LogError("[GUI] Failed to find a BoneController or there are no bone modifiers");
                 return;
             }
 
@@ -405,7 +404,7 @@ namespace KKABMX.GUI
                     }
                     catch (Exception ex)
                     {
-                        KKABMX_Core.Log(LogLevel.Error, ex.ToString());
+                        KKABMX_Core.Logger.LogError(ex.ToString());
                     }
                 }
             };

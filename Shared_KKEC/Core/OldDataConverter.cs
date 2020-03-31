@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BepInEx.Logging;
 using UnityEngine;
-using Logger = KKABMX.Core.KKABMX_Core;
 using ExtensibleSaveFormat;
 
 namespace KKABMX.Core
@@ -69,8 +67,7 @@ namespace KKABMX.Core
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Error, $"[KKABMX] Failed to load legacy line \"{string.Join(",", singleEntry)}\" - {ex.Message}");
-                        Logger.Log(LogLevel.Debug, "Error details: " + ex);
+                        KKABMX_Core.Logger.LogError($"Failed to load legacy line \"{string.Join(",", singleEntry)}\" - {ex.Message}");
                     }
                 }
 
