@@ -104,6 +104,7 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_Chin_Base"    , "Jaw"                    , 0, 3f, FaceChin     , "")                                    ,
                 new BoneMeta("cf_J_ChinLow"      , "Chin"                   , 0, 3f, FaceChin     , "")                                    ,
                 new BoneMeta("cf_J_ChinTip_Base" , "Chin Tip"               , 0, 3f, FaceChin     , "")                                    ,
+                new BoneMeta("cf_J_MouthCavity"  , "Mouth Cavity"           , 0, 1.5f, FaceChin   , "")                                    ,
 
                 new BoneMeta("cf_J_CheekUpBase"  , "Cheek"                  , 0, 3f, FaceCheek    , "")                                    ,
                 new BoneMeta("cf_J_CheekUp2_L"   , "Cheekbone"              , 0, 3f, FaceCheek    , "cf_J_CheekUp2_R")                     ,
