@@ -342,6 +342,9 @@ namespace KKABMX.Core
                     {
                         modifier.Reset();
                         Modifiers.Remove(modifier);
+
+                        ChaControl.updateShapeFace = true;
+                        ChaControl.updateShapeBody = true;
                     }
                 }
 
