@@ -2,7 +2,7 @@
 {
     internal static class Metadata
     {
-        public const string Version = "3.5.3";
+        public const string Version = "4.0";
 #if AI
         public const string Name = "AIABMX (BonemodX)";
 #elif KK
