@@ -27,6 +27,8 @@ namespace KKABMX.Core
         private bool _lenModNeedsPositionRestore;
         private Vector3 _positionBaseline;
 
+        private bool _changedScale, _changedRotation, _changedPosition;
+
         private bool _forceApply;
 
         /// <summary>
@@ -92,12 +94,24 @@ namespace KKABMX.Core
                         _sclBaseline.x * modifier.ScaleModifier.x,
                         _sclBaseline.y * modifier.ScaleModifier.y,
                         _sclBaseline.z * modifier.ScaleModifier.z);
+                    _changedScale = true;
+                }
+                else if (_changedScale)
+                {
+                    BoneTransform.localScale = _sclBaseline;
+                    _changedScale = false;
                 }
 
                 if (modifier.HasRotation() && !KKABMX_Core.NoRotationBones.Contains(BoneTransform.name))
                 {
                     // Multiplying Quaternions has same effect as applying them in order
                     BoneTransform.localRotation = _rotBaseline * Quaternion.Euler(modifier.RotationModifier);
+                    _changedRotation = true;
+                }
+                else if (_changedRotation)
+                {
+                    BoneTransform.localRotation = _rotBaseline;
+                    _changedRotation = false;
                 }
 
                 if (_lenModForceUpdate || modifier.HasLength())
@@ -126,15 +140,28 @@ namespace KKABMX.Core
                                 BoneTransform.localPosition.y + modifier.PositionModifier.y,
                                 BoneTransform.localPosition.z + modifier.PositionModifier.z
                             );
+                            _changedPosition = true;
+                        }
+                        else if (_changedPosition)
+                        {
+                            BoneTransform.localPosition = _posBaseline;
+                            _changedPosition = false;
                         }
 
                         return;
                     }
                 }
 
-                // todo reuse _positionBaseline
                 if (modifier.HasPosition())
+                {
                     BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
+                    _changedPosition = true;
+                }
+                else if (_changedPosition)
+                {
+                    BoneTransform.localPosition = _posBaseline;
+                    _changedPosition = false;
+                }
             }
         }
 
@@ -256,7 +283,6 @@ namespace KKABMX.Core
 
         private bool CanApply(BoneModifierData data)
         {
-            // bug with updating advanced sliders?
             if (!data.IsEmpty())
             {
                 _forceApply = true;
