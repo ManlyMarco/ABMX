@@ -332,8 +332,7 @@ namespace KKABMX.GUI
                 }
                 UnityEngine.GUI.enabled = true;
 
-                if (GUILayout.Button("Clean", GUILayout.ExpandWidth(false)))
-                    _currentBoneController.CleanEmptyModifiers();
+                if (GUILayout.Button("Revert", GUILayout.ExpandWidth(false))) _currentBoneController.RevertChanges();
 
                 _onlyShowAdditional = GUILayout.Toggle(_onlyShowAdditional, "Only show added bones", GUILayout.ExpandWidth(false));
 

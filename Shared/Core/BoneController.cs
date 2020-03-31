@@ -200,6 +200,8 @@ namespace KKABMX.Core
             SetExtendedData(data);
         }
 
+        internal void RevertChanges() => OnReload(KoikatuAPI.GetCurrentGameMode(), false);
+
         /// <inheritdoc />
         protected override void OnReload(GameMode currentGameMode, bool maintainState)
         {
