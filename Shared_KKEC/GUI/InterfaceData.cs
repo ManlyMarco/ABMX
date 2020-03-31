@@ -179,6 +179,9 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_j_waist02"      , "Waist & Leg Scale 2"    , 0, 3f, BodyLower2   , "")                 {XYZPostfix = null},
                 new BoneMeta("cf_hit_berry"      , "Belly Collision"        , 0, 3f, BodyLower2   , "")                 { Y=false}         ,
                 new BoneMeta("cf_hit_waist_L"    , "Waist Collision"        , 0, 3f, BodyLower2   , "")                 { Y=false}         ,
+                new BoneMeta("cf_j_spine01"      , "Spine 1"                , 0, 2f, BodyLower2   , "")                 {X = false, Y=false, Z=false, L = true, LMax = 4f, LDisplayName = "Spine 1 Offset"},
+                new BoneMeta("cf_j_spine02"      , "Spine 2"                , 0, 2f, BodyLower2   , "")                 {X = false, Y=false, Z=false, L = true, LMax = 2f, LDisplayName = "Spine 2 Offset"},
+                new BoneMeta("cf_j_spine03"      , "Spine 3"                , 0, 2f, BodyLower2   , "")                 {X = false, Y=false, Z=false, L = true, LMax = 2f, LDisplayName = "Spine 3 Offset"},
 
                 new BoneMeta("cf_j_shoulder_L"   , "Shoulder & Arm"         , 0, 3f, BodyArm2     , "cf_j_shoulder_R")                     ,
                 new BoneMeta("cf_j_arm00_L"      , "Arm"                    , 0, 3f, BodyArm2     , "cf_j_arm00_R")     {L = true          , LMax = 2f, LDisplayName = "Arm Spacing"},
