@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using IllusionUtility.GetUtility;
 using KKAPI;
@@ -8,18 +9,32 @@ using KKAPI.Chara;
 using Manager;
 using MessagePack;
 using UnityEngine;
-using Logger = KKABMX.Core.KKABMX_Core;
 using ExtensibleSaveFormat;
 using KKAPI.Maker;
 using UniRx;
 
 namespace KKABMX.Core
 {
+#if KK
+    using CoordinateType = ChaFileDefine.CoordinateType;
+#elif EC
+    using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
+#elif AI
+    /// <summary>
+    /// Placeholder for AIS to keep the API compatibility
+    /// </summary>
     public enum CoordinateType
     {
+        /// <summary>
+        /// Current coordinate in AIS
+        /// </summary>
         Unknown = 0
     }
+#endif
 
+    /// <summary>
+    /// Manages and applies bone modifiers for a single character.
+    /// </summary>
     public class BoneController : CharaCustomFunctionController
     {
         private const string ExtDataBoneDataKey = "boneData";
@@ -27,137 +42,47 @@ namespace KKABMX.Core
         private readonly FindAssist _boneSearcher = new FindAssist();
         private bool? _baselineKnown;
 
+        /// <summary>
+        /// Trigger a full bone modifier refresh on the next update
+        /// </summary>
         public bool NeedsFullRefresh { get; set; }
+        /// <summary>
+        /// Trigger all modifiers to collect new baselines on the next update
+        /// </summary>
         public bool NeedsBaselineUpdate { get; set; }
 
+        /// <summary>
+        /// All bone modifiers assigned to this controller
+        /// </summary>
         public List<BoneModifier> Modifiers { get; private set; } = new List<BoneModifier>();
 
+        /// <summary>
+        /// Additional effects that other plugins can apply to a character
+        /// </summary>
         public IEnumerable<BoneEffect> AdditionalBoneEffects => _additionalBoneEffects;
         private readonly List<BoneEffect> _additionalBoneEffects = new List<BoneEffect>();
         private bool _isDuringHScene;
 
-
+        /// <summary>
+        /// Signals that new modifier data was loaded and custom Modifiers and AdditionalBoneEffects might need to be updated
+        /// </summary>
         public event EventHandler NewDataLoaded;
 
+#if EC
+        /// <summary>
+        /// Placeholder to keep the API compatibility, all coordinate logic targets the KK School01 slot
+        /// </summary>
+        public BehaviorSubject<CoordinateType> CurrentCoordinate = new BehaviorSubject<CoordinateType>(CoordinateType.School01);
+#elif AI
+        /// <summary>
+        /// Placeholder to keep the API compatibility
+        /// </summary>
         public BehaviorSubject<CoordinateType> CurrentCoordinate = new BehaviorSubject<CoordinateType>(CoordinateType.Unknown);
+#endif
 
-        public List<string> NoRotationBones = new List<string>() {
-            "cf_J_Hips",
-            "cf_J_Head",
-            "cf_J_Neck",
-            "cf_J_Spine01",
-            "cf_J_Spine02",
-            "cf_J_Spine03",
-            "cf_J_Kosi01",
-            "cf_J_LegUp00_R",
-            "cf_J_LegUp00_L",
-            "cf_J_LegLow01_R",
-            "cf_J_LegLow01_L",
-            "cf_J_Foot01_R",
-            "cf_J_Foot02_R",
-            "cf_J_Foot01_L",
-            "cf_J_Foot02_L",
-            "cf_J_Toes01_R",
-            "cf_J_Toes01_L",
-            "cf_J_Shoulder_R",
-            "cf_J_Shoulder_L",
-            "cf_J_ArmUp00_R",
-            "cf_J_ArmUp00_L",
-            "cf_J_Hand_R",
-            "cf_J_Hand_L",
-            "cf_J_Hand_Thumb01_R",
-            "cf_J_Hand_Thumb02_R",
-            "cf_J_Hand_Thumb03_R",
-            "cf_J_Hand_Thumb01_L",
-            "cf_J_Hand_Thumb02_L",
-            "cf_J_Hand_Thumb03_L",
-            "cf_J_Index01_R",
-            "cf_J_Index02_R",
-            "cf_J_Index03_R",
-            "cf_J_Index01_L",
-            "cf_J_Index02_L",
-            "cf_J_Index03_L",
-            "cf_J_Middle01_R",
-            "cf_J_Middle02_R",
-            "cf_J_Middle03_R",
-            "cf_J_Middle01_L",
-            "cf_J_Middle02_L",
-            "cf_J_Middle03_L",
-            "cf_J_Ring01_R",
-            "cf_J_Ring02_R",
-            "cf_J_Ring03_R",
-            "cf_J_Ring01_L",
-            "cf_J_Ring02_L",
-            "cf_J_Ring03_L",
-            "cf_J_Little01_R",
-            "cf_J_Little02_R",
-            "cf_J_Little03_R",
-            "cf_J_Little01_L",
-            "cf_J_Little02_L",
-            "cf_J_Little03_L",
-            "cf_J_Thumb01_R",
-            "cf_J_Thumb02_R",
-            "cf_J_Thumb03_R",
-            "cf_J_Thumb01_L",
-            "cf_J_Thumb02_L",
-            "cf_J_Thumb03_L",
-            "cm_J_dan101_00",
-            "cm_J_dan109_00",
-            "cf_J_hair_FLa_01",
-            "cf_J_hair_FLa_02",
-            "cf_J_hair_FRa_01",
-            "cf_J_hair_FRa_02",
-            "cf_J_hair_BCa_01",
-            "cf_J_sk_00_00",
-            "cf_J_sk_00_01",
-            "cf_J_sk_00_02",
-            "cf_J_sk_00_03",
-            "cf_J_sk_00_04",
-            "cf_J_sk_00_05",
-            "cf_J_sk_04_00",
-            "cf_J_sk_04_01",
-            "cf_J_sk_04_02",
-            "cf_J_sk_04_03",
-            "cf_J_sk_04_04",
-            "cf_J_sk_04_05",
-            "cf_J_Legsk_01_00",
-            "cf_J_Legsk_01_01",
-            "cf_J_Legsk_01_02",
-            "cf_J_Legsk_01_03",
-            "cf_J_Legsk_01_04",
-            "cf_J_Legsk_01_05",
-            "cf_J_Legsk_02_00",
-            "cf_J_Legsk_02_01",
-            "cf_J_Legsk_02_02",
-            "cf_J_Legsk_02_03",
-            "cf_J_Legsk_02_04",
-            "cf_J_Legsk_02_05",
-            "cf_J_Legsk_03_00",
-            "cf_J_Legsk_03_01",
-            "cf_J_Legsk_03_02",
-            "cf_J_Legsk_03_03",
-            "cf_J_Legsk_03_04",
-            "cf_J_Legsk_03_05",
-            "cf_J_Legsk_05_00",
-            "cf_J_Legsk_05_01",
-            "cf_J_Legsk_05_02",
-            "cf_J_Legsk_05_03",
-            "cf_J_Legsk_05_04",
-            "cf_J_Legsk_05_05",
-            "cf_J_Legsk_06_00",
-            "cf_J_Legsk_06_01",
-            "cf_J_Legsk_06_02",
-            "cf_J_Legsk_06_03",
-            "cf_J_Legsk_06_04",
-            "cf_J_Legsk_06_05",
-            "cf_J_Legsk_07_00",
-            "cf_J_Legsk_07_01",
-            "cf_J_Legsk_07_02",
-            "cf_J_Legsk_07_03",
-            "cf_J_Legsk_07_04",
-            "cf_J_Legsk_07_05",
-        };
-
+        /// <summary>
+        /// Add a new bone modifier. Make sure it doesn't exist yet.
+        /// </summary>
         public void AddModifier(BoneModifier bone)
         {
             if (bone == null) throw new ArgumentNullException(nameof(bone));
@@ -176,6 +101,10 @@ namespace KKABMX.Core
             _additionalBoneEffects.Add(effect);
         }
 
+        /// <summary>
+        /// Get a modifier if it exists.
+        /// </summary>
+        /// <param name="boneName">Name of the bone that the modifier targets</param>
         public BoneModifier GetModifier(string boneName)
         {
             if (boneName == null) throw new ArgumentNullException(nameof(boneName));
@@ -192,7 +121,7 @@ namespace KKABMX.Core
             return _boneSearcher.dictObjName.Keys;
         }
 
-        /* No coordinate saving in AIS
+#if !AI //No coordinate saving in AIS
         protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate, bool maintainState)
         {
             if (maintainState) return;
@@ -228,7 +157,7 @@ namespace KKABMX.Core
                 }
                 catch (Exception ex)
                 {
-                    Logger.Logger.LogError( "[KKABMX] Failed to load coordinate extended data - " + ex);
+                    KKABMX_Core.Logger.LogError("[KKABMX] Failed to load coordinate extended data - " + ex);
                 }
             }
 
@@ -250,8 +179,10 @@ namespace KKABMX.Core
                 pluginData.data.Add(ExtDataBoneDataKey, LZ4MessagePackSerializer.Serialize(toSave));
                 SetCoordinateExtendedData(coordinate, pluginData);
             }
-        }*/
+        }
+#endif
 
+        /// <inheritdoc />
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
             var toSave = Modifiers.Where(x => !x.IsEmpty()).ToList();
@@ -267,6 +198,7 @@ namespace KKABMX.Core
             SetExtendedData(data);
         }
 
+        /// <inheritdoc />
         protected override void OnReload(GameMode currentGameMode, bool maintainState)
         {
             foreach (var modifier in Modifiers)
@@ -290,13 +222,20 @@ namespace KKABMX.Core
                                 newModifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
                                 break;
 
+#if KK || EC
+                            case 1:
+                                KKABMX_Core.Logger.LogDebug($"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter?.fullname}");
+                                newModifiers = OldDataConverter.MigrateOldExtData(data);
+                                break;
+#endif
+
                             default:
                                 throw new NotSupportedException($"Save version {data.version} is not supported");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger.Logger.LogError("[KKABMX] Failed to load extended data - " + ex);
+                        KKABMX_Core.Logger.LogError("[KKABMX] Failed to load extended data - " + ex);
                     }
                 }
 
@@ -327,6 +266,7 @@ namespace KKABMX.Core
             StartCoroutine(OnDataChangedCo());
         }
 
+        /// <inheritdoc />
         protected override void Start()
         {
             base.Start();
@@ -336,7 +276,7 @@ namespace KKABMX.Core
 
         private void LateUpdate()
         {
-                if (NeedsFullRefresh)
+            if (NeedsFullRefresh)
             {
                 OnReload(KoikatuAPI.GetCurrentGameMode(), true);
                 NeedsFullRefresh = false;
@@ -363,14 +303,12 @@ namespace KKABMX.Core
         {
             var toUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
 
-            for (var i = 0; i < _additionalBoneEffects.Count; i++)
+            foreach (var additionalBoneEffect in _additionalBoneEffects)
             {
-                var additionalBoneEffect = _additionalBoneEffects[i];
                 var affectedBones = additionalBoneEffect.GetAffectedBones(this);
                 foreach (var affectedBone in affectedBones)
                 {
                     var effect = additionalBoneEffect.GetEffect(affectedBone, this, CurrentCoordinate.Value);
-
                     if (effect != null && !effect.IsEmpty())
                     {
                         var modifier = Modifiers.Find(x => string.Equals(x.BoneName, affectedBone, StringComparison.Ordinal));
@@ -403,18 +341,17 @@ namespace KKABMX.Core
                     }
                 }
 
-                modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene, NoRotationBones);
+                modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
             }
-            ChaControl.UpdateBustGravity();
+
+            // Fix some bust physics issues
+            if (Modifiers.Count > 0)
+                ChaControl.UpdateBustGravity();
         }
 
         private IEnumerator OnDataChangedCo()
         {
-            foreach (var modifier in Modifiers.Where(x => x.IsEmpty()).ToList())
-            {
-                modifier.Reset();
-                Modifiers.Remove(modifier);
-            }
+            CleanEmptyModifiers();
 
             // Needed to let accessories load in
             yield return new WaitForEndOfFrame();
@@ -436,7 +373,7 @@ namespace KKABMX.Core
             yield return new WaitForEndOfFrame();
             while (ChaControl.animBody == null) yield break;
 
-#if KK || AI
+#if KK || AI // Only for studio
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             bool[] currentPvCopy = null;
             if (pvCopy != null)
@@ -464,7 +401,7 @@ namespace KKABMX.Core
 
             yield return new WaitForEndOfFrame();
 
-#if KK || AI
+#if KK || AI // Only for studio
             if (pvCopy != null)
             {
                 var array = pvCopy.GetPvArray();
@@ -527,6 +464,15 @@ namespace KKABMX.Core
                         goto Retry;
                     }
                 }
+            }
+        }
+
+        internal void CleanEmptyModifiers()
+        {
+            foreach (var modifier in Modifiers.Where(x => x.IsEmpty()).ToList())
+            {
+                modifier.Reset();
+                Modifiers.Remove(modifier);
             }
         }
     }

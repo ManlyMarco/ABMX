@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -17,9 +18,9 @@ namespace KKABMX.Core
         public const string GUID = Metadata.GUID;
         public const string ExtDataGUID = Metadata.ExtDataGUID;
 
-        public static ConfigWrapper<bool> XyzMode { get; private set; }
-
-        public static ConfigWrapper<bool> RaiseLimits { get; private set; }
+        internal static ConfigEntry<bool> XyzMode { get; private set; }
+        internal static ConfigEntry<bool> RaiseLimits { get; private set; }
+        internal static ConfigEntry<bool> TransparentAdvancedWindow { get; private set; }
 
         internal static KKABMX_Core Instance { get; private set; }
         internal static new ManualLogSource Logger { get; private set; }
@@ -35,8 +36,9 @@ namespace KKABMX.Core
                 return;
             }
 
-            XyzMode = Config.Wrap("Maker", Metadata.XyzModeName, Metadata.XyzModeDesc, false);
-            RaiseLimits = Config.Wrap("Maker", Metadata.RaiseLimitsName, Metadata.RaiseLimitsDesc, false);
+            XyzMode = Config.Bind("Maker", Metadata.XyzModeName, false, Metadata.XyzModeDesc);
+            RaiseLimits = Config.Bind("Maker", Metadata.RaiseLimitsName, false, Metadata.RaiseLimitsDesc);
+            TransparentAdvancedWindow = Config.Bind("General", Metadata.AdvTransparencyName, false, Metadata.AdvTransparencyDesc);
             XyzMode.SettingChanged += KKABMX_GUI.OnIsAdvancedModeChanged;
 
             gameObject.AddComponent<KKABMX_GUI>();
@@ -50,5 +52,11 @@ namespace KKABMX.Core
         {
             Logger.Log(level, text);
         }
+
+        // Bones that misbehave with rotation adjustments
+        internal static HashSet<string> NoRotationBones = new HashSet<string>
+        {
+            //todo
+        };
     }
 }

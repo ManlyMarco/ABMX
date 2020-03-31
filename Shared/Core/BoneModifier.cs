@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
 using UnityEngine;
-using Logger = KKABMX.Core.KKABMX_Core;
 
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
@@ -22,7 +21,7 @@ namespace KKABMX.Core
         private float _lenBaseline;
         private Vector3 _sclBaseline = Vector3.one;
         private Vector3 _posBaseline = Vector3.zero;
-        private Quaternion _rotBaseline = new Quaternion(); 
+        private Quaternion _rotBaseline;
 
         private bool _lenModForceUpdate;
         private bool _lenModNeedsPositionRestore;
@@ -54,17 +53,29 @@ namespace KKABMX.Core
             CoordinateModifiers = coordinateModifiers.ToArray();
         }
 
+        /// <summary>
+        /// Name of the targetted bone
+        /// </summary>
         [Key(0)]
         public string BoneName { get; }
 
+        /// <summary>
+        /// Transform of the targetted bone
+        /// </summary>
         [IgnoreMember]
         public Transform BoneTransform { get; internal set; }
 
+        /// <summary>
+        /// Actual modifier values, split for different coordinates if required
+        /// </summary>
         [Key(1)]
         // Needs a public set to make serializing work
         public BoneModifierData[] CoordinateModifiers { get; set; }
 
-        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers, bool isDuringHScene, List<string> noRotationBones)
+        /// <summary>
+        /// Apply the modifiers
+        /// </summary>
+        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers, bool isDuringHScene)
         {
             if (BoneTransform == null) return;
 
@@ -80,11 +91,12 @@ namespace KKABMX.Core
                     _sclBaseline.y * modifier.ScaleModifier.y,
                     _sclBaseline.z * modifier.ScaleModifier.z);
 
-                if (!noRotationBones.Contains(BoneTransform.name))
+                if (!KKABMX_Core.NoRotationBones.Contains(BoneTransform.name))
                 {
+                    // Multiplying Quaternions has same effect as applying them in order
                     BoneTransform.localRotation = _rotBaseline * Quaternion.Euler(modifier.RotationModifier);
                 }
-                
+
                 if (_lenModForceUpdate || modifier.HasLength())
                 {
                     if (HasLenBaseline())
@@ -109,16 +121,13 @@ namespace KKABMX.Core
                             BoneTransform.localPosition.y + modifier.PositionModifier.y,
                             BoneTransform.localPosition.z + modifier.PositionModifier.z
                             );
-                    }
-                    else
-                    {
-                        BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
+
+                        return;
                     }
                 }
-                else
-                {
-                    BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
-                }
+
+                // todo reuse _positionBaseline
+                BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
             }
         }
 
@@ -147,10 +156,7 @@ namespace KKABMX.Core
 
             _sclBaseline = BoneTransform.localScale;
             _posBaseline = BoneTransform.localPosition;
-            //if (BoneName.Contains("Mune"))
-            //{
-                _rotBaseline = BoneTransform.localRotation;
-            //}
+            _rotBaseline = BoneTransform.localRotation;
 
             if (!HasLenBaseline())
             {
@@ -168,6 +174,9 @@ namespace KKABMX.Core
             return CoordinateModifiers[(int)coordinate];
         }
 
+        /// <summary>
+        /// Check if this modifier has any data in it that can be applied
+        /// </summary>
         public bool IsEmpty()
         {
             for (var i = 0; i < CoordinateModifiers.Length; i++)
@@ -235,17 +244,13 @@ namespace KKABMX.Core
                         BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * baseline;
                     }
                 }
-                else
-                {
-
-                }
             }
         }
 
         private bool CanApply(BoneModifierData data)
         {
-            //if (!data.IsEmpty())
-            if (true)
+            // bug with updating advanced sliders?
+            if (!data.IsEmpty())
             {
                 _forceApply = true;
                 return true;

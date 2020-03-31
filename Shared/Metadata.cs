@@ -16,5 +16,8 @@
         public const string RaiseLimitsDesc = "Maximum values of all sliders in maker are increased twofold. Can cause even more horrifying results. " +
                                               "Recommended to only enable when working on furries and superdeformed charas.\n\n" +
                                               "The setting takes effect after maker restart.";
+
+        public const string AdvTransparencyName = "Make advanced window transparent";
+        public const string AdvTransparencyDesc = "If false, the window has a solid background, else it's see-through";
     }
 }
