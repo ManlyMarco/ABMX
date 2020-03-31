@@ -5,10 +5,10 @@ Plugin that adds more character customization settings to character maker of var
 - AI-Shoujo / AI-Syoujyo (AIABMX)
 
 ## How to use 
-1. Make sure that the [latest Modding API](https://github.com/ManlyMarco/KKAPI) for your game is installed, and your game is updated.
-2. Download the latest release for your game from [here](https://github.com/ManlyMarco/KKABMX/releases/latest).
-3. Place the dll file(s) into the folder `Koikatu\BepInEx` in your game's directory in case of Koikatsu version, or inside `BepInEx\plugins` in case of EmotionCreators and AI-S versions. You only need the version specific for your game.
-4. Start character maker, you should see new settings and categories show up. ABMX settings are highlighted in orange. You can turn on the advanced window in bottom right in KK/EC and in plugin settings in AI (press F1).
+1. Make sure that you have at least BepInEx 5.0 and the latest [Modding API](https://github.com/ManlyMarco/KKAPI) for your game installed, and your game is updated.
+2. Download the latest release for your game from [here](https://github.com/ManlyMarco/KKABMX/releases/latest). You only need the version specific for your game.
+3. Extract the release to your game directory. The dll file should end up inside BepInEx\plugins folder in your game's directory.
+4. Start character maker, you should see new settings and categories show up. ABMX settings are highlighted in yellow. You can turn on the advanced window in bottom right in KK/EC and in plugin settings in AI (press F1).
 
 ## Changes from original ABM
 This is an upgraded version of the original Koikatu ABM/Bonemod plugin. It fixes multiple issues with the original while adding new features.
