@@ -52,10 +52,8 @@ namespace KKABMX.Core
                     .AddControl(new KKAPI.Studio.UI.CurrentStateCategorySwitch("Show Bonemod", c => false))
                     .Value.Subscribe(show =>
                     {
-                        if (show)
-                            KKABMX_AdvancedGUI.CurrentBoneController =
-                                KKAPI.Studio.StudioAPI.GetSelectedControllers<BoneController>().FirstOrDefault();
-                        KKABMX_AdvancedGUI.Enabled = show;
+                        if (show) KKABMX_AdvancedGUI.Enable(GetCurrentVisibleGirl()?.GetComponent<BoneController>());
+                        else KKABMX_AdvancedGUI.Disable();
                     });
             }
             else
@@ -76,20 +74,15 @@ namespace KKABMX.Core
             {
                 if (KKABMX_AdvancedGUI.Enabled)
                 {
-                    KKABMX_AdvancedGUI.Enabled = false;
+                    KKABMX_AdvancedGUI.Disable();
                 }
                 else
                 {
                     var g = GetCurrentVisibleGirl();
                     if (g != null)
-                    {
-                        KKABMX_AdvancedGUI.CurrentBoneController = g.GetComponent<BoneController>();
-                        KKABMX_AdvancedGUI.Enabled = true;
-                    }
+                        KKABMX_AdvancedGUI.Enable(g.GetComponent<BoneController>());
                     else
-                    {
                         Logger.LogMessage("No characters found to edit");
-                    }
                 }
             }
         }

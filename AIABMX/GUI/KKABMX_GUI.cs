@@ -78,11 +78,14 @@ namespace KKABMX.GUI
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
-            //            callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
-            //                .ValueChanged.Subscribe(b => XyzMode = b);
+            //callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
+            //    .ValueChanged.Subscribe(b => XyzMode = b);
             //
-            //            callback.AddSidebarControl(new SidebarToggle("Advanced Bonemod Window", false, KKABMX_Core.Instance))
-            //                .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
+            //callback.AddSidebarControl(new SidebarToggle("Advanced Bonemod Window", false, KKABMX_Core.Instance))
+            //    .ValueChanged.Subscribe(b => {
+            //        if (b) KKABMX_AdvancedGUI.Enable(MakerAPI.GetCharacterControl().GetComponent<BoneController>());
+            //        else KKABMX_AdvancedGUI.Disable();
+            //    });
         }
 
         private static CharacterApi.ControllerRegistration GetRegistration()

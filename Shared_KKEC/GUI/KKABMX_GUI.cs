@@ -81,7 +81,10 @@ namespace KKABMX.GUI
                 .ValueChanged.Subscribe(b => XyzMode = b);
 
             callback.AddSidebarControl(new SidebarToggle("Advanced Bonemod Window", false, KKABMX_Core.Instance))
-                .ValueChanged.Subscribe(b => gameObject.GetComponent<KKABMX_AdvancedGUI>().enabled = b);
+                .ValueChanged.Subscribe(b => {
+                    if (b) KKABMX_AdvancedGUI.Enable(MakerAPI.GetCharacterControl().GetComponent<BoneController>());
+                    else KKABMX_AdvancedGUI.Disable();
+                });
         }
 
         private static CharacterApi.ControllerRegistration GetRegistration()
@@ -409,8 +412,6 @@ namespace KKABMX.GUI
                 }
             };
 
-            gameObject.AddComponent<KKABMX_AdvancedGUI>().enabled = false;
-
             RegisterCustomControls(e);
         }
 
@@ -427,8 +428,6 @@ namespace KKABMX.GUI
 
             _bodyLoadToggle = null;
             _faceLoadToggle = null;
-
-            Destroy(gameObject.GetComponent<KKABMX_AdvancedGUI>());
         }
     }
 }

@@ -12,12 +12,18 @@ namespace KKABMX.GUI
     /// </summary>
     internal sealed class KKABMX_AdvancedGUI : MonoBehaviour
     {
-        public static BoneController CurrentBoneController;
+        private static BoneController _currentBoneController;
         private static KKABMX_AdvancedGUI _instance;
-        public static bool Enabled
+        public static bool Enabled => _currentBoneController != null;
+        public static void Enable(BoneController controller)
         {
-            get => _instance.enabled;
-            set => _instance.enabled = value;
+            _currentBoneController = controller;
+            _instance.enabled = controller != null;
+        }
+        public static void Disable()
+        {
+            _currentBoneController = null;
+            _instance.enabled = false;
         }
 
         private static Rect _windowRect = new Rect(20, 220, 705, 500);
@@ -51,7 +57,7 @@ namespace KKABMX.GUI
 
         private void OnGUI()
         {
-            if (CurrentBoneController == null)
+            if (_currentBoneController == null)
             {
                 enabled = false;
                 return;
@@ -74,7 +80,10 @@ namespace KKABMX.GUI
             if (!KKABMX_Core.TransparentAdvancedWindow.Value)
                 KKAPI.Utilities.IMGUIUtils.DrawSolidBox(_windowRect);
 
-            _windowRect = GUILayout.Window(1724, _windowRect, DrawWindowContents, "Advanced Bone Sliders");
+            var newRect = GUILayout.Window(1724, _windowRect, DrawWindowContents, "Advanced Bone Sliders");
+            // Prevent window resizing if content overflows
+            _windowRect.x = newRect.x;
+            _windowRect.y = newRect.y;
 
             // Prevent clicks from going through
             if (_windowRect.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
@@ -90,8 +99,8 @@ namespace KKABMX.GUI
                 _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, true, _gloExpand);
 
                 var shownModifiers = _onlyShowAdditional ?
-                    CurrentBoneController.Modifiers.Where(x => _addedBones.Contains(x.BoneName)) :
-                    CurrentBoneController.Modifiers.OrderBy(x => x.BoneName);
+                    _currentBoneController.Modifiers.Where(x => _addedBones.Contains(x.BoneName)) :
+                    _currentBoneController.Modifiers.OrderBy(x => x.BoneName);
 
                 if (!string.IsNullOrEmpty(_searchFieldValue))
                     shownModifiers = shownModifiers.Where(x => x.BoneName.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0);
@@ -103,7 +112,7 @@ namespace KKABMX.GUI
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
                     {
 #if KK
-                        var currentCoordinate = (ChaFileDefine.CoordinateType)CurrentBoneController.ChaControl.fileStatus.coordinateType;
+                        var currentCoordinate = (ChaFileDefine.CoordinateType)_currentBoneController.ChaControl.fileStatus.coordinateType;
 #elif EC
                         var currentCoordinate = KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01;
 #elif AI
@@ -141,15 +150,15 @@ namespace KKABMX.GUI
 
                                 if (link)
                                 {
-                                    var linkedBone = CurrentBoneController.GetModifier(counterBoneName);
+                                    var linkedBone = _currentBoneController.GetModifier(counterBoneName);
                                     if (linkedBone == null)
                                     {
                                         linkedBone = new BoneModifier(counterBoneName);
-                                        CurrentBoneController.AddModifier(linkedBone);
+                                        _currentBoneController.AddModifier(linkedBone);
                                         if (linkedBone.BoneTransform == null)
                                         {
                                             KKABMX_Core.Logger.LogMessage($"Failed to add bone {counterBoneName}, make sure the name is correct.");
-                                            CurrentBoneController.Modifiers.Remove(linkedBone);
+                                            _currentBoneController.Modifiers.Remove(linkedBone);
                                             linkedBone = null;
                                             _symmetryBones.Remove(mod.BoneName);
                                             _symmetryBones.Remove(counterBoneName);
@@ -246,7 +255,7 @@ namespace KKABMX.GUI
 
                 if (!anyModifiers)
                 {
-                    GUILayout.Label(CurrentBoneController.Modifiers.Count == 0
+                    GUILayout.Label(_currentBoneController.Modifiers.Count == 0
                         ? "No bone modifiers to show. You can add new modifiers by using the search box above, or by using the yellow in-game sliders in maker."
                         : "No bone modifiers were found. Change your search parameters or add a new bone above.");
                 }
@@ -300,7 +309,7 @@ namespace KKABMX.GUI
                 {
                     _addedBones.Add(_searchFieldValue);
 
-                    if (CurrentBoneController.GetModifier(_searchFieldValue) != null)
+                    if (_currentBoneController.GetModifier(_searchFieldValue) != null)
                     {
                         KKABMX_Core.Logger.LogMessage($"Bone {_searchFieldValue} is already added.");
                         _searchFieldValue = "";
@@ -308,11 +317,11 @@ namespace KKABMX.GUI
                     else
                     {
                         var newMod = new BoneModifier(_searchFieldValue);
-                        CurrentBoneController.AddModifier(newMod);
+                        _currentBoneController.AddModifier(newMod);
                         if (newMod.BoneTransform == null)
                         {
                             KKABMX_Core.Logger.LogMessage($"Failed to add bone {_searchFieldValue}, make sure the name is correct.");
-                            CurrentBoneController.Modifiers.Remove(newMod);
+                            _currentBoneController.Modifiers.Remove(newMod);
                         }
                         else
                         {
@@ -324,7 +333,7 @@ namespace KKABMX.GUI
                 UnityEngine.GUI.enabled = true;
 
                 if (GUILayout.Button("Clean", GUILayout.ExpandWidth(false)))
-                    CurrentBoneController.CleanEmptyModifiers();
+                    _currentBoneController.CleanEmptyModifiers();
 
                 _onlyShowAdditional = GUILayout.Toggle(_onlyShowAdditional, "Only show added bones", GUILayout.ExpandWidth(false));
 
@@ -342,11 +351,11 @@ namespace KKABMX.GUI
 
             GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
             {
-                _suggestionScrollPosition = GUILayout.BeginScrollView(_suggestionScrollPosition, _gloSuggestionsStyle);
+                _suggestionScrollPosition = GUILayout.BeginScrollView(_suggestionScrollPosition, true, false, _gloSuggestionsStyle);
                 {
                     GUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
                     {
-                        var possibleBones = CurrentBoneController.GetAllPossibleBoneNames();
+                        var possibleBones = _currentBoneController.GetAllPossibleBoneNames();
                         var bonesArray = string.IsNullOrEmpty(_searchFieldValue)
                             ? possibleBones
                             : possibleBones.Where(x =>

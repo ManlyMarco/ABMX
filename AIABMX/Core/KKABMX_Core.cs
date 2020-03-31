@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using BepInEx;
 using KKABMX.GUI;
-using KKAPI.Maker;
 using KKAPI.Studio;
 
 namespace KKABMX.Core
@@ -14,11 +13,10 @@ namespace KKABMX.Core
             {
                 // todo bodge, implement proper toggle
                 var showAdv = Config.Bind("Maker", "Show Advanced Bonemod Window", false);
-                showAdv.SettingChanged += (sender, args) => KKABMX_AdvancedGUI.Enabled = showAdv.Value;
-                MakerAPI.MakerFinishedLoading += (sender, args) =>
+                showAdv.SettingChanged += (sender, args) =>
                 {
-                    KKABMX_AdvancedGUI.CurrentBoneController = MakerAPI.GetCharacterControl().GetComponent<BoneController>();
-                    showAdv.Value = false;
+                    if (showAdv.Value) KKABMX_AdvancedGUI.Enable(GetCurrentVisibleGirl()?.GetComponent<BoneController>());
+                    else KKABMX_AdvancedGUI.Disable();
                 };
             }
         }
