@@ -42,10 +42,17 @@ namespace KKABMX.Core
 
         public bool HasScale()
         {
-            // todo what about others?
-            return ScaleModifier.x != 1 || ScaleModifier.y != 1 || ScaleModifier.z != 1; //||
-            //PositionModifier.x != 1 || PositionModifier.y != 1 || PositionModifier.z != 1 ||
-            //RotationModifier.x != 1 || RotationModifier.y != 1 || RotationModifier.z != 1;
+            return ScaleModifier.x != 1 || ScaleModifier.y != 1 || ScaleModifier.z != 1;
+        }
+
+        public bool HasPosition()
+        {
+            return PositionModifier.x != 0 || PositionModifier.y != 0 || PositionModifier.z != 0;
+        }
+
+        public bool HasRotation()
+        {
+            return RotationModifier.x != 0 || RotationModifier.y != 0 || RotationModifier.z != 0;
         }
 
         public bool IsEmpty()

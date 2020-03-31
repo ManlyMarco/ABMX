@@ -86,12 +86,15 @@ namespace KKABMX.Core
 
             if (CanApply(modifier))
             {
-                BoneTransform.localScale = new Vector3(
-                    _sclBaseline.x * modifier.ScaleModifier.x,
-                    _sclBaseline.y * modifier.ScaleModifier.y,
-                    _sclBaseline.z * modifier.ScaleModifier.z);
+                if (modifier.HasScale())
+                {
+                    BoneTransform.localScale = new Vector3(
+                        _sclBaseline.x * modifier.ScaleModifier.x,
+                        _sclBaseline.y * modifier.ScaleModifier.y,
+                        _sclBaseline.z * modifier.ScaleModifier.z);
+                }
 
-                if (!KKABMX_Core.NoRotationBones.Contains(BoneTransform.name))
+                if (modifier.HasRotation() && !KKABMX_Core.NoRotationBones.Contains(BoneTransform.name))
                 {
                     // Multiplying Quaternions has same effect as applying them in order
                     BoneTransform.localRotation = _rotBaseline * Quaternion.Euler(modifier.RotationModifier);
@@ -116,18 +119,22 @@ namespace KKABMX.Core
 
                         _lenModForceUpdate = false;
 
-                        BoneTransform.localPosition = new Vector3(
-                            BoneTransform.localPosition.x + modifier.PositionModifier.x,
-                            BoneTransform.localPosition.y + modifier.PositionModifier.y,
-                            BoneTransform.localPosition.z + modifier.PositionModifier.z
+                        if (modifier.HasPosition())
+                        {
+                            BoneTransform.localPosition = new Vector3(
+                                BoneTransform.localPosition.x + modifier.PositionModifier.x,
+                                BoneTransform.localPosition.y + modifier.PositionModifier.y,
+                                BoneTransform.localPosition.z + modifier.PositionModifier.z
                             );
+                        }
 
                         return;
                     }
                 }
 
                 // todo reuse _positionBaseline
-                BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
+                if (modifier.HasPosition())
+                    BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
             }
         }
 
