@@ -116,7 +116,11 @@ namespace KKABMX.Core
         {
             if (_boneSearcher.dictObjName == null)
                 _boneSearcher.Initialize(ChaControl.transform);
-            return _boneSearcher.dictObjName.Keys;
+            return _boneSearcher.dictObjName.Keys
+#if !AI
+                .Where(x => !x.StartsWith("cf_t_", StringComparison.Ordinal) && !x.StartsWith("cf_pv_", StringComparison.Ordinal))
+#endif
+                ;
         }
 
 #if !AI //No coordinate saving in AIS
