@@ -179,14 +179,27 @@ namespace KKABMX.GUI
 
                             GUILayout.Space(8);
 
+                            // Length slider
+                            var lengthModifier = modData.LengthModifier;
+                            UnityEngine.GUI.changed = false;
+
                             GUILayout.Label("Length:", GUILayout.ExpandWidth(false));
-                            DrawSingleSlider(null, ref modData.LengthModifier, -2, 2);
-                            if (GUILayout.Button("0", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) modData.LengthModifier = 1;
+
+                            DrawSingleSlider(null, ref lengthModifier, -2, 2);
+
+                            if (GUILayout.Button("0", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) lengthModifier = 1;
+
+                            if (UnityEngine.GUI.changed)
+                            {
+                                modData.LengthModifier = lengthModifier;
+                                if (linkedModData != null) linkedModData.LengthModifier = lengthModifier;
+                            }
                         }
                         GUILayout.EndHorizontal();
 
                         GUILayout.BeginHorizontal(_gloExpand);
                         {
+                            // Scale sliders
                             var scale = modData.ScaleModifier;
                             UnityEngine.GUI.changed = false;
 
@@ -210,6 +223,7 @@ namespace KKABMX.GUI
                         {
                             GUILayout.BeginHorizontal(_gloExpand);
                             {
+                                // Position sliders
                                 var position = modData.PositionModifier;
                                 UnityEngine.GUI.changed = false;
 
@@ -231,6 +245,7 @@ namespace KKABMX.GUI
 
                             GUILayout.BeginHorizontal(_gloExpand);
                             {
+                                // Rotation sliders
                                 var rotation = modData.RotationModifier;
                                 UnityEngine.GUI.changed = false;
 
