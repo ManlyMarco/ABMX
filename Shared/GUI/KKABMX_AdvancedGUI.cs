@@ -48,6 +48,7 @@ namespace KKABMX.GUI
         private bool _onlyShowAdditional;
         private string _searchFieldValue = "";
         private float _incrementSize = 0.1f;
+        private const string SearchControlName = "bsbox";
 
         private void Awake()
         {
@@ -297,38 +298,57 @@ namespace KKABMX.GUI
 
         private void DrawHeader()
         {
+            void AddNewBone()
+            {
+                if (string.IsNullOrEmpty(_searchFieldValue)) return;
+
+                _addedBones.Add(_searchFieldValue);
+
+                if (_currentBoneController.GetModifier(_searchFieldValue) != null)
+                {
+                    KKABMX_Core.Logger.LogMessage($"Bone {_searchFieldValue} is already added.");
+                    _searchFieldValue = "";
+                }
+                else
+                {
+                    var newMod = new BoneModifier(_searchFieldValue);
+                    _currentBoneController.AddModifier(newMod);
+                    if (newMod.BoneTransform == null)
+                    {
+                        KKABMX_Core.Logger.LogMessage($"Failed to add bone {_searchFieldValue}, make sure the name is correct.");
+                        _currentBoneController.Modifiers.Remove(newMod);
+                    }
+                    else
+                    {
+                        KKABMX_Core.Logger.LogMessage($"Added bone {_searchFieldValue} successfully. Modify it to make it save.");
+                        _searchFieldValue = "";
+                    }
+                }
+            }
+
             GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
             {
                 GUILayout.Label("Search:", GUILayout.ExpandWidth(false));
 
+                UnityEngine.GUI.SetNextControlName(SearchControlName);
                 _searchFieldValue = GUILayout.TextField(_searchFieldValue, _gloExpand);
+
+                if (SearchControlName.Equals(UnityEngine.GUI.GetNameOfFocusedControl(), StringComparison.Ordinal))
+                {
+                    var currentEvent = Event.current;
+                    if (currentEvent.isKey && (currentEvent.keyCode == KeyCode.Return || currentEvent.keyCode == KeyCode.KeypadEnter))
+                    {
+                        currentEvent.Use();
+                        AddNewBone();
+                    }
+                }
 
                 if (string.IsNullOrEmpty(_searchFieldValue))
                     UnityEngine.GUI.enabled = false;
                 if (GUILayout.Button("Add new", GUILayout.ExpandWidth(false)))
                 {
-                    _addedBones.Add(_searchFieldValue);
-
-                    if (_currentBoneController.GetModifier(_searchFieldValue) != null)
-                    {
-                        KKABMX_Core.Logger.LogMessage($"Bone {_searchFieldValue} is already added.");
-                        _searchFieldValue = "";
-                    }
-                    else
-                    {
-                        var newMod = new BoneModifier(_searchFieldValue);
-                        _currentBoneController.AddModifier(newMod);
-                        if (newMod.BoneTransform == null)
-                        {
-                            KKABMX_Core.Logger.LogMessage($"Failed to add bone {_searchFieldValue}, make sure the name is correct.");
-                            _currentBoneController.Modifiers.Remove(newMod);
-                        }
-                        else
-                        {
-                            KKABMX_Core.Logger.LogMessage($"Added bone {_searchFieldValue} successfully. Modify it to make it save.");
-                            _searchFieldValue = "";
-                        }
-                    }
+                    AddNewBone();
+                    UnityEngine.GUI.FocusControl(SearchControlName);
                 }
                 UnityEngine.GUI.enabled = true;
 
@@ -365,6 +385,7 @@ namespace KKABMX.GUI
                             if (GUILayout.Button(boneResult, _gsButtonReset, GUILayout.MinWidth(120), _gloHeight))
                             {
                                 _searchFieldValue = boneResult;
+                                UnityEngine.GUI.FocusControl(SearchControlName);
                             }
                         }
                     }
