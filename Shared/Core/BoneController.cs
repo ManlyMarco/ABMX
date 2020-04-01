@@ -117,7 +117,9 @@ namespace KKABMX.Core
             if (_boneSearcher.dictObjName == null)
                 _boneSearcher.Initialize(ChaControl.transform);
             return _boneSearcher.dictObjName.Keys
-#if !AI
+#if AI
+                .Where(x => !x.StartsWith("f_t_", StringComparison.Ordinal) && !x.StartsWith("f_pv_", StringComparison.Ordinal) && !x.StartsWith("f_k_", StringComparison.Ordinal))
+#elif KK || EC
                 .Where(x => !x.StartsWith("cf_t_", StringComparison.Ordinal) && !x.StartsWith("cf_pv_", StringComparison.Ordinal))
 #endif
                 ;
