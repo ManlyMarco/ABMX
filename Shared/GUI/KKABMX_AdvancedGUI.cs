@@ -107,7 +107,7 @@ namespace KKABMX.GUI
                     shownModifiers = shownModifiers.Where(x => x.BoneName.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0);
 
                 var anyModifiers = false;
-                foreach (var mod in shownModifiers)
+                foreach (var mod in shownModifiers.ToList())
                 {
                     anyModifiers = true;
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
