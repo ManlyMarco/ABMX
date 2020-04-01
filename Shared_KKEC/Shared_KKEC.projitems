@@ -12,6 +12,5 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\KKABMX_Core.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OldDataConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\InterfaceData.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)GUI\KKABMX_GUI.cs" />
   </ItemGroup>
 </Project>

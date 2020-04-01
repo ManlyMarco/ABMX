@@ -7,6 +7,7 @@ namespace KKABMX.GUI
     {
         public static List<BoneMeta> BoneControls { get; }
         public static string[] FingerNamePrefixes { get; }
+        public static MakerCategory FingerCategory => MakerConstants.Body.Arm;
 
         static InterfaceData()
         {

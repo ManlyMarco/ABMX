@@ -62,7 +62,8 @@ namespace KKABMX.GUI
                     first = false;
                 }
 
-                if (ReferenceEquals(category, InterfaceData.BodyHands))
+                // todo separate category?
+                if (Equals(category, InterfaceData.FingerCategory))
                 {
                     if (!first)
                         callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
@@ -77,6 +78,7 @@ namespace KKABMX.GUI
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
+            #if !AI //todo
             callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
                 .ValueChanged.Subscribe(b => XyzMode = b);
 
@@ -85,6 +87,7 @@ namespace KKABMX.GUI
                     if (b) KKABMX_AdvancedGUI.Enable(MakerAPI.GetCharacterControl().GetComponent<BoneController>());
                     else KKABMX_AdvancedGUI.Disable();
                 });
+            #endif
         }
 
         private static CharacterApi.ControllerRegistration GetRegistration()
@@ -94,9 +97,9 @@ namespace KKABMX.GUI
 
         private void RegisterFingerControl(MakerCategory category, RegisterCustomControlsEvent callback)
         {
-            var rbSide = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Hand to edit", "Both", "Left", "Right") { TextColor = _settingColor });
-            var rbFing = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Finger to edit", "All", "1", "2", "3", "4", "5") { TextColor = _settingColor });
-            var rbSegm = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Segment to edit", "Base", "Center", "Tip") { TextColor = _settingColor });
+            var rbSide = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Hand", "Both", "Left", "Right") { TextColor = _settingColor });
+            var rbFing = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Finger", "All", "1", "2", "3", "4", "5") { TextColor = _settingColor });
+            var rbSegm = callback.AddControl(new MakerRadioButtons(category, KKABMX_Core.Instance, "Segment", "Base", "Center", "Tip") { TextColor = _settingColor });
 
             IEnumerable<string> GetFingerBoneNames()
             {

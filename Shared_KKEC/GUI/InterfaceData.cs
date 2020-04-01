@@ -7,7 +7,9 @@ namespace KKABMX.GUI
     {
         public static List<BoneMeta> BoneControls { get; }
         public static string[] FingerNamePrefixes { get; }
+        public static MakerCategory FingerCategory => BodyHands;
 
+        // todo make these private or completely remove
         public static readonly MakerCategory FaceAll;
         public static readonly MakerCategory FaceHead;
         public static readonly MakerCategory FaceEar;
@@ -152,6 +154,18 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_s_bust02_L"     , "Extra Breast Scale 3"   , 0, 3f, BodyBreast2  , "cf_s_bust02_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_s_bust03_L"     , "Extra Breast Scale 4"   , 0, 3f, BodyBreast2  , "cf_s_bust03_R")  {XYZPostfix = null} ,
                 new BoneMeta("cf_hit_bust02_L"   , "Breast Collision"       , 0, 3f, BodyBreast2  , "cf_hit_bust02_R"){X = false         , Y=false} ,
+
+                /* todo
+                 *A list of the most useful bone rotations to add to the UI:
+cf_d_bust01_L
+cf_d_bust01_R
+cf_d_bust02_L
+cf_d_bust02_R
+cf_d_bust03_L
+cf_d_bust03_R
+                 *
+                //new BoneMeta("cf_hit_bust02_L"   , "Breast Collision"       , 0, 3f, BodyBreast2  , "cf_hit_bust02_R"){X = false         , Y=false} ,
+                 */
 
                 new BoneMeta("cf_s_bnip01_L"     , "Areola Scale 1"         , 0, 3f, BodyNipples  , "cf_s_bnip01_R")  {XYZPostfix = null},
                 new BoneMeta("cf_s_bnip025_L"    , "Areola Scale 2"         , 0, 3f, BodyNipples  , "cf_s_bnip025_R") {XYZPostfix = null},

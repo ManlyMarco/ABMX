@@ -94,7 +94,6 @@
     <Compile Include="Core\KKABMX_Core.cs" />
     <Compile Include="Core\KKABMX_Core.Hooks.cs" />
     <Compile Include="GUI\InterfaceData.cs" />
-    <Compile Include="GUI\KKABMX_GUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

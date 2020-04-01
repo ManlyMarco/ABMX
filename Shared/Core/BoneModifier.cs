@@ -179,6 +179,9 @@ namespace KKABMX.Core
                     scale.y * additionalModifier.ScaleModifier.y,
                     scale.z * additionalModifier.ScaleModifier.z);
                 len *= additionalModifier.LengthModifier;
+
+                position += additionalModifier.PositionModifier;
+                rotation += additionalModifier.RotationModifier;
             }
 
             return new BoneModifierData(scale, len, position, rotation);
