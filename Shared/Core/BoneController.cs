@@ -110,6 +110,19 @@ namespace KKABMX.Core
         }
 
         /// <summary>
+        /// Removes the specified modifier and resets the affected bone to its original state
+        /// </summary>
+        /// <param name="modifier">Modifier added to this controller</param>
+        public void RemoveModifier(BoneModifier modifier)
+        {
+            modifier.Reset();
+            Modifiers.Remove(modifier);
+
+            ChaControl.updateShapeFace = true;
+            ChaControl.updateShapeBody = true;
+        }
+
+        /// <summary>
         /// Get all transform names under the character object that could be bones
         /// </summary>
         public IEnumerable<string> GetAllPossibleBoneNames()
@@ -341,13 +354,7 @@ namespace KKABMX.Core
                 {
                     // Clean up no longer necessary modifiers
                     if (!GUI.KKABMX_AdvancedGUI.Enabled && modifier.IsEmpty())
-                    {
-                        modifier.Reset();
-                        Modifiers.Remove(modifier);
-
-                        ChaControl.updateShapeFace = true;
-                        ChaControl.updateShapeBody = true;
-                    }
+                        RemoveModifier(modifier);
                 }
 
                 modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
