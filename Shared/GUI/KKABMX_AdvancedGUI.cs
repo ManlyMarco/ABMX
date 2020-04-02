@@ -403,6 +403,13 @@ namespace KKABMX.GUI
                             if (GUILayout.Button(boneResult, _gsButtonReset, GUILayout.MinWidth(120), _gloHeight))
                             {
                                 _searchFieldValue = boneResult;
+
+                                if (_currentBoneController.GetModifier(_searchFieldValue) == null)
+                                {
+                                    AddNewBone();
+                                    _searchFieldValue = boneResult;
+                                }
+
                                 UnityEngine.GUI.FocusControl(SearchControlName);
                             }
                         }
