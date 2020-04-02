@@ -26,7 +26,7 @@ namespace KKABMX.GUI
             _instance.enabled = false;
         }
 
-        private static Rect _windowRect = new Rect(20, 220, 705, 500);
+        private static Rect _windowRect = new Rect(20, 220, 705, 600);
         private static readonly GUILayoutOption _gloHeight = GUILayout.Height(23);
         private static readonly GUILayoutOption _gloExpand = GUILayout.ExpandWidth(true);
         private static readonly GUILayoutOption _gloSmallButtonWidth = GUILayout.Width(20);
