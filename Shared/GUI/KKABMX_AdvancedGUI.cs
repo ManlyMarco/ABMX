@@ -125,9 +125,12 @@ namespace KKABMX.GUI
 
                         GUILayout.BeginHorizontal(_gloExpand);
                         {
-                            GUILayout.Label(mod.BoneName, _gsLabel);
+                            GUILayout.TextField(mod.BoneName, _gsLabel);
 
                             GUILayout.FlexibleSpace();
+
+                            if (GUILayout.Button("X", _gsButtonReset, _gloSmallButtonWidth))
+                                _currentBoneController.RemoveModifier(mod);
 
                             var counterBoneName = GetCounterBoneName(mod);
                             if (counterBoneName != null)
