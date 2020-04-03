@@ -78,7 +78,6 @@ namespace KKABMX.GUI
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                 .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
 
-            #if !AI //todo
             callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
                 .ValueChanged.Subscribe(b => XyzMode = b);
 
@@ -87,7 +86,6 @@ namespace KKABMX.GUI
                     if (b) KKABMX_AdvancedGUI.Enable(MakerAPI.GetCharacterControl().GetComponent<BoneController>());
                     else KKABMX_AdvancedGUI.Disable();
                 });
-            #endif
         }
 
         private static CharacterApi.ControllerRegistration GetRegistration()
