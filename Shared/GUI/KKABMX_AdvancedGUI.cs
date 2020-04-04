@@ -292,12 +292,11 @@ namespace KKABMX.GUI
             if (sliderName != null)
                 GUILayout.Label(sliderName, GUILayout.Width(14));
 
-            if (GUILayout.Button("-", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) value -= _incrementSize;
-
             value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _gloSliderWidth, _gloHeight);
 
             float.TryParse(GUILayout.TextField(value.ToString(maxValue >= 100 ? "F1" : "F3", CultureInfo.InvariantCulture), _gsInput, _gloTextfieldWidth, _gloHeight), out value);
 
+            if (GUILayout.Button("-", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) value -= _incrementSize;
             if (GUILayout.Button("+", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) value += _incrementSize;
         }
 
@@ -316,30 +315,28 @@ namespace KKABMX.GUI
 
         private void DrawHeader()
         {
-            void AddNewBone()
+            void AddNewBone(string boneName)
             {
-                if (string.IsNullOrEmpty(_searchFieldValue)) return;
+                if (string.IsNullOrEmpty(boneName)) return;
 
-                _addedBones.Add(_searchFieldValue);
+                _addedBones.Add(boneName);
 
-                if (_currentBoneController.GetModifier(_searchFieldValue) != null)
+                if (_currentBoneController.GetModifier(boneName) != null)
                 {
-                    KKABMX_Core.Logger.LogMessage($"Bone {_searchFieldValue} is already added.");
-                    _searchFieldValue = "";
+                    KKABMX_Core.Logger.LogMessage($"Bone {boneName} is already added.");
                 }
                 else
                 {
-                    var newMod = new BoneModifier(_searchFieldValue);
+                    var newMod = new BoneModifier(boneName);
                     _currentBoneController.AddModifier(newMod);
                     if (newMod.BoneTransform == null)
                     {
-                        KKABMX_Core.Logger.LogMessage($"Failed to add bone {_searchFieldValue}, make sure the name is correct.");
+                        KKABMX_Core.Logger.LogMessage($"Failed to add bone {boneName}, make sure the name is correct.");
                         _currentBoneController.Modifiers.Remove(newMod);
                     }
                     else
                     {
-                        KKABMX_Core.Logger.LogMessage($"Added bone {_searchFieldValue} successfully. Modify it to make it save.");
-                        _searchFieldValue = "";
+                        KKABMX_Core.Logger.LogMessage($"Added bone {boneName} successfully. Modify it to make it save.");
                     }
                 }
             }
@@ -357,7 +354,7 @@ namespace KKABMX.GUI
                     if (currentEvent.isKey && (currentEvent.keyCode == KeyCode.Return || currentEvent.keyCode == KeyCode.KeypadEnter))
                     {
                         currentEvent.Use();
-                        AddNewBone();
+                        AddNewBone(_searchFieldValue);
                     }
                 }
 
@@ -365,7 +362,7 @@ namespace KKABMX.GUI
                     UnityEngine.GUI.enabled = false;
                 if (GUILayout.Button("Add new", GUILayout.ExpandWidth(false)))
                 {
-                    AddNewBone();
+                    AddNewBone(_searchFieldValue);
                     UnityEngine.GUI.FocusControl(SearchControlName);
                 }
                 UnityEngine.GUI.enabled = true;
@@ -380,8 +377,8 @@ namespace KKABMX.GUI
 
                 float RoundToPowerOf10(float value) => Mathf.Pow(10, Mathf.Round(Mathf.Log10(value)));
 
-                if (GUILayout.Button("-", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize = RoundToPowerOf10(_incrementSize * 0.1f);
                 float.TryParse(GUILayout.TextField(_incrementSize.ToString(CultureInfo.InvariantCulture), _gsInput, _gloTextfieldWidth, _gloHeight), out _incrementSize);
+                if (GUILayout.Button("-", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize = RoundToPowerOf10(_incrementSize * 0.1f);
                 if (GUILayout.Button("+", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize = RoundToPowerOf10(_incrementSize * 10f);
             }
             GUILayout.EndHorizontal();
@@ -402,13 +399,8 @@ namespace KKABMX.GUI
                         {
                             if (GUILayout.Button(boneResult, _gsButtonReset, GUILayout.MinWidth(120), _gloHeight))
                             {
-                                _searchFieldValue = boneResult;
-
-                                if (_currentBoneController.GetModifier(_searchFieldValue) == null)
-                                {
-                                    AddNewBone();
-                                    _searchFieldValue = boneResult;
-                                }
+                                if (_currentBoneController.GetModifier(boneResult) == null)
+                                    AddNewBone(boneResult);
 
                                 UnityEngine.GUI.FocusControl(SearchControlName);
                             }
