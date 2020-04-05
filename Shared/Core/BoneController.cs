@@ -264,7 +264,11 @@ namespace KKABMX.Core
                 }
                 else
                 {
+#if AI
+                    var headRoot = transform.FindLoop("cf_J_Head");
+#else
                     var headRoot = transform.FindLoop("cf_j_head");
+#endif
                     var headBones = new HashSet<string>(headRoot.GetComponentsInChildren<Transform>().Select(x => x.name));
                     headBones.Add(headRoot.name);
                     if (GUI.KKABMX_GUI.LoadFace)
