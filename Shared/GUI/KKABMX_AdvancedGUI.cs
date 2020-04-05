@@ -46,10 +46,26 @@ namespace KKABMX.GUI
         private readonly HashSet<string> _symmetryBones = new HashSet<string>();
         private readonly HashSet<string> _addedBones = new HashSet<string>();
         private bool _onlyShowAdditional;
+
+        private bool _searchFieldValueChanged = false;
         private string _searchFieldValue = "";
+        public string SearchFieldValue
+        {
+            get => _searchFieldValue;
+            set
+            {
+                if (_searchFieldValue != value)
+                {
+                    _searchFieldValue = value;
+                    _searchFieldValueChanged = true;
+                }
+            }
+        }
+
         private float _incrementSize = 0.1f;
         private readonly List<BoneModifier> _visibleModifiers = new List<BoneModifier>();
-        private readonly List<string> _boneSuggestions = new List<string>();
+        private List<string> _boneSuggestions;
+        private List<string> _getAllPossibleBoneNames;
         private const string SearchControlName = "bsbox";
 
         private void Awake()
@@ -60,47 +76,47 @@ namespace KKABMX.GUI
 
         private void Update()
         {
+            //todo trigger update only when needed?
+            RefreshBoneInfo(false);
+        }
+
+        private void OnEnable()
+        {
             if (_currentBoneController == null)
             {
                 enabled = false;
-                return;
             }
-
-            //todo trigger update only when needed?
-            RefreshBoneInfo();
+            else
+            {
+                _getAllPossibleBoneNames = _currentBoneController.GetAllPossibleBoneNames().OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+                RefreshBoneInfo(true);
+            }
         }
 
-        private void RefreshBoneInfo()
+        private void RefreshBoneInfo(bool force)
         {
             var filteredModifiers = _onlyShowAdditional
                 ? _currentBoneController.Modifiers.Where(x => _addedBones.Contains(x.BoneName))
                 : _currentBoneController.Modifiers;
 
-            if (!string.IsNullOrEmpty(_searchFieldValue))
+            if (!string.IsNullOrEmpty(SearchFieldValue))
                 filteredModifiers = filteredModifiers.Where(x =>
-                    x.BoneName.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0);
+                    x.BoneName.IndexOf(SearchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0);
 
             _visibleModifiers.Clear();
             _visibleModifiers.AddRange(filteredModifiers.OrderBy(x => x.BoneName, StringComparer.OrdinalIgnoreCase));
 
-
-            var possibleBones = _currentBoneController.GetAllPossibleBoneNames();
-            possibleBones = string.IsNullOrEmpty(_searchFieldValue)
-                ? possibleBones
-                : possibleBones.Where(x => x.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0);
-
-            _boneSuggestions.Clear();
-            _boneSuggestions.AddRange(possibleBones.OrderBy(x => x, StringComparer.OrdinalIgnoreCase));
+            if (force || _searchFieldValueChanged)
+            {
+                _boneSuggestions = string.IsNullOrEmpty(SearchFieldValue)
+                    ? _getAllPossibleBoneNames
+                    : _getAllPossibleBoneNames.Where(x => x.IndexOf(SearchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                _searchFieldValueChanged = false;
+            }
         }
 
         private void OnGUI()
         {
-            if (_currentBoneController == null)
-            {
-                enabled = false;
-                return;
-            }
-
             if (_initGui)
             {
                 _gsInput = new GUIStyle(UnityEngine.GUI.skin.textArea);
@@ -375,7 +391,7 @@ namespace KKABMX.GUI
                 GUILayout.Label("Search:", GUILayout.ExpandWidth(false));
 
                 UnityEngine.GUI.SetNextControlName(SearchControlName);
-                _searchFieldValue = GUILayout.TextField(_searchFieldValue, _gloExpand);
+                SearchFieldValue = GUILayout.TextField(SearchFieldValue, _gloExpand);
 
                 if (SearchControlName.Equals(UnityEngine.GUI.GetNameOfFocusedControl(), StringComparison.Ordinal))
                 {
@@ -383,15 +399,15 @@ namespace KKABMX.GUI
                     if (currentEvent.isKey && (currentEvent.keyCode == KeyCode.Return || currentEvent.keyCode == KeyCode.KeypadEnter))
                     {
                         currentEvent.Use();
-                        AddNewBone(_searchFieldValue);
+                        AddNewBone(SearchFieldValue);
                     }
                 }
 
-                if (string.IsNullOrEmpty(_searchFieldValue))
+                if (string.IsNullOrEmpty(SearchFieldValue))
                     UnityEngine.GUI.enabled = false;
                 if (GUILayout.Button("Add new", GUILayout.ExpandWidth(false)))
                 {
-                    AddNewBone(_searchFieldValue);
+                    AddNewBone(SearchFieldValue);
                     UnityEngine.GUI.FocusControl(SearchControlName);
                 }
                 UnityEngine.GUI.enabled = true;
@@ -418,9 +434,14 @@ namespace KKABMX.GUI
                 {
                     GUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
                     {
-                        foreach (var boneResult in _boneSuggestions)
+                        const int singleItemWidth = 120;
+                        var leftItemCount = Mathf.FloorToInt(_suggestionScrollPosition.x / singleItemWidth);
+                        GUILayout.Space(leftItemCount * singleItemWidth);
+
+                        var shownItemCount = Mathf.CeilToInt(_windowRect.width / singleItemWidth) + 1; // Add one more to account for spaces between buttons
+                        foreach (var boneResult in _boneSuggestions.Skip(leftItemCount).Take(shownItemCount))
                         {
-                            if (GUILayout.Button(boneResult, _gsButtonReset, GUILayout.Width(120), _gloHeight))
+                            if (GUILayout.Button(boneResult, _gsButtonReset, GUILayout.Width(singleItemWidth), _gloHeight))
                             {
                                 if (_currentBoneController.GetModifier(boneResult) == null)
                                     AddNewBone(boneResult);
@@ -428,6 +449,9 @@ namespace KKABMX.GUI
                                 UnityEngine.GUI.FocusControl(SearchControlName);
                             }
                         }
+
+                        var rightItemCount = Mathf.Max(0, _boneSuggestions.Count - (leftItemCount + shownItemCount));
+                        GUILayout.Space(rightItemCount * singleItemWidth);
                     }
                     GUILayout.EndHorizontal();
                 }
