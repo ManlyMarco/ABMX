@@ -12,19 +12,23 @@ namespace KKABMX.GUI
     /// </summary>
     internal sealed class KKABMX_AdvancedGUI : MonoBehaviour
     {
-        private static BoneController _currentBoneController;
         private static KKABMX_AdvancedGUI _instance;
+
+        private static BoneController _currentBoneController;
         public static bool Enabled => _currentBoneController != null;
         public static void Enable(BoneController controller)
         {
             _currentBoneController = controller;
             _instance.enabled = controller != null;
+            _currentCharacterName = controller != null ? " - " + controller.ChaControl.fileParam.fullname : null;
         }
         public static void Disable()
         {
             _currentBoneController = null;
             _instance.enabled = false;
         }
+
+        private static string _currentCharacterName;
 
         private static Rect _windowRect = new Rect(20, 220, 705, 600);
         private static readonly GUILayoutOption _gloHeight = GUILayout.Height(23);
@@ -135,7 +139,7 @@ namespace KKABMX.GUI
             if (!KKABMX_Core.TransparentAdvancedWindow.Value)
                 KKAPI.Utilities.IMGUIUtils.DrawSolidBox(_windowRect);
 
-            var newRect = GUILayout.Window(1724, _windowRect, DrawWindowContents, "Advanced Bone Sliders");
+            var newRect = GUILayout.Window(1724, _windowRect, DrawWindowContents, "Advanced Bone Sliders" + _currentCharacterName);
             // Prevent window resizing if content overflows
             _windowRect.x = newRect.x;
             _windowRect.y = newRect.y;
