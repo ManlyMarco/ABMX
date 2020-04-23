@@ -247,8 +247,7 @@ namespace KKABMX.Core
                     }
                     else
                     {
-                        var legacyData = OldDataConverter.ImportOldData(CharacterApi.GetLastLoadedCardPath(ChaControl),
-                            ChaControl.GetCharacterName(), ChaControl.sex);
+                        var legacyData = OldDataConverter.ImportOldData(CharacterApi.GetLastLoadedCardPath(ChaControl), ChaControl);
                         if (legacyData != null)
                             newModifiers = legacyData;
                     }

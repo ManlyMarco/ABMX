@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Character;
+using KKAPI.Studio;
 using UnityEngine;
 using MessagePack;
 
@@ -9,9 +9,20 @@ namespace KKABMX.Core
 {
     internal static class OldDataConverter
     {
-        public static List<BoneModifier> ImportOldData(string cardPath, string charaName, SEX sex)
+        public static List<BoneModifier> ImportOldData(string cardPath, Human human)
         {
             Dictionary<int, BoneModHarmony.BoneModifier> modifiers;
+
+            var sex = human.sex;
+
+            string charaName = null;
+            if (StudioAPI.InsideStudio)
+                charaName = StudioAPI.GetSelectedCharacters().FirstOrDefault(x => x.charInfo.human == human)
+                    ?.charStatus.name;
+            if (string.IsNullOrEmpty(charaName))
+                charaName = human is Female f
+                    ? Female.HeroineName(f.HeroineID)
+                    : Male.MaleName(((Male)human).MaleID);
 
             string path = null;
             if (!string.IsNullOrEmpty(cardPath))
