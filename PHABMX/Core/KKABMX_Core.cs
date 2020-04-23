@@ -8,7 +8,6 @@ using KKABMX.GUI;
 using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
-using UniRx;
 using UnityEngine;
 
 namespace KKABMX.Core
@@ -43,19 +42,17 @@ namespace KKABMX.Core
             TransparentAdvancedWindow = Config.Bind("General", Metadata.AdvTransparencyName, false, Metadata.AdvTransparencyDesc);
             _openEditorKey = Config.Bind("General", "Open bonemod editor", KeyboardShortcut.Empty, "Opens advanced bonemod window if there is a character that can be edited.");
 
-#if EC
             if (KKAPI.Studio.StudioAPI.InsideStudio)
             {
-                KKAPI.Studio.StudioAPI.GetOrCreateCurrentStateCategory(null)
-                    .AddControl(new KKAPI.Studio.UI.CurrentStateCategorySwitch("Show Bonemod", c => false))
-                    .Value.Subscribe(show =>
-                    {
-                        if (show) KKABMX_AdvancedGUI.Enable(GetCurrentVisibleGirl()?.GetComponent<BoneController>());
-                        else KKABMX_AdvancedGUI.Disable();
-                    });
+                //KKAPI.Studio.StudioAPI.GetOrCreateCurrentStateCategory(null)
+                //    .AddControl(new KKAPI.Studio.UI.CurrentStateCategorySwitch("Show Bonemod", c => false))
+                //    .Value.Subscribe(show =>
+                //    {
+                //        if (show) KKABMX_AdvancedGUI.Enable(GetCurrentVisibleGirl()?.GetComponent<BoneController>());
+                //        else KKABMX_AdvancedGUI.Disable();
+                //    });
             }
             else
-#endif
             {
                 gameObject.AddComponent<KKABMX_GUI>();
                 XyzMode.SettingChanged += KKABMX_GUI.OnIsAdvancedModeChanged;
@@ -94,13 +91,13 @@ namespace KKABMX.Core
             var f = m?.GetComponentInChildren<Female>();
             if (f != null) return f;
 
-            //if (KKAPI.Studio.StudioAPI.InsideStudio)
-            //{
-            //    var c = KKAPI.Studio.StudioAPI.GetSelectedControllers<BoneController>().FirstOrDefault();
-            //    return c?.ChaControl;
-            //}
+            if (KKAPI.Studio.StudioAPI.InsideStudio)
+            {
+                var c = KKAPI.Studio.StudioAPI.GetSelectedControllers<BoneController>().FirstOrDefault();
+                return c?.ChaControl;
+            }
 
-            return GameObject.FindObjectOfType<Female>();
+            return (Human)FindObjectOfType<Female>() ?? FindObjectOfType<Male>();
         }
 
         // Bones that misbehave with rotation adjustments

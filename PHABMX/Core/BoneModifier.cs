@@ -233,8 +233,8 @@ namespace KKABMX.Core
         /// </summary>
         public void MakeCoordinateSpecific()
         {
-            if (!IsCoordinateSpecific())
-                CoordinateModifiers = Enumerable.Range(0, CoordinateCount).Select(_ => CoordinateModifiers[0].Clone()).ToArray();
+            //if (!IsCoordinateSpecific())
+            //    CoordinateModifiers = Enumerable.Range(0, CoordinateCount).Select(_ => CoordinateModifiers[0].Clone()).ToArray();
         }
 
         /// <summary>
@@ -242,8 +242,8 @@ namespace KKABMX.Core
         /// </summary>
         public void MakeNonCoordinateSpecific()
         {
-            if (IsCoordinateSpecific())
-                CoordinateModifiers = new[] { CoordinateModifiers[0] };
+            //if (IsCoordinateSpecific())
+            //    CoordinateModifiers = new[] { CoordinateModifiers[0] };
         }
 
         /// <summary>

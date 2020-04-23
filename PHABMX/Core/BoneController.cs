@@ -6,7 +6,6 @@ using Character;
 using IllusionUtility.GetUtility;
 using KKAPI;
 using KKAPI.Chara;
-using Manager;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
@@ -119,12 +118,15 @@ namespace KKABMX.Core
             return _boneSearcher.dictObjName.Keys
                 .Where(x => !x.StartsWith("f_t_", StringComparison.Ordinal) &&
                             !x.StartsWith("f_pv_", StringComparison.Ordinal) &&
-                            !x.StartsWith("f_k_", StringComparison.Ordinal));
+                            !x.StartsWith("f_k_", StringComparison.Ordinal) &&
+                            !x.StartsWith("m_t_", StringComparison.Ordinal) &&
+                            !x.StartsWith("m_pv_", StringComparison.Ordinal) &&
+                            !x.StartsWith("m_k_", StringComparison.Ordinal));
         }
 
         private Transform GetBodyRootTransform()
         {
-            return ChaControl.transform.Find("p_cf_anim");
+            return ChaControl.transform.Find(ChaControl.sex == SEX.FEMALE ? "p_cf_anim" : "p_cm_anim");
         }
 
         //#if !AI //No coordinate saving in AIS
@@ -219,33 +221,41 @@ namespace KKABMX.Core
             if (!maintainState && (GUI.KKABMX_GUI.LoadBody || GUI.KKABMX_GUI.LoadFace))
             {
                 var newModifiers = new List<BoneModifier>();
-                var data = GetExtendedData();
-                if (data != null)
+                try
                 {
-                    try
+                    var data = GetExtendedData();
+                    if (data != null)
                     {
-                        switch (data.version)
+                        try
                         {
-                            case 2:
-                                newModifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
-                                break;
+                            switch (data.version)
+                            {
+                                case 2:
+                                    newModifiers =
+                                        LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>(
+                                            (byte[])data.data[ExtDataBoneDataKey]);
+                                    break;
 
-                            // todo import legacy data
-#if KK || EC
-                            case 1:
-                                KKABMX_Core.Logger.LogDebug($"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter?.fullname}");
-                                newModifiers = OldDataConverter.MigrateOldExtData(data);
-                                break;
-#endif
-
-                            default:
-                                throw new NotSupportedException($"Save version {data.version} is not supported");
+                                default:
+                                    throw new NotSupportedException($"Save version {data.version} is not supported");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            KKABMX_Core.Logger.LogError("[KKABMX] Failed to load extended data - " + ex);
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        KKABMX_Core.Logger.LogError("[KKABMX] Failed to load extended data - " + ex);
+                        var legacyData = OldDataConverter.ImportOldData(CharacterApi.GetLastLoadedCardPath(ChaControl),
+                            ChaControl.GetCharacterName(), ChaControl.sex);
+                        if (legacyData != null)
+                            newModifiers = legacyData;
                     }
+                }
+                catch (Exception ex)
+                {
+                    KKABMX_Core.Logger.LogError("Failed to load bonemod data: " + ex);
                 }
 
                 if (GUI.KKABMX_GUI.LoadBody && GUI.KKABMX_GUI.LoadFace)
@@ -255,7 +265,7 @@ namespace KKABMX.Core
                 else
                 {
                     var bodyRoot = GetBodyRootTransform();
-                    var headRoot = bodyRoot.FindLoop("cf_J_Head");
+                    var headRoot = bodyRoot.FindLoop(ChaControl.sex == SEX.MALE ? "cm_J_Head" : "cf_J_Head");
 
                     var headBones = new HashSet<string>(headRoot.GetComponentsInChildren<Transform>().Select(x => x.name));
                     headBones.Add(headRoot.name);

@@ -7,7 +7,7 @@
     <ProjectGuid>{4587234C-07DF-4D9E-9CEA-F2933362B240}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PHABMX</RootNamespace>
+    <RootNamespace>KKABMX</RootNamespace>
     <AssemblyName>PHABMX</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -82,9 +82,12 @@
     <Compile Include="Core\BoneModifierData.cs" />
     <Compile Include="Core\KKABMX_Core.cs" />
     <Compile Include="Core\KKABMX_Core.Hooks.cs" />
-    <Compile Include="Core\OldDataConverter.cs" />
+    <Compile Include="Core\Legacy\BoneModifier.cs" />
+    <Compile Include="Core\Legacy\Prefs.cs" />
+    <Compile Include="Core\Legacy\OldDataConverter.cs" />
     <Compile Include="Core\Utilities.cs" />
     <Compile Include="GUI\BoneMeta.cs" />
+    <Compile Include="GUI\InterfaceData.cs" />
     <Compile Include="GUI\KKABMX_AdvancedGUI.cs" />
     <Compile Include="GUI\KKABMX_GUI.cs" />
     <Compile Include="Metadata.cs" />
@@ -93,5 +96,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
