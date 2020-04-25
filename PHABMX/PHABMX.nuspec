@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ABMX.PHABMX</id>
+    <version>$version$</version>
+    <authors>ManlyMarco</authors>
+    <projectUrl>https://github.com/ManlyMarco/ABMX</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Advanced Bone Modifier eXtended for PlayHome</description>
+    <developmentDependency>true</developmentDependency>
+  </metadata>
+  <files>
+    <file src="..\install.ps1" target="tools"/>
+  </files>
+</package>
