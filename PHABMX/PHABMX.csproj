@@ -53,12 +53,12 @@
       <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.0-beta2\lib\net35\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="PHAPI">
-      <HintPath>E:\Games\PlayHome\BepInEx\plugins\PHAPI.dll</HintPath>
+    <Reference Include="PHAPI, Version=1.11.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\IllusionModdingAPI.PHAPI.1.11.0\lib\net35\PHAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="PH_ExtensibleSaveFormat">
-      <HintPath>E:\Games\PlayHome\BepInEx\plugins\PH_BepisPlugins\PH_ExtensibleSaveFormat.dll</HintPath>
+    <Reference Include="PH_ExtensibleSaveFormat, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExtensibleSaveFormat.PlayHome.14.0.0\lib\net35\PH_ExtensibleSaveFormat.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
