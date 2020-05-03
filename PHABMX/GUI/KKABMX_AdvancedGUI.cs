@@ -81,8 +81,11 @@ namespace KKABMX.GUI
 
         private void Update()
         {
-            //todo trigger update only when needed?
-            RefreshBoneInfo(false);
+            if (!Enabled)
+                enabled = false;
+            else
+                //todo trigger update only when needed?
+                RefreshBoneInfo(false);
         }
 
         private void OnEnable()
