@@ -50,6 +50,7 @@ namespace KKABMX.GUI
         private readonly HashSet<string> _symmetryBones = new HashSet<string>();
         private readonly HashSet<string> _addedBones = new HashSet<string>();
         private bool _onlyShowAdditional;
+        private bool _onlyShowCoords;
 
         private bool _searchFieldValueChanged = false;
         private string _searchFieldValue = "";
@@ -103,9 +104,12 @@ namespace KKABMX.GUI
 
         private void RefreshBoneInfo(bool force)
         {
-            var filteredModifiers = _onlyShowAdditional
-                ? _currentBoneController.Modifiers.Where(x => _addedBones.Contains(x.BoneName))
-                : _currentBoneController.Modifiers;
+            var filteredModifiers = _currentBoneController.Modifiers.AsEnumerable();
+
+            if (_onlyShowAdditional)
+                filteredModifiers = filteredModifiers.Where(x => _addedBones.Contains(x.BoneName));
+            if(_onlyShowCoords)
+                filteredModifiers = filteredModifiers.Where(x => x.IsCoordinateSpecific());
 
             if (!string.IsNullOrEmpty(SearchFieldValue))
                 filteredModifiers = filteredModifiers.Where(x =>
@@ -453,7 +457,11 @@ namespace KKABMX.GUI
 
                 if (GUILayout.Button("Revert", GUILayout.ExpandWidth(false))) _currentBoneController.RevertChanges();
 
-                _onlyShowAdditional = GUILayout.Toggle(_onlyShowAdditional, "Only show added bones", GUILayout.ExpandWidth(false));
+                _onlyShowAdditional = GUILayout.Toggle(_onlyShowAdditional, "Only new", GUILayout.ExpandWidth(false));
+
+#if !AI
+                _onlyShowCoords = GUILayout.Toggle(_onlyShowCoords, "Only per coordinate", GUILayout.ExpandWidth(false));
+#endif
 
                 GUILayout.Space(6);
 
