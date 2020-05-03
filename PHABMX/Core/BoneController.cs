@@ -220,7 +220,7 @@ namespace KKABMX.Core
 
             if (!maintainState && (GUI.KKABMX_GUI.LoadBody || GUI.KKABMX_GUI.LoadFace))
             {
-                var newModifiers = new List<BoneModifier>();
+                List<BoneModifier> newModifiers = null;
                 try
                 {
                     var data = GetExtendedData();
@@ -256,6 +256,8 @@ namespace KKABMX.Core
                 {
                     KKABMX_Core.Logger.LogError("Failed to load bonemod data: " + ex);
                 }
+
+                if (newModifiers == null) newModifiers = new List<BoneModifier>();
 
                 if (GUI.KKABMX_GUI.LoadBody && GUI.KKABMX_GUI.LoadFace)
                 {
