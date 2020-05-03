@@ -99,7 +99,7 @@ namespace KKABMX.GUI
                 new BoneMeta("cf_J_FaceLow_tz"   , "Lower Head Scale 2"     , 0, 3f, FaceHead     , "")               {XYZPostfix = null}     ,
                 new BoneMeta("cf_hit_head"       , "Head Collision"         , 0, 3f, FaceHead     , "")                    ,
 
-                new BoneMeta("cf_J_EarBase_ry_L" , "Ear"                    , 0, 3f, FaceEar      , "cf_J_EarBase_ry_R")                   ,
+                new BoneMeta("cf_J_EarBase_ry_L" , "Ear"                    , 0, 3f, FaceEar      , "cf_J_EarBase_ry_R")         {L = true , LMax = 1.5f, LDisplayName = "Ear Offset"},
                 new BoneMeta("cf_J_EarUp_L"      , "Upper Ear"              , 0, 3f, FaceEar      , "cf_J_EarUp_R")                        ,
                 new BoneMeta("cf_J_EarLow_L"     , "Lower Ear"              , 0, 3f, FaceEar      , "cf_J_EarLow_R")                       ,
 
