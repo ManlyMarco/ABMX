@@ -1,26 +1,10 @@
 ﻿using System.Collections.Generic;
 using BepInEx;
-using KKABMX.GUI;
-using KKAPI.Studio;
 
 namespace KKABMX.Core
 {
     public partial class KKABMX_Core : BaseUnityPlugin
     {
-        private void Awake()
-        {
-            if (!StudioAPI.InsideStudio)
-            {
-                // todo bodge, implement proper toggle
-                var showAdv = Config.Bind("Maker", "Show Advanced Bonemod Window", false);
-                showAdv.SettingChanged += (sender, args) =>
-                {
-                    if (showAdv.Value) KKABMX_AdvancedGUI.Enable(GetCurrentVisibleGirl()?.GetComponent<BoneController>());
-                    else KKABMX_AdvancedGUI.Disable();
-                };
-            }
-        }
-
         // Bones that misbehave with rotation adjustments
         internal static HashSet<string> NoRotationBones = new HashSet<string>
         {
