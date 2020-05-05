@@ -9,6 +9,7 @@ using Manager;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
+using KKAPI.Utilities;
 using UniRx;
 
 namespace KKABMX.Core
@@ -392,8 +393,8 @@ namespace KKABMX.Core
 
         private IEnumerator CollectBaselineCo()
         {
-            yield return new WaitForEndOfFrame();
-            while (ChaControl.animBody == null) yield break;
+            do yield return new WaitForEndOfFrame();
+            while (ChaControl.animBody == null);
 
 #if KK || AI // Only for studio
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
@@ -416,6 +417,9 @@ namespace KKABMX.Core
             ChaControl.updateShapeFace = true;
             ChaControl.updateShapeBody = true;
             ChaControl.LateUpdateForce();
+
+            ModifiersFillInTransforms();
+
             foreach (var modifier in Modifiers)
                 modifier.CollectBaseline();
 
