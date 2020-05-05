@@ -16,7 +16,8 @@ namespace KKABMX.GUI
         private static KKABMX_AdvancedGUI _instance;
 
         private static BoneController _currentBoneController;
-        public static bool Enabled => _currentBoneController != null;
+        public static bool Enabled => _currentBoneController != null && _instance.enabled;
+        public static Action<bool> OnEnabledChanged;
         public static void Enable(BoneController controller)
         {
             _currentBoneController = controller;
@@ -98,7 +99,13 @@ namespace KKABMX.GUI
             {
                 _getAllPossibleBoneNames = _currentBoneController.GetAllPossibleBoneNames().OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
                 RefreshBoneInfo(true);
+                OnEnabledChanged?.Invoke(true);
             }
+        }
+
+        private void OnDisable()
+        {
+            OnEnabledChanged?.Invoke(false);
         }
 
         private void RefreshBoneInfo(bool force)
@@ -425,6 +432,9 @@ namespace KKABMX.GUI
                 float.TryParse(GUILayout.TextField(_incrementSize.ToString(CultureInfo.InvariantCulture), _gsInput, _gloTextfieldWidth, _gloHeight), out _incrementSize);
                 if (GUILayout.Button("-", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize = RoundToPowerOf10(_incrementSize * 0.1f);
                 if (GUILayout.Button("+", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize = RoundToPowerOf10(_incrementSize * 10f);
+
+                GUILayout.Space(4);
+                if (GUILayout.Button("X", GUILayout.ExpandWidth(false))) enabled = false;
             }
             GUILayout.EndHorizontal();
 

@@ -84,12 +84,13 @@ namespace KKABMX.GUI
             //callback.AddSidebarControl(new SidebarToggle("Split XYZ", XyzMode, KKABMX_Core.Instance))
             //    .ValueChanged.Subscribe(b => XyzMode = b);
 
-            callback.AddSidebarControl(new SidebarToggle("Bonemod", false, KKABMX_Core.Instance))
-                .ValueChanged.Subscribe(b =>
-                {
-                    if (b) KKABMX_AdvancedGUI.Enable(MakerAPI.GetCharacterControl().GetComponent<BoneController>());
-                    else KKABMX_AdvancedGUI.Disable();
-                });
+            var toggle = callback.AddSidebarControl(new SidebarToggle("Bonemod", KKABMX_AdvancedGUI.Enabled, KKABMX_Core.Instance));
+            toggle.ValueChanged.Subscribe(b => {
+                if (b) KKABMX_AdvancedGUI.Enable(MakerAPI.GetCharacterControl().GetComponent<BoneController>());
+                else KKABMX_AdvancedGUI.Disable();
+            });
+            KKABMX_AdvancedGUI.OnEnabledChanged = v => toggle.Value = v;
+            MakerAPI.MakerExiting += (sender, args) => KKABMX_AdvancedGUI.OnEnabledChanged = null;
         }
 
         private static CharacterApi.ControllerRegistration GetRegistration()
