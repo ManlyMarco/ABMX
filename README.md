@@ -1,5 +1,6 @@
 # Advanced Bone Modifier eXtended (BonemodX / ABMX)
 Plugin that adds more character customization settings to character maker of various games made by Illusion. These additional settings are saved inside the card and used by the main game and studio. It is possible to change male height, make good-looking thick necks, customize skirts, adjust hand and feet size and much more. Supported games:
+- PlayHome (PHABMX)
 - Koikatu / Koikatsu Party (KKABMX)
 - Emotion Creators (ECABMX)
 - AI-Shoujo / AI-Syoujyo (AIABMX)
