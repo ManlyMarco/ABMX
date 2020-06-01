@@ -226,7 +226,7 @@ namespace KKABMX.GUI
                 var currentCoordinate = (ChaFileDefine.CoordinateType)_currentBoneController.ChaControl.fileStatus.coordinateType;
 #elif EC
                 var currentCoordinate = KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01;
-#elif AI
+#elif AI || HS2
                 var currentCoordinate = CoordinateType.Unknown;
 #endif
                 var modData = mod.GetModifier(currentCoordinate);

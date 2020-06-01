@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-#if AI
+#if AI || HS2
 using AIChara;
 #endif
 
@@ -13,7 +13,7 @@ namespace KKABMX.Core
         [Obsolete]
         public const int ManualBoneId = -1;
 
-#if KK || AI
+#if KK || AI || HS2
         private static readonly FieldInfo FieldPvCopyBone = typeof(Studio.PVCopy).GetField("bone",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 

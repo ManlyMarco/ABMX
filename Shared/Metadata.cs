@@ -5,6 +5,8 @@
         public const string Version = "4.3";
 #if AI
         public const string Name = "AIABMX (BonemodX)";
+#elif HS2
+        public const string Name = "HS2ABMX (BonemodX)";
 #elif KK
         public const string Name = "KKABMX (BonemodX)";
 #elif EC

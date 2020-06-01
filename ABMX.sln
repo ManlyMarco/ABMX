@@ -15,12 +15,20 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "Shared\Shared.shp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PHABMX", "PHABMX\PHABMX.csproj", "{4587234C-07DF-4D9E-9CEA-F2933362B240}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HS2ABMX", "HS2ABMX\HS2ABMX.csproj", "{173DC700-A597-498C-8334-88DA1842AB7D}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared_AIHS2", "Shared_AIHS2\Shared_AIHS2.shproj", "{46DEDEDE-6F7E-45CE-861F-C15D236F0FD6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\Shared.projitems*{09fdd26c-d119-44d2-821e-1354ddce03ab}*SharedItemsImports = 13
 		Shared\Shared.projitems*{0aa2d102-3e37-448f-801f-7cd3cf791cd7}*SharedItemsImports = 4
+		Shared_AIHS2\Shared_AIHS2.projitems*{0aa2d102-3e37-448f-801f-7cd3cf791cd7}*SharedItemsImports = 4
+		Shared\Shared.projitems*{173dc700-a597-498c-8334-88da1842ab7d}*SharedItemsImports = 4
+		Shared_AIHS2\Shared_AIHS2.projitems*{173dc700-a597-498c-8334-88da1842ab7d}*SharedItemsImports = 4
 		Shared\Shared.projitems*{288732fd-1d63-45f0-815e-7eb938b6e064}*SharedItemsImports = 4
 		Shared_KKEC\Shared_KKEC.projitems*{288732fd-1d63-45f0-815e-7eb938b6e064}*SharedItemsImports = 4
+		Shared_AIHS2\Shared_AIHS2.projitems*{46dedede-6f7e-45ce-861f-c15d236f0fd6}*SharedItemsImports = 13
 		Shared_KKEC\Shared_KKEC.projitems*{4f7ab98b-6652-4778-a077-236d029e294d}*SharedItemsImports = 13
 		Shared\Shared.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
 		Shared_KKEC\Shared_KKEC.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
@@ -46,6 +54,10 @@ Global
 		{4587234C-07DF-4D9E-9CEA-F2933362B240}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4587234C-07DF-4D9E-9CEA-F2933362B240}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4587234C-07DF-4D9E-9CEA-F2933362B240}.Release|Any CPU.Build.0 = Release|Any CPU
+		{173DC700-A597-498C-8334-88DA1842AB7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{173DC700-A597-498C-8334-88DA1842AB7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{173DC700-A597-498C-8334-88DA1842AB7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{173DC700-A597-498C-8334-88DA1842AB7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,7 +18,7 @@ namespace KKABMX.Core
     using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
     using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
-#elif AI
+#elif AI || HS2
     /// <summary>
     /// Placeholder for AIS to keep the API compatibility
     /// </summary>
@@ -72,7 +72,7 @@ namespace KKABMX.Core
         /// Placeholder to keep the API compatibility, all coordinate logic targets the KK School01 slot
         /// </summary>
         public BehaviorSubject<CoordinateType> CurrentCoordinate = new BehaviorSubject<CoordinateType>(CoordinateType.School01);
-#elif AI
+#elif AI || HS2
         /// <summary>
         /// Placeholder to keep the API compatibility
         /// </summary>
@@ -131,7 +131,7 @@ namespace KKABMX.Core
             if (_boneSearcher.dictObjName == null)
                 _boneSearcher.Initialize(ChaControl.transform);
             return _boneSearcher.dictObjName.Keys
-#if AI
+#if AI || HS2
                 .Where(x => !x.StartsWith("f_t_", StringComparison.Ordinal) && !x.StartsWith("f_pv_", StringComparison.Ordinal) && !x.StartsWith("f_k_", StringComparison.Ordinal))
 #elif KK || EC
                 .Where(x => !x.StartsWith("cf_t_", StringComparison.Ordinal) && !x.StartsWith("cf_pv_", StringComparison.Ordinal))
@@ -139,7 +139,7 @@ namespace KKABMX.Core
                 ;
         }
 
-#if !AI //No coordinate saving in AIS
+#if !AI && !HS2 //No coordinate saving in AIS
         protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate, bool maintainState)
         {
             if (maintainState) return;
@@ -267,7 +267,7 @@ namespace KKABMX.Core
                 }
                 else
                 {
-#if AI
+#if AI || HS2
                     var headRoot = transform.FindLoop("cf_J_Head");
 #else
                     var headRoot = transform.FindLoop("cf_j_head");
@@ -297,7 +297,9 @@ namespace KKABMX.Core
         {
             base.Start();
             CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
+#if KK // hs2 ais is HScene
             _isDuringHScene = "H".Equals(Scene.Instance.LoadSceneName, StringComparison.Ordinal);
+#endif
         }
 
         private void LateUpdate()
@@ -396,7 +398,7 @@ namespace KKABMX.Core
             do yield return new WaitForEndOfFrame();
             while (ChaControl.animBody == null);
 
-#if KK || AI // Only for studio
+#if KK || AI || HS2 // Only for studio
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             bool[] currentPvCopy = null;
             if (pvCopy != null)
@@ -427,7 +429,7 @@ namespace KKABMX.Core
 
             yield return new WaitForEndOfFrame();
 
-#if KK || AI // Only for studio
+#if KK || AI || HS2 // Only for studio
             if (pvCopy != null)
             {
                 var array = pvCopy.GetPvArray();

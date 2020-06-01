@@ -229,7 +229,7 @@ namespace KKABMX.Core
         /// </summary>
         public bool IsCoordinateSpecific()
         {
-#if AI
+#if AI || HS2
             // No coordinate saving in AIS
             return false;
 #else

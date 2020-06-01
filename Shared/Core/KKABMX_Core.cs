@@ -9,7 +9,7 @@ using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using UniRx;
-#if AI
+#if AI || HS2
 using AIChara;
 #endif
 
