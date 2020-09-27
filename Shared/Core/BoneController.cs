@@ -326,10 +326,11 @@ namespace KKABMX.Core
 
             NeedsBaselineUpdate = false;
         }
-
+        
+        private readonly Dictionary<BoneModifier, List<BoneModifierData>> _effectsToUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
         private void ApplyEffects()
         {
-            var toUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
+            _effectsToUpdate.Clear();
 
             foreach (var additionalBoneEffect in _additionalBoneEffects)
             {
@@ -346,10 +347,10 @@ namespace KKABMX.Core
                             AddModifier(modifier);
                         }
 
-                        if (!toUpdate.TryGetValue(modifier, out var list))
+                        if (!_effectsToUpdate.TryGetValue(modifier, out var list))
                         {
                             list = new List<BoneModifierData>();
-                            toUpdate[modifier] = list;
+                            _effectsToUpdate[modifier] = list;
                         }
                         list.Add(effect);
                     }
@@ -359,7 +360,7 @@ namespace KKABMX.Core
             for (var i = 0; i < Modifiers.Count; i++)
             {
                 var modifier = Modifiers[i];
-                if (!toUpdate.TryGetValue(modifier, out var list))
+                if (!_effectsToUpdate.TryGetValue(modifier, out var list))
                 {
                     // Clean up no longer necessary modifiers
                     if (!GUI.KKABMX_AdvancedGUI.Enabled && modifier.IsEmpty())
@@ -369,9 +370,10 @@ namespace KKABMX.Core
                 modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
             }
 
-            // Fix some bust physics issues
-            if (Modifiers.Count > 0)
-                ChaControl.UpdateBustGravity();
+            // Fix some bust physics issues todo does this still work to fix original isse? causes gravity issue by itself without the =false because its running every frame
+            if (Modifiers.Count > 0 && !ChaControl.reSetupDynamicBoneBust)
+                if (ChaControl.UpdateBustGravity())
+                    ChaControl.reSetupDynamicBoneBust = false;
         }
 
         private IEnumerator OnDataChangedCo()
@@ -379,7 +381,7 @@ namespace KKABMX.Core
             CleanEmptyModifiers();
 
             // Needed to let accessories load in
-            yield return new WaitForEndOfFrame();
+            yield return Utilities.WaitForEndOfFrame;
 
             ModifiersFillInTransforms();
 
@@ -395,9 +397,12 @@ namespace KKABMX.Core
 
         private IEnumerator CollectBaselineCo()
         {
-            do yield return new WaitForEndOfFrame();
+            do yield return Utilities.WaitForEndOfFrame;
             while (ChaControl.animBody == null);
 
+            var animSpeed = ChaControl.animBody.speed;
+            ChaControl.animBody.speed = 0;
+            
 #if KK || AI || HS2 // Only for studio
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             bool[] currentPvCopy = null;
@@ -413,7 +418,7 @@ namespace KKABMX.Core
             }
 #endif
 
-            yield return new WaitForEndOfFrame();
+            yield return Utilities.WaitForEndOfFrame;
 
             // Ensure that the baseline is correct
             ChaControl.updateShapeFace = true;
@@ -427,7 +432,7 @@ namespace KKABMX.Core
 
             _baselineKnown = true;
 
-            yield return new WaitForEndOfFrame();
+            yield return Utilities.WaitForEndOfFrame;
 
 #if KK || AI || HS2 // Only for studio
             if (pvCopy != null)
@@ -445,6 +450,7 @@ namespace KKABMX.Core
                 }
             }
 #endif
+            ChaControl.animBody.speed = animSpeed;
         }
 
         /// <summary>

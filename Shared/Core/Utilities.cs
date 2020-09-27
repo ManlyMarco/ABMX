@@ -54,5 +54,7 @@ namespace KKABMX.Core
         {
             return (Dictionary<int, ShapeInfoBase.BoneInfo>)FieldShapeInfoBaseDictDst.GetValue(sibBody);
         }
+
+        internal static readonly WaitForEndOfFrame WaitForEndOfFrame = new WaitForEndOfFrame();
     }
 }
