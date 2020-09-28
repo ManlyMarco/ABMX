@@ -1,6 +1,5 @@
 ﻿using BepInEx.Harmony;
 using HarmonyLib;
-using KKAPI.Maker;
 
 namespace KKABMX.Core
 {
@@ -13,24 +12,17 @@ namespace KKABMX.Core
                 HarmonyWrapper.PatchAll(typeof(Hooks));
             }
 
-            [HarmonyPostfix, HarmonyPatch(typeof(ShapeInfoBase), nameof(ShapeInfoBase.ChangeValue), typeof(int), typeof(float))]
-            public static void ChangeValuePost(bool __result)
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeBodyValue))]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeFaceValue))]
+            public static void ChangeValuePost(ChaControl __instance)
             {
-                if (!__result) return;
-
-                var controller = MakerAPI.GetCharacterControl()?.GetComponent<BoneController>();
-                if (controller != null)
-                    controller.NeedsBaselineUpdate = true;
-            }
-
-            [HarmonyPostfix, HarmonyPatch(typeof(ShapeInfoBase), nameof(ShapeInfoBase.ChangeValue), typeof(int), typeof(int), typeof(int), typeof(float))]
-            public static void ChangeValuePost2(bool __result)
-            {
-                if (!__result) return;
-
-                var controller = MakerAPI.GetCharacterControl()?.GetComponent<BoneController>();
-                if (controller != null)
-                    controller.NeedsBaselineUpdate = true;
+                if (__instance != null)
+                {
+                    var controller = __instance.GetComponent<BoneController>();
+                    if (controller != null)
+                        controller.NeedsBaselineUpdate = true;
+                }
             }
         }
     }

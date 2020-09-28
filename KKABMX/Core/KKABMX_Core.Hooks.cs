@@ -12,19 +12,20 @@ namespace KKABMX.Core
         {
             public static void Init()
             {
-                var i = HarmonyWrapper.PatchAll(typeof(Hooks));
-
-                foreach (var target in AccessTools.GetDeclaredMethods(typeof(ShapeInfoBase)).Where(x => x.Name == nameof(ShapeInfoBase.ChangeValue)))
-                    i.Patch(target, null, new HarmonyMethod(typeof(Hooks), nameof(ChangeValuePost)));
+                HarmonyWrapper.PatchAll(typeof(Hooks));
             }
 
-            public static void ChangeValuePost(bool __result)
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeBodyValue))]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeFaceValue))]
+            public static void ChangeValuePost(ChaControl __instance)
             {
-                if (!__result) return;
-
-                var controller = MakerAPI.GetCharacterControl()?.GetComponent<BoneController>();
-                if (controller != null)
-                    controller.NeedsBaselineUpdate = true;
+                if (__instance != null)
+                {
+                    var controller = __instance.GetComponent<BoneController>();
+                    if (controller != null)
+                        controller.NeedsBaselineUpdate = true;
+                }
             }
 
             [HarmonyPostfix, HarmonyPatch(typeof(OCIChar), nameof(OCIChar.ActiveKinematicMode))]
