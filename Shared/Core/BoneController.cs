@@ -107,7 +107,13 @@ namespace KKABMX.Core
         public BoneModifier GetModifier(string boneName)
         {
             if (boneName == null) throw new ArgumentNullException(nameof(boneName));
-            return Modifiers.FirstOrDefault(x => x.BoneName == boneName);
+            for (var i = 0; i < Modifiers.Count; i++)
+            {
+                var x = Modifiers[i];
+                if (x.BoneName == boneName) return x;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -185,8 +191,7 @@ namespace KKABMX.Core
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
         {
             var toSave = Modifiers
-                .Where(x => !x.IsEmpty())
-                .Where(x => x.IsCoordinateSpecific())
+                .Where(x => !x.IsEmpty() && x.IsCoordinateSpecific())
                 .ToDictionary(x => x.BoneName, x => x.GetModifier(CurrentCoordinate.Value));
 
             if (toSave.Count == 0)
@@ -326,7 +331,7 @@ namespace KKABMX.Core
 
             NeedsBaselineUpdate = false;
         }
-        
+
         private readonly Dictionary<BoneModifier, List<BoneModifierData>> _effectsToUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
         private void ApplyEffects()
         {
@@ -340,7 +345,7 @@ namespace KKABMX.Core
                     var effect = additionalBoneEffect.GetEffect(affectedBone, this, CurrentCoordinate.Value);
                     if (effect != null && !effect.IsEmpty())
                     {
-                        var modifier = Modifiers.Find(x => string.Equals(x.BoneName, affectedBone, StringComparison.Ordinal));
+                        var modifier = GetModifier(affectedBone);
                         if (modifier == null)
                         {
                             modifier = new BoneModifier(affectedBone);
@@ -363,8 +368,8 @@ namespace KKABMX.Core
                 if (!_effectsToUpdate.TryGetValue(modifier, out var list))
                 {
                     // Clean up no longer necessary modifiers
-                    if (!GUI.KKABMX_AdvancedGUI.Enabled && modifier.IsEmpty())
-                        RemoveModifier(modifier);
+                    //if (!GUI.KKABMX_AdvancedGUI.Enabled && modifier.IsEmpty())
+                    //    RemoveModifier(modifier);
                 }
 
                 modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
@@ -402,7 +407,7 @@ namespace KKABMX.Core
 
             var animSpeed = ChaControl.animBody.speed;
             ChaControl.animBody.speed = 0;
-            
+
 #if KK || AI || HS2 // Only for studio
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             bool[] currentPvCopy = null;

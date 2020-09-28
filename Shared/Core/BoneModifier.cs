@@ -77,7 +77,7 @@ namespace KKABMX.Core
         /// <summary>
         /// Apply the modifiers
         /// </summary>
-        public void Apply(CoordinateType coordinate, ICollection<BoneModifierData> additionalModifiers, bool isDuringHScene)
+        public void Apply(CoordinateType coordinate, IList<BoneModifierData> additionalModifiers, bool isDuringHScene)
         {
             if (BoneTransform == null) return;
 
@@ -165,15 +165,17 @@ namespace KKABMX.Core
             }
         }
 
-        private static BoneModifierData CombineModifiers(BoneModifierData baseModifier, IEnumerable<BoneModifierData> additionalModifiers)
+        private readonly BoneModifierData _combineModifiersCachedReturn = new BoneModifierData();
+        private BoneModifierData CombineModifiers(BoneModifierData baseModifier, IList<BoneModifierData> additionalModifiers)
         {
             var scale = baseModifier.ScaleModifier;
             var len = baseModifier.LengthModifier;
             var position = baseModifier.PositionModifier;
             var rotation = baseModifier.RotationModifier;
 
-            foreach (var additionalModifier in additionalModifiers)
+            for (var i = 0; i < additionalModifiers.Count; i++)
             {
+                var additionalModifier = additionalModifiers[i];
                 scale = new Vector3(
                     scale.x * additionalModifier.ScaleModifier.x,
                     scale.y * additionalModifier.ScaleModifier.y,
@@ -184,7 +186,11 @@ namespace KKABMX.Core
                 rotation += additionalModifier.RotationModifier;
             }
 
-            return new BoneModifierData(scale, len, position, rotation);
+            _combineModifiersCachedReturn.ScaleModifier = scale;
+            _combineModifiersCachedReturn.LengthModifier = len;
+            _combineModifiersCachedReturn.PositionModifier = position;
+            _combineModifiersCachedReturn.RotationModifier = rotation;
+            return _combineModifiersCachedReturn;
         }
 
         public void CollectBaseline()
