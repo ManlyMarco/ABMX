@@ -115,7 +115,7 @@ namespace KKABMX.GUI
 
             if (_onlyShowAdditional)
                 filteredModifiers = filteredModifiers.Where(x => _addedBones.Contains(x.BoneName));
-            if(_onlyShowCoords)
+            if (_onlyShowCoords)
                 filteredModifiers = filteredModifiers.Where(x => x.IsCoordinateSpecific());
 
             if (!string.IsNullOrEmpty(SearchFieldValue))
@@ -169,6 +169,8 @@ namespace KKABMX.GUI
             {
                 DrawHeader();
 
+                UnityEngine.GUI.changed = false;
+
                 _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, true, _gloExpand);
                 {
                     var totalHeight = 0;
@@ -212,6 +214,9 @@ namespace KKABMX.GUI
                     GUILayout.FlexibleSpace();
                 }
                 GUILayout.EndScrollView();
+
+                if (UnityEngine.GUI.changed)
+                    _currentBoneController.NeedsBaselineUpdate = true;
             }
             GUILayout.EndVertical();
 
@@ -220,6 +225,8 @@ namespace KKABMX.GUI
 
         private void DrawSingleModifier(BoneModifier mod)
         {
+            var anyChanged = UnityEngine.GUI.changed;
+
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
             {
 #if KK
@@ -306,6 +313,7 @@ namespace KKABMX.GUI
                     {
                         modData.LengthModifier = lengthModifier;
                         if (linkedModData != null) linkedModData.LengthModifier = lengthModifier;
+                        anyChanged = true;
                     }
                 }
                 GUILayout.EndHorizontal();
@@ -328,6 +336,7 @@ namespace KKABMX.GUI
                     {
                         modData.ScaleModifier = scale;
                         if (linkedModData != null) linkedModData.ScaleModifier = scale;
+                        anyChanged = true;
                     }
                 }
                 GUILayout.EndHorizontal();
@@ -352,6 +361,7 @@ namespace KKABMX.GUI
                         {
                             modData.PositionModifier = position;
                             if (linkedModData != null) linkedModData.PositionModifier = new Vector3(position.x * -1, position.y, position.z);
+                            anyChanged = true;
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -374,12 +384,15 @@ namespace KKABMX.GUI
                         {
                             modData.RotationModifier = rotation;
                             if (linkedModData != null) linkedModData.RotationModifier = new Vector3(rotation.x, rotation.y * -1, rotation.z * -1);
+                            anyChanged = true;
                         }
                     }
                     GUILayout.EndHorizontal();
                 }
             }
             GUILayout.EndVertical();
+
+            if (anyChanged) UnityEngine.GUI.changed = true;
         }
 
         private void DrawSingleSlider(string sliderName, ref float value, float minValue, float maxValue)
