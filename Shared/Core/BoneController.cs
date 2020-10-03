@@ -333,6 +333,7 @@ namespace KKABMX.Core
         }
 
         private readonly Dictionary<BoneModifier, List<BoneModifierData>> _effectsToUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
+
         private void ApplyEffects()
         {
             _effectsToUpdate.Clear();
@@ -400,12 +401,15 @@ namespace KKABMX.Core
             StartCoroutine(CollectBaselineCo());
         }
 
+        private float? _previousAnimSpeed;
         private IEnumerator CollectBaselineCo()
         {
             do yield return Utilities.WaitForEndOfFrame;
             while (ChaControl.animBody == null);
 
-            var animSpeed = ChaControl.animBody.speed;
+            // Stop the animation to prevent bones from drifting while taking the measurement
+            // Check if there's a speed already stored in case the previous run of this coroutine didn't finish
+            if (!_previousAnimSpeed.HasValue) _previousAnimSpeed = ChaControl.animBody.speed;
             ChaControl.animBody.speed = 0;
 
 #if KK || AI || HS2 // Only for studio
@@ -455,7 +459,9 @@ namespace KKABMX.Core
                 }
             }
 #endif
-            ChaControl.animBody.speed = animSpeed;
+
+            ChaControl.animBody.speed = _previousAnimSpeed ?? 1f;
+            _previousAnimSpeed = null;
         }
 
         /// <summary>
