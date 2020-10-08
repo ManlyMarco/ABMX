@@ -376,10 +376,10 @@ namespace KKABMX.Core
                 modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
             }
 
-            // Fix some bust physics issues todo does this still work to fix original isse? causes gravity issue by itself without the =false because its running every frame
-            if (Modifiers.Count > 0 && !ChaControl.reSetupDynamicBoneBust)
-                if (ChaControl.UpdateBustGravity())
-                    ChaControl.reSetupDynamicBoneBust = false;
+            // Fix some bust physics issues
+            // bug - causes gravity issues on its own
+            if (Modifiers.Count > 0)
+                ChaControl.UpdateBustGravity();
         }
 
         private IEnumerator OnDataChangedCo()
