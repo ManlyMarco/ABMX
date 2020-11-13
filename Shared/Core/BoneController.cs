@@ -373,6 +373,15 @@ namespace KKABMX.Core
                     //    RemoveModifier(modifier);
                 }
 
+#if KK || EC
+                // Fix skirt going haywire, don't ask how it works
+                if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal))
+                {
+                    modifier.Reset();
+                    modifier.CollectBaseline();
+                }
+#endif
+
                 modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
             }
 
