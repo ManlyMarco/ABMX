@@ -374,8 +374,12 @@ namespace KKABMX.Core
                 }
 
 #if KK || EC
-                // Fix skirt going haywire, don't ask how it works
-                if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal))
+                // Force reset baseline of bones affected by dynamicbones
+                // todo do the same for ai and hs2
+                if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) || 
+                    modifier.BoneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) || 
+                    modifier.BoneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) || 
+                    modifier.BoneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
                 {
                     modifier.Reset();
                     modifier.CollectBaseline();
