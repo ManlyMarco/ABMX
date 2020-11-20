@@ -2,7 +2,7 @@
 {
     internal static class Metadata
     {
-        public const string Version = "4.3";
+        public const string Version = "4.3.1";
         public const string Name = "PHABMX (BonemodX)";
         public const string GUID = "KKABMX.Core";
         public const string ExtDataGUID = "KKABMPlugin.ABMData";
