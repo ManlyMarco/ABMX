@@ -20,7 +20,7 @@ namespace KKABMX.Core
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public partial class KKABMX_Core : BaseUnityPlugin
     {
-        internal const string Version = Metadata.Version;
+        public const string Version = Metadata.Version;
         public const string GUID = Metadata.GUID;
         public const string ExtDataGUID = Metadata.ExtDataGUID;
         private const string Name = Metadata.Name;
