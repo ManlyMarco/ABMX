@@ -369,30 +369,21 @@ namespace KKABMX.Core
                 if (!_effectsToUpdate.TryGetValue(modifier, out var list))
                 {
                     // Clean up no longer necessary modifiers
+                    // not used to reduce per-frame perf hit
                     //if (!GUI.KKABMX_AdvancedGUI.Enabled && modifier.IsEmpty())
                     //    RemoveModifier(modifier);
                 }
 
-#if KK || EC
-                // Force reset baseline of bones affected by dynamicbones
-                // todo do the same for ai and hs2
-                if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) || 
-                    modifier.BoneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) || 
-                    modifier.BoneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) || 
-                    modifier.BoneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
-                {
-                    modifier.Reset();
-                    modifier.CollectBaseline();
-                }
-#endif
+                HandleDynamicBoneModifiers(modifier);
 
                 modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
             }
 
             // Fix some bust physics issues
             // bug - causes gravity issues on its own
-            if (Modifiers.Count > 0)
-                ChaControl.UpdateBustGravity();
+            // seems to no longer be necessary with fix above
+            //if (Modifiers.Count > 0)
+            //    ChaControl.UpdateBustGravity();
         }
 
         private IEnumerator OnDataChangedCo()
@@ -531,6 +522,29 @@ namespace KKABMX.Core
             {
                 modifier.Reset();
                 Modifiers.Remove(modifier);
+            }
+        }
+
+        /// <summary>
+        /// Force reset baseline of bones affected by dynamicbones
+        /// to avoid overwriting dynamicbone animations
+        /// </summary>
+        private static void HandleDynamicBoneModifiers(BoneModifier modifier)
+        {
+#if KK || EC
+                if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) || 
+                    modifier.BoneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) || 
+                    modifier.BoneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) || 
+                    modifier.BoneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
+#elif AI || HS2
+            if (modifier.BoneName.StartsWith("cf_J_SiriDam", StringComparison.Ordinal) ||
+                modifier.BoneName.StartsWith("cf_J_Mune00", StringComparison.Ordinal))
+#else
+                todo fix
+#endif
+            {
+                modifier.Reset();
+                modifier.CollectBaseline();
             }
         }
     }
