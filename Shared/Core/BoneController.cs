@@ -381,9 +381,8 @@ namespace KKABMX.Core
 
             // Fix some bust physics issues
             // bug - causes gravity issues on its own
-            // seems to no longer be necessary with fix above
-            //if (Modifiers.Count > 0)
-            //    ChaControl.UpdateBustGravity();
+            if (Modifiers.Count > 0)
+                ChaControl.UpdateBustGravity();
         }
 
         private IEnumerator OnDataChangedCo()
