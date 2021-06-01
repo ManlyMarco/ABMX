@@ -213,7 +213,7 @@ namespace KKABMX.Core
 
         public BoneModifierData GetModifier(CoordinateType coordinate)
         {
-            if (CoordinateModifiers.Length == 1) return CoordinateModifiers[0];
+            if (!IsCoordinateSpecific()) return CoordinateModifiers[0];
             return CoordinateModifiers[(int)coordinate];
         }
 
@@ -239,7 +239,7 @@ namespace KKABMX.Core
             // No coordinate saving in AIS
             return false;
 #else
-            return CoordinateModifiers.Length == CoordinateCount;
+            return CoordinateModifiers.Length >= CoordinateCount;
 #endif
         }
 

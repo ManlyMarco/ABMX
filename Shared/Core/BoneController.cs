@@ -208,16 +208,7 @@ namespace KKABMX.Core
         /// <inheritdoc />
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            var toSave = Modifiers.Where(x => !x.IsEmpty()).ToList();
-
-            if (toSave.Count == 0)
-            {
-                SetExtendedData(null);
-                return;
-            }
-
-            var data = new PluginData { version = 2 };
-            data.data.Add(ExtDataBoneDataKey, LZ4MessagePackSerializer.Serialize(toSave));
+            var data = SaveModifiers(Modifiers);
             SetExtendedData(data);
         }
 
@@ -235,36 +226,8 @@ namespace KKABMX.Core
 
             if (!maintainState && (GUI.KKABMX_GUI.LoadBody || GUI.KKABMX_GUI.LoadFace))
             {
-                List<BoneModifier> newModifiers = null;
                 var data = GetExtendedData();
-                if (data != null)
-                {
-                    try
-                    {
-                        switch (data.version)
-                        {
-                            case 2:
-                                newModifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
-                                break;
-
-#if KK || EC || KKS
-                            case 1:
-                                KKABMX_Core.Logger.LogDebug($"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter?.fullname}");
-                                newModifiers = OldDataConverter.MigrateOldExtData(data);
-                                break;
-#endif
-
-                            default:
-                                throw new NotSupportedException($"Save version {data.version} is not supported");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        KKABMX_Core.Logger.LogError("[KKABMX] Failed to load extended data - " + ex);
-                    }
-                }
-
-                if (newModifiers == null) newModifiers = new List<BoneModifier>();
+                var newModifiers = ReadModifiers(data);
 
                 if (GUI.KKABMX_GUI.LoadBody && GUI.KKABMX_GUI.LoadFace)
                 {
@@ -295,6 +258,47 @@ namespace KKABMX.Core
             }
 
             StartCoroutine(OnDataChangedCo());
+        }
+
+        internal static List<BoneModifier> ReadModifiers(PluginData data)
+        {
+            if (data != null)
+            {
+                try
+                {
+                    switch (data.version)
+                    {
+                        case 2:
+                            return LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>(
+                                    (byte[]) data.data[ExtDataBoneDataKey]);
+#if KK || EC || KKS
+                        case 1:
+                            KKABMX_Core.Logger.LogDebug("[KKABMX] Loading legacy embedded ABM data");
+                            return OldDataConverter.MigrateOldExtData(data);
+#endif
+
+                        default:
+                            throw new NotSupportedException($"Save version {data.version} is not supported");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    KKABMX_Core.Logger.LogError("[KKABMX] Failed to load extended data - " + ex);
+                }
+            }
+            return new List<BoneModifier>();
+        }
+
+        internal static PluginData SaveModifiers(List<BoneModifier> modifiers)
+        {
+            var toSave = modifiers.Where(x => !x.IsEmpty()).ToList();
+
+            if (toSave.Count == 0)
+                return null;
+
+            var data = new PluginData { version = 2 };
+            data.data.Add(ExtDataBoneDataKey, LZ4MessagePackSerializer.Serialize(toSave));
+            return data;
         }
 
         /// <inheritdoc />

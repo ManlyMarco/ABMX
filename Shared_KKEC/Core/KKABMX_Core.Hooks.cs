@@ -1,4 +1,8 @@
 ﻿using HarmonyLib;
+#if EC || KKS
+using System.Linq;
+using ExtensibleSaveFormat;
+#endif
 #if KK || KKS
 using Studio;
 #endif
@@ -12,6 +16,31 @@ namespace KKABMX.Core
             public static void Init()
             {
                 Harmony.CreateAndPatchAll(typeof(Hooks), GUID);
+
+#if KKS || EC
+                ExtendedSave.CardBeingImported += importedData =>
+                {
+                    if (importedData.TryGetValue(GUID, out var pluginData) && pluginData != null)
+                    {
+                        var modifiers = BoneController.ReadModifiers(pluginData);
+
+                        // Only keep 1st coord
+                        foreach (var modifier in modifiers)
+                        {
+                            if (modifier.IsCoordinateSpecific())
+                            {
+                                // Trim the coordinate array to correct size
+                                modifier.CoordinateModifiers = modifier.CoordinateModifiers.Take(BoneModifier.CoordinateCount).ToArray();
+                                // Clear coord data from coords other than the 1st one
+                                foreach (var boneModifierData in modifier.CoordinateModifiers.Skip(1))
+                                    boneModifierData.Clear();
+                            }
+                        }
+
+                        importedData[GUID] = BoneController.SaveModifiers(modifiers);
+                    }
+                };
+#endif
             }
 
             [HarmonyPostfix]
