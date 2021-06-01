@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Core\KKABMX_Core.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\KKABMX_Core.Hooks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OldDataConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\InterfaceData.cs" />
   </ItemGroup>

@@ -229,7 +229,7 @@ namespace KKABMX.GUI
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
             {
-#if KK
+#if KK || KKS
                 var currentCoordinate = (ChaFileDefine.CoordinateType)_currentBoneController.ChaControl.fileStatus.coordinateType;
 #elif EC
                 var currentCoordinate = KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01;

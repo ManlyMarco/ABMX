@@ -13,7 +13,7 @@ namespace KKABMX.Core
         [Obsolete]
         public const int ManualBoneId = -1;
 
-#if KK || AI || HS2
+#if KK || KKS || AI || HS2
         private static readonly FieldInfo FieldPvCopyBone = typeof(Studio.PVCopy).GetField("bone",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 

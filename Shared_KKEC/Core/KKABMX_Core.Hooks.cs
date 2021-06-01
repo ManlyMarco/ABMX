@@ -12,7 +12,7 @@ namespace KKABMX.Core
         {
             public static void Init()
             {
-                HarmonyWrapper.PatchAll(typeof(Hooks));
+                Harmony.CreateAndPatchAll(typeof(Hooks), GUID);
             }
 
             [HarmonyPostfix]
@@ -28,6 +28,7 @@ namespace KKABMX.Core
                 }
             }
 
+#if KK || KKS
             [HarmonyPostfix, HarmonyPatch(typeof(OCIChar), nameof(OCIChar.ActiveKinematicMode))]
             public static void ActiveKinematicModePost(OCIChar __instance)
             {
@@ -43,6 +44,7 @@ namespace KKABMX.Core
                 if (controller != null)
                     controller.NeedsFullRefresh = true;
             }
+#endif
         }
     }
 }

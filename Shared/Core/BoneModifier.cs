@@ -4,7 +4,7 @@ using System.Linq;
 using MessagePack;
 using UnityEngine;
 
-#if KK
+#if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;

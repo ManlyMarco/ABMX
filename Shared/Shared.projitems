@@ -9,6 +9,7 @@
     <Import_RootNamespace>Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneEffect.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifier.cs" />

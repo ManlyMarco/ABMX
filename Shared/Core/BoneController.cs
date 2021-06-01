@@ -14,7 +14,7 @@ using UniRx;
 
 namespace KKABMX.Core
 {
-#if KK
+#if KK || KKS
     using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
     using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
@@ -247,7 +247,7 @@ namespace KKABMX.Core
                                 newModifiers = LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
                                 break;
 
-#if KK || EC
+#if KK || EC || KKS
                             case 1:
                                 KKABMX_Core.Logger.LogDebug($"[KKABMX] Loading legacy embedded ABM data from card: {ChaFileControl.parameter?.fullname}");
                                 newModifiers = OldDataConverter.MigrateOldExtData(data);
@@ -302,7 +302,7 @@ namespace KKABMX.Core
         {
             base.Start();
             CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
-#if KK // hs2 ais is HScene
+#if KK // hs2 ais is HScene //todo KKS full game
             _isDuringHScene = "H".Equals(Scene.Instance.LoadSceneName, StringComparison.Ordinal);
 #endif
         }
@@ -415,7 +415,7 @@ namespace KKABMX.Core
             if (!_previousAnimSpeed.HasValue) _previousAnimSpeed = ChaControl.animBody.speed;
             ChaControl.animBody.speed = 0;
 
-#if KK || AI || HS2 // Only for studio
+#if KK || KKS || AI || HS2 // Only for studio
             var pvCopy = ChaControl.animBody.gameObject.GetComponent<Studio.PVCopy>();
             bool[] currentPvCopy = null;
             if (pvCopy != null)
@@ -446,7 +446,7 @@ namespace KKABMX.Core
 
             yield return Utilities.WaitForEndOfFrame;
 
-#if KK || AI || HS2 // Only for studio
+#if KK || KKS || AI || HS2 // Only for studio
             if (pvCopy != null)
             {
                 var array = pvCopy.GetPvArray();
@@ -530,7 +530,7 @@ namespace KKABMX.Core
         /// </summary>
         private static void HandleDynamicBoneModifiers(BoneModifier modifier)
         {
-#if KK || EC
+#if KK || KKS || EC
                 if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) || 
                     modifier.BoneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) || 
                     modifier.BoneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) || 

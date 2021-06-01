@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-#if KK
+#if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;

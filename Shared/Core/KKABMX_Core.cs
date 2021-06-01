@@ -98,7 +98,7 @@ namespace KKABMX.Core
                 return c?.ChaControl;
             }
 #endif
-#if KK
+#if KK //todo KKS full game
             var talkScene = FindObjectOfType<TalkScene>();
             var result = talkScene?.targetHeroine;
             if (result != null) return result.chaCtrl;

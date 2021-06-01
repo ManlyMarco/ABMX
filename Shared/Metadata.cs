@@ -11,6 +11,8 @@
         public const string Name = "KKABMX (BonemodX)";
 #elif EC
         public const string Name = "ECABMX (BonemodX)";
+#elif KKS
+        public const string Name = "KKSABMX (BonemodX)";
 #endif
         public const string GUID = "KKABMX.Core";
         public const string ExtDataGUID = "KKABMPlugin.ABMData";
