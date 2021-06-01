@@ -1,8 +1,7 @@
-﻿using System.Linq;
-using BepInEx.Harmony;
-using HarmonyLib;
-using KKAPI.Maker;
+﻿using HarmonyLib;
+#if KK || KKS
 using Studio;
+#endif
 
 namespace KKABMX.Core
 {

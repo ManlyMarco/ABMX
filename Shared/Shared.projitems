@@ -15,7 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifierData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\KKABMX_Core.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\BoneMeta.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\KKABMX_AdvancedGUI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\KKABMX_GUI.cs" />

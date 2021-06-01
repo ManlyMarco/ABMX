@@ -390,7 +390,7 @@ namespace KKABMX.Core
             CleanEmptyModifiers();
 
             // Needed to let accessories load in
-            yield return Utilities.WaitForEndOfFrame;
+            yield return CoroutineUtils.WaitForEndOfFrame;
 
             ModifiersFillInTransforms();
 
@@ -407,7 +407,7 @@ namespace KKABMX.Core
         private float? _previousAnimSpeed;
         private IEnumerator CollectBaselineCo()
         {
-            do yield return Utilities.WaitForEndOfFrame;
+            do yield return CoroutineUtils.WaitForEndOfFrame;
             while (ChaControl.animBody == null);
 
             // Stop the animation to prevent bones from drifting while taking the measurement
@@ -420,7 +420,7 @@ namespace KKABMX.Core
             bool[] currentPvCopy = null;
             if (pvCopy != null)
             {
-                var pvCount = pvCopy.GetPvArray().Length;
+                var pvCount = pvCopy.pv.Length;
                 currentPvCopy = new bool[pvCount];
                 for (var i = 0; i < currentPvCopy.Length; i++)
                 {
@@ -430,7 +430,7 @@ namespace KKABMX.Core
             }
 #endif
 
-            yield return Utilities.WaitForEndOfFrame;
+            yield return CoroutineUtils.WaitForEndOfFrame;
 
             // Ensure that the baseline is correct
             ChaControl.updateShapeFace = true;
@@ -444,13 +444,13 @@ namespace KKABMX.Core
 
             _baselineKnown = true;
 
-            yield return Utilities.WaitForEndOfFrame;
+            yield return CoroutineUtils.WaitForEndOfFrame;
 
 #if KK || KKS || AI || HS2 // Only for studio
             if (pvCopy != null)
             {
-                var array = pvCopy.GetPvArray();
-                var array2 = pvCopy.GetBoneArray();
+                var array = pvCopy.pv;
+                var array2 = pvCopy.bone;
                 for (var j = 0; j < currentPvCopy.Length; j++)
                 {
                     if (currentPvCopy[j] && array2[j] && array[j])
@@ -473,8 +473,8 @@ namespace KKABMX.Core
         /// </summary>
         private void UpdateBaseline()
         {
-            var distSrc = ChaControl.GetSibFace().GetDictDst();
-            var distSrc2 = ChaControl.GetSibBody().GetDictDst();
+            var distSrc = ChaControl.sibFace.dictDst;
+            var distSrc2 = ChaControl.sibBody.dictDst;
             var affectedBones = new HashSet<Transform>(distSrc.Concat(distSrc2).Select(x => x.Value.trfBone));
             var affectedModifiers = Modifiers.Where(x => affectedBones.Contains(x.BoneTransform)).ToList();
 
@@ -531,10 +531,10 @@ namespace KKABMX.Core
         private static void HandleDynamicBoneModifiers(BoneModifier modifier)
         {
 #if KK || KKS || EC
-                if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) || 
-                    modifier.BoneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) || 
-                    modifier.BoneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) || 
-                    modifier.BoneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
+            if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) || 
+                modifier.BoneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) || 
+                modifier.BoneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) || 
+                modifier.BoneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
 #elif AI || HS2
             if (modifier.BoneName.StartsWith("cf_J_SiriDam", StringComparison.Ordinal) ||
                 modifier.BoneName.StartsWith("cf_J_Mune00", StringComparison.Ordinal))

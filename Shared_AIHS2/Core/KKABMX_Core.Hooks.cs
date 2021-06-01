@@ -1,5 +1,4 @@
 ﻿using AIChara;
-using BepInEx.Harmony;
 using HarmonyLib;
 
 namespace KKABMX.Core
@@ -10,7 +9,7 @@ namespace KKABMX.Core
         {
             public static void Init()
             {
-                HarmonyWrapper.PatchAll(typeof(Hooks));
+                Harmony.CreateAndPatchAll(typeof(Hooks), GUID);
             }
 
             [HarmonyPostfix]

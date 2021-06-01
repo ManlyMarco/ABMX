@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using BepInEx.Harmony;
 using HarmonyLib;
 using KKAPI.Maker;
 using Studio;
@@ -14,7 +12,7 @@ namespace KKABMX.Core
         {
             public static void Init()
             {
-                var i = HarmonyWrapper.PatchAll(typeof(Hooks));
+                Harmony.CreateAndPatchAll(typeof(Hooks), GUID);
             }
 
             [HarmonyPostfix]
@@ -27,11 +25,10 @@ namespace KKABMX.Core
                     var co = cha.GetComponent<BoneController>() ?? throw new ArgumentNullException($"cha.GetComponent<BoneController>()");
 
                     void OnUpdate(float x) => co.NeedsBaselineUpdate = true;
-
-                    var t = Traverse.Create(__instance);
-                    foreach (var sliderUi in t.Field("face").Field<InputSliderUI[]>("sliders").Value)
+                    
+                    foreach (var sliderUi in __instance.face.sliders)
                         sliderUi.AddOnChangeAction(OnUpdate);
-                    foreach (var sliderUi in t.Field("body").Field<InputSliderUI[]>("sliders").Value)
+                    foreach (var sliderUi in __instance.body.sliders)
                         sliderUi.AddOnChangeAction(OnUpdate);
                 }
                 catch (Exception e)
