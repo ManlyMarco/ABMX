@@ -20,27 +20,47 @@ namespace KKABMX.Core
             {
                 Harmony.CreateAndPatchAll(typeof(Hooks), GUID);
 
-#if KKS || EC
+#if EC
                 ExtendedSave.CardBeingImported += importedData =>
                 {
                     if (importedData.TryGetValue(GUID, out var pluginData) && pluginData != null)
                     {
                         var modifiers = BoneController.ReadModifiers(pluginData);
 
-                        // Only keep 1st coord
-                        foreach (var modifier in modifiers)
-                        {
-                            if (modifier.IsCoordinateSpecific())
-                            {
-                                // Trim the coordinate array to correct size
-                                modifier.CoordinateModifiers = modifier.CoordinateModifiers.Take(BoneModifier.CoordinateCount).ToArray();
-                                // Clear coord data from coords other than the 1st one
-                                foreach (var boneModifierData in modifier.CoordinateModifiers.Skip(1))
-                                    boneModifierData.Clear();
-                            }
-                        }
+                        // Only 1st coord is used in EC so remove others
+                        foreach (var modifier in modifiers) modifier.MakeNonCoordinateSpecific();
 
                         importedData[GUID] = BoneController.SaveModifiers(modifiers);
+                    }
+                };
+#elif KKS
+                ExtendedSave.CardBeingImported += (data, mapping) =>
+                {
+                    if (data.TryGetValue(GUID, out var pluginData) && pluginData != null)
+                    {
+                        var modifiers = BoneController.ReadModifiers(pluginData);
+                        var coordCount = (int)mapping.Values.Max(x => x);
+                        foreach (var modifier in modifiers)
+                        {
+                            if (!modifier.IsCoordinateSpecific()) continue;
+
+                            var newArr = new BoneModifierData[coordCount];
+
+                            foreach (var map in mapping)
+                            {
+                                // Discard unused
+                                if (map.Value == null) continue;
+
+                                if (map.Key < modifier.CoordinateModifiers.Length)
+                                    newArr[(int)map.Value] = modifier.CoordinateModifiers[map.Key];
+                                else
+                                    newArr[(int)map.Value] = new BoneModifierData();
+                            }
+
+                            modifier.CoordinateModifiers = newArr;
+                        }
+
+                        data[GUID] = BoneController.SaveModifiers(modifiers);
                     }
                 };
 #endif
@@ -61,7 +81,7 @@ namespace KKABMX.Core
                 boneController.enabled = !__instance.isPause;
             }
 #endif
-            
+
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeBodyValue))]
             [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeFaceValue))]

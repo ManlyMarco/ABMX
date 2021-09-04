@@ -399,8 +399,10 @@ namespace KKABMX.GUI
             if (boneMod == null)
                 return null;
 
+#if !EC && !AI && !HS2
             if (coordinateUnique)
-                boneMod.MakeCoordinateSpecific();
+                boneMod.MakeCoordinateSpecific(_boneController.ChaFileControl.coordinate.Length);
+#endif
 
             return boneMod.GetModifier(_boneController.CurrentCoordinate.Value);
         }

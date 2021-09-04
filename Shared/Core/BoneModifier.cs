@@ -15,8 +15,6 @@ namespace KKABMX.Core
     [MessagePackObject]
     public sealed class BoneModifier
     {
-        internal static readonly int CoordinateCount = Enum.GetValues(typeof(CoordinateType)).Length;
-
         private bool _hasBaseline;
         private float _lenBaseline;
         private Vector3 _sclBaseline = Vector3.one;
@@ -48,8 +46,8 @@ namespace KKABMX.Core
                 throw new ArgumentException("Invalid boneName - " + boneName, nameof(boneName));
             if (coordinateModifiers == null)
                 throw new ArgumentNullException(nameof(coordinateModifiers));
-            if (coordinateModifiers.Length != 1 && coordinateModifiers.Length != CoordinateCount)
-                throw new ArgumentException($"Need to set either 1 modifier or {CoordinateCount} modifiers, not {coordinateModifiers.Length}", nameof(coordinateModifiers));
+            if (coordinateModifiers.Length < 1)
+                throw new ArgumentException("Need to set either 1 modifier", nameof(coordinateModifiers));
 
             BoneName = boneName;
             CoordinateModifiers = coordinateModifiers.ToArray();
@@ -214,6 +212,12 @@ namespace KKABMX.Core
         public BoneModifierData GetModifier(CoordinateType coordinate)
         {
             if (!IsCoordinateSpecific()) return CoordinateModifiers[0];
+            if (CoordinateModifiers.Length <= (int)coordinate)
+            {
+                System.Diagnostics.Debug.Assert(CoordinateModifiers.Length <= (int)coordinate, "CoordinateModifiers.Length <= (int)coordinate");
+                return null;
+            }
+
             return CoordinateModifiers[(int)coordinate];
         }
 
@@ -239,17 +243,19 @@ namespace KKABMX.Core
             // No coordinate saving in AIS
             return false;
 #else
-            return CoordinateModifiers.Length >= CoordinateCount;
+            return CoordinateModifiers.Length > 1;
 #endif
         }
 
         /// <summary>
         /// If this modifier is not coordinate specific, make it coordinate specific (one set of values for each outfit)
         /// </summary>
-        public void MakeCoordinateSpecific()
+        public void MakeCoordinateSpecific(int coordinateCount)
         {
+            if (coordinateCount <= 1) throw new ArgumentOutOfRangeException(nameof(coordinateCount), "Must be more than 1");
+
             if (!IsCoordinateSpecific())
-                CoordinateModifiers = Enumerable.Range(0, CoordinateCount).Select(_ => CoordinateModifiers[0].Clone()).ToArray();
+                CoordinateModifiers = Enumerable.Range(0, coordinateCount).Select(_ => CoordinateModifiers[0].Clone()).ToArray();
         }
 
         /// <summary>
@@ -257,7 +263,7 @@ namespace KKABMX.Core
         /// </summary>
         public void MakeNonCoordinateSpecific()
         {
-            if (IsCoordinateSpecific())
+            if (CoordinateModifiers.Length > 1)
                 CoordinateModifiers = new[] { CoordinateModifiers[0] };
         }
 

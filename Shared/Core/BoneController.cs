@@ -145,7 +145,7 @@ namespace KKABMX.Core
                 ;
         }
 
-#if !AI && !HS2 //No coordinate saving in AIS
+#if !EC && !AI && !HS2 //No coordinate saving in AIS
         protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate, bool maintainState)
         {
             if (maintainState) return;
@@ -174,7 +174,7 @@ namespace KKABMX.Core
                                 target = new BoneModifier(modifier.Key);
                                 AddModifier(target);
                             }
-                            target.MakeCoordinateSpecific();
+                            target.MakeCoordinateSpecific(ChaFileControl.coordinate.Length);
                             target.CoordinateModifiers[(int)CurrentCoordinate.Value] = modifier.Value;
                         }
                     }

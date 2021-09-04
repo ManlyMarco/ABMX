@@ -290,9 +290,9 @@ namespace KKABMX.GUI
                         }
                     }
 
-#if !AI
+#if !EC && !AI && !HS2
                     if (GUILayout.Toggle(mod.IsCoordinateSpecific(), "Per coordinate", GUILayout.ExpandWidth(false)))
-                        mod.MakeCoordinateSpecific();
+                        mod.MakeCoordinateSpecific(_currentBoneController.ChaFileControl.coordinate.Length);
                     else
                         mod.MakeNonCoordinateSpecific();
 #endif

@@ -74,9 +74,10 @@ namespace KKABMX.Core
                 if (coordinateModifiers.Count == 0)
                     continue;
 
-                if (coordinateModifiers.Count > BoneModifier.CoordinateCount)
-                    coordinateModifiers.RemoveRange(0, coordinateModifiers.Count - BoneModifier.CoordinateCount);
-                if (coordinateModifiers.Count > 1 && coordinateModifiers.Count < BoneModifier.CoordinateCount)
+                const int kkCoordinateCount = 7;
+                if (coordinateModifiers.Count > kkCoordinateCount)
+                    coordinateModifiers.RemoveRange(0, coordinateModifiers.Count - kkCoordinateCount);
+                if (coordinateModifiers.Count > 1 && coordinateModifiers.Count < kkCoordinateCount)
                     coordinateModifiers.RemoveRange(0, coordinateModifiers.Count - 1);
 
                 results.Add(new BoneModifier(groupedBoneDataEntries.Key, coordinateModifiers.ToArray()));
