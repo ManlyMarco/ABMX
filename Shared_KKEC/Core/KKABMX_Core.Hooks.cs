@@ -36,10 +36,10 @@ namespace KKABMX.Core
 #elif KKS
                 ExtendedSave.CardBeingImported += (data, mapping) =>
                 {
-                    if (data.TryGetValue(GUID, out var pluginData) && pluginData != null)
+                    if (data.TryGetValue(ExtDataGUID, out var pluginData) && pluginData != null)
                     {
                         var modifiers = BoneController.ReadModifiers(pluginData);
-                        var coordCount = (int)mapping.Values.Max(x => x);
+                        var coordCount = (int)mapping.Values.Max(x => x) + 1;
                         foreach (var modifier in modifiers)
                         {
                             if (!modifier.IsCoordinateSpecific()) continue;

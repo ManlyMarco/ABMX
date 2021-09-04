@@ -83,6 +83,8 @@ namespace KKABMX.Core
 
             if (additionalModifiers != null && additionalModifiers.Count > 0)
                 modifier = CombineModifiers(modifier, additionalModifiers);
+            else if (modifier == null)
+                return;
 
             if (CanApply(modifier))
             {
@@ -166,10 +168,10 @@ namespace KKABMX.Core
         private readonly BoneModifierData _combineModifiersCachedReturn = new BoneModifierData();
         private BoneModifierData CombineModifiers(BoneModifierData baseModifier, IList<BoneModifierData> additionalModifiers)
         {
-            var scale = baseModifier.ScaleModifier;
-            var len = baseModifier.LengthModifier;
-            var position = baseModifier.PositionModifier;
-            var rotation = baseModifier.RotationModifier;
+            var scale = baseModifier?.ScaleModifier ?? Vector3.one;
+            var len = baseModifier?.LengthModifier ?? 1f;
+            var position = baseModifier?.PositionModifier ?? Vector3.zero;
+            var rotation = baseModifier?.RotationModifier ?? Vector3.zero;
 
             for (var i = 0; i < additionalModifiers.Count; i++)
             {
