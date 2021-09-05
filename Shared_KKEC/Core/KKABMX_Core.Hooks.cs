@@ -60,7 +60,7 @@ namespace KKABMX.Core
                             modifier.CoordinateModifiers = newArr;
                         }
 
-                        data[GUID] = BoneController.SaveModifiers(modifiers);
+                        data[ExtDataGUID] = BoneController.SaveModifiers(modifiers);
                     }
                 };
 #endif
