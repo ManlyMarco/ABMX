@@ -216,7 +216,9 @@ namespace KKABMX.Core
             if (!IsCoordinateSpecific()) return CoordinateModifiers[0];
             if (CoordinateModifiers.Length <= (int)coordinate)
             {
-                System.Diagnostics.Debug.Assert(CoordinateModifiers.Length <= (int)coordinate, "CoordinateModifiers.Length <= (int)coordinate");
+#if DEBUG
+                Console.WriteLine($"CoordinateModifiers.Length={CoordinateModifiers.Length} <= (int)coordinate={(int)coordinate}");
+#endif
                 return null;
             }
 
@@ -258,6 +260,23 @@ namespace KKABMX.Core
 
             if (!IsCoordinateSpecific())
                 CoordinateModifiers = Enumerable.Range(0, coordinateCount).Select(_ => CoordinateModifiers[0].Clone()).ToArray();
+            else if (coordinateCount != CoordinateModifiers.Length)
+                OnCoordinateCountChanged(coordinateCount);
+        }
+
+        private void OnCoordinateCountChanged(int coordinateCount)
+        {
+            //if (!IsCoordinateSpecific()) return;
+
+            // Trim slots if there's less than before
+            var modifiers = CoordinateModifiers.Take(coordinateCount);
+
+            // Add extra slots if there's more than before
+            var additionalCount = coordinateCount - CoordinateModifiers.Length;
+            if (additionalCount > 0)
+                modifiers = modifiers.Concat(Enumerable.Range(0, additionalCount).Select(_ => new BoneModifierData()));
+
+            CoordinateModifiers = modifiers.ToArray();
         }
 
         /// <summary>
