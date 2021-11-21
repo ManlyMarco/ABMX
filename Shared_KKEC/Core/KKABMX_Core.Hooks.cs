@@ -6,9 +6,6 @@ using ExtensibleSaveFormat;
 #if KK || KKS
 using Studio;
 #endif
-#if KK
-using ActionGame.Chara;
-#endif
 
 namespace KKABMX.Core
 {
@@ -65,22 +62,6 @@ namespace KKABMX.Core
                 };
 #endif
             }
-
-#if KK
-            [HarmonyPostfix, HarmonyPatch(typeof(NPC), nameof(NPC.Pause))]
-            public static void PausePost(NPC __instance)
-            {
-                var chaControl = __instance.chaCtrl;
-                if (chaControl == null)
-                    return;
-
-                var boneController = chaControl.GetComponent<BoneController>();
-                if (boneController == null)
-                    return;
-
-                boneController.enabled = !__instance.isPause;
-            }
-#endif
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeBodyValue))]
