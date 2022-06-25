@@ -5,6 +5,7 @@ Plugin that adds more character customization settings to character maker of var
 - Emotion Creators (ECABMX)
 - AI-Shoujo / AI-Syoujyo (AIABMX)
 - HoneySelect2 (HS2ABMX)
+- Koikatsu Sunshine (KKSABMX)
 
 ## How to use 
 1. Make sure that you have at least BepInEx 5.0 and the latest [Modding API](https://github.com/ManlyMarco/KKAPI) for your game installed, and your game is updated.
