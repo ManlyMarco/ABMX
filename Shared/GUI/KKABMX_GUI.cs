@@ -124,7 +124,7 @@ namespace KKABMX.GUI
 
             void UpdateDisplay(int _)
             {
-                var boneMod = _boneController.GetModifier(GetFingerBoneNames().First());
+                var boneMod = _boneController.GetModifier(GetFingerBoneNames().First(), BoneLocation.BodyTop);
                 var mod = boneMod?.GetModifier(_boneController.CurrentCoordinate.Value);
                 SetSliders(mod?.ScaleModifier ?? Vector3.one);
             }
@@ -162,7 +162,7 @@ namespace KKABMX.GUI
 
                 foreach (var boneName in GetFingerBoneNames())
                 {
-                    var bone = _boneController.GetModifier(boneName);
+                    var bone = _boneController.GetModifier(boneName, BoneLocation.BodyTop);
                     var modifier = bone?.GetModifier(_boneController.CurrentCoordinate.Value);
 
                     var prevValue = modifier?.ScaleModifier ?? Vector3.one;
@@ -176,7 +176,7 @@ namespace KKABMX.GUI
                             return;
 
                         if (bone == null)
-                            bone = new BoneModifier(boneName);
+                            bone = new BoneModifier(boneName, BoneLocation.BodyTop);
 
                         _boneController.AddModifier(bone);
                         modifier = bone.GetModifier(_boneController.CurrentCoordinate.Value);
@@ -311,7 +311,7 @@ namespace KKABMX.GUI
                     var hasLen = l != null && Math.Abs(l.Value - 1f) > 0.001;
                     if (newValue == Vector3.one && !hasLen) return;
 
-                    _boneController.AddModifier(new BoneModifier(boneMeta.BoneName));
+                    _boneController.AddModifier(new BoneModifier(boneMeta.BoneName, BoneLocation.BodyTop));
                     modifier = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
                 }
 
@@ -322,7 +322,7 @@ namespace KKABMX.GUI
                         var bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate);
                         if (bone2 == null)
                         {
-                            _boneController.AddModifier(new BoneModifier(boneMeta.RightBoneName));
+                            _boneController.AddModifier(new BoneModifier(boneMeta.RightBoneName, BoneLocation.BodyTop));
                             bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate);
                         }
 
@@ -395,7 +395,7 @@ namespace KKABMX.GUI
 
         private BoneModifierData GetBoneModifier(string boneName, bool coordinateUnique)
         {
-            var boneMod = _boneController.GetModifier(boneName);
+            var boneMod = _boneController.GetModifier(boneName, BoneLocation.BodyTop);
             if (boneMod == null)
                 return null;
 

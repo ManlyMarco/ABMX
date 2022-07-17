@@ -29,18 +29,29 @@ namespace KKABMX.Core
 
         private bool _forceApply;
 
+        [Obsolete]
+        public BoneModifier(string boneName) : this(boneName, BoneLocation.Unknown, new[] { new BoneModifierData() }) { }
+
+        [Obsolete]
+        public BoneModifier(string boneName, BoneModifierData[] coordinateModifiers) : this(boneName, BoneLocation.Unknown, coordinateModifiers) { }
+
         /// <summary>
         /// Create empty modifier that is not coordinate specific
         /// </summary>
         /// <param name="boneName">Name of the bone transform to affect</param>
-        public BoneModifier(string boneName) : this(boneName, new[] { new BoneModifierData() }) { }
+        /// <param name="boneLocation">Where the bone transform to affect is located</param>
+        public BoneModifier(string boneName, BoneLocation boneLocation) : this(boneName, boneLocation, new[] { new BoneModifierData() }) { }
 
+        /// <summary>
+        /// Create empty modifier
+        /// </summary>
         /// <param name="boneName">Name of the bone transform to affect</param>
+        /// <param name="boneLocation">Where the bone transform to affect is located</param>
         /// <param name="coordinateModifiers">
         /// Needs to be either 1 long to apply to all coordinates or 7 to apply to specific
         /// coords
         /// </param>
-        public BoneModifier(string boneName, BoneModifierData[] coordinateModifiers)
+        public BoneModifier(string boneName, BoneLocation boneLocation, BoneModifierData[] coordinateModifiers)
         {
             if (string.IsNullOrEmpty(boneName))
                 throw new ArgumentException("Invalid boneName - " + boneName, nameof(boneName));
@@ -50,6 +61,7 @@ namespace KKABMX.Core
                 throw new ArgumentException("Need to set either 1 modifier", nameof(coordinateModifiers));
 
             BoneName = boneName;
+            BoneLocation = boneLocation;
             CoordinateModifiers = coordinateModifiers.ToArray();
         }
 
@@ -73,9 +85,15 @@ namespace KKABMX.Core
         public BoneModifierData[] CoordinateModifiers { get; set; }
 
         /// <summary>
+        /// What part of the character the bone is on.
+        /// </summary>
+        [Key(2)]
+        public BoneLocation BoneLocation { get; internal set; }
+
+        /// <summary>
         /// Apply the modifiers
         /// </summary>
-        public void Apply(CoordinateType coordinate, IList<BoneModifierData> additionalModifiers, bool isDuringHScene)
+        public void Apply(CoordinateType coordinate, IList<BoneModifierData> additionalModifiers, bool alwaysRestorePosition)
         {
             if (BoneTransform == null) return;
 
@@ -122,7 +140,7 @@ namespace KKABMX.Core
                         // Handle negative position modifiers, needed to prevent position sign changing on every frame
                         // (since negative modifier.LengthModifier would constantly flip it)
                         // Also needed for values near 0 to prevent losing the position data
-                        if (modifier.LengthModifier < 0.1f || localPosition == Vector3.zero || isDuringHScene)
+                        if (modifier.LengthModifier < 0.1f || localPosition == Vector3.zero || alwaysRestorePosition)
                         {
                             // Fall back to more aggresive mode
                             localPosition = _positionBaseline;

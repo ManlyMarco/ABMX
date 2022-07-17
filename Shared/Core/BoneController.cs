@@ -9,8 +9,12 @@ using Manager;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
+using KKAPI.Maker;
 using KKAPI.Utilities;
 using UniRx;
+#if AI || HS2
+using AIChara;
+#endif
 
 namespace KKABMX.Core
 {
@@ -38,7 +42,7 @@ namespace KKABMX.Core
     {
         private const string ExtDataBoneDataKey = "boneData";
 
-        private readonly FindAssist _boneSearcher = new FindAssist();
+        internal BoneFinder _boneSearcher { get; private set; }
         private bool? _baselineKnown;
 
         /// <summary>
@@ -100,17 +104,22 @@ namespace KKABMX.Core
             _additionalBoneEffects.Add(effect);
         }
 
+        /// <inheritdoc cref="GetModifier(string,BoneLocation)"/>
+        [Obsolete]
+        public BoneModifier GetModifier(string boneName) => GetModifier(boneName, BoneLocation.Unknown);
+
         /// <summary>
         /// Get a modifier if it exists.
         /// </summary>
         /// <param name="boneName">Name of the bone that the modifier targets</param>
-        public BoneModifier GetModifier(string boneName)
+        /// <param name="location">Where the bone is located</param>
+        public BoneModifier GetModifier(string boneName, BoneLocation location)
         {
             if (boneName == null) throw new ArgumentNullException(nameof(boneName));
             for (var i = 0; i < Modifiers.Count; i++)
             {
                 var x = Modifiers[i];
-                if (x.BoneName == boneName) return x;
+                if ((location == BoneLocation.Unknown || location == x.BoneLocation) && x.BoneName == boneName) return x;
             }
 
             return null;
@@ -130,19 +139,23 @@ namespace KKABMX.Core
         }
 
         /// <summary>
-        /// Get all transform names under the character object that could be bones
+        /// Get all transform names under the character object that could be bones (excludes accessories).
+        /// Warning: Expensive to run, ToList the result and cache it if you want to reuse it!
         /// </summary>
-        public IEnumerable<string> GetAllPossibleBoneNames()
+        public IEnumerable<string> GetAllPossibleBoneNames() => GetAllPossibleBoneNames(ChaControl.objTop);
+
+        /// <summary>
+        /// Get all transform names under the rootObject that could be bones (could be from BodyTop or objAccessory, BodyTop excludes accessories).
+        /// Warning: Expensive to run, ToList the result and cache it if you want to reuse it!
+        /// </summary>
+        public IEnumerable<string> GetAllPossibleBoneNames(GameObject rootObject)
         {
-            if (_boneSearcher.dictObjName == null)
-                _boneSearcher.Initialize(ChaControl.transform);
-            return _boneSearcher.dictObjName.Keys
+            return _boneSearcher.CreateBoneDic(rootObject).Keys
 #if AI || HS2
-                .Where(x => !x.StartsWith("f_t_", StringComparison.Ordinal) && !x.StartsWith("f_pv_", StringComparison.Ordinal) && !x.StartsWith("f_k_", StringComparison.Ordinal))
-#elif KK || EC
-                .Where(x => !x.StartsWith("cf_t_", StringComparison.Ordinal) && !x.StartsWith("cf_pv_", StringComparison.Ordinal))
+                                .Where(x => !x.StartsWith("f_t_", StringComparison.Ordinal) && !x.StartsWith("f_pv_", StringComparison.Ordinal) && !x.StartsWith("f_k_", StringComparison.Ordinal));
+#elif KK || EC || KKS
+                                .Where(x => !x.StartsWith("cf_t_", StringComparison.Ordinal) && !x.StartsWith("cf_pv_", StringComparison.Ordinal));
 #endif
-                ;
         }
 
 #if !EC && !AI && !HS2 //No coordinate saving in AIS
@@ -150,33 +163,47 @@ namespace KKABMX.Core
         {
             if (maintainState) return;
 
+            var currentCoord = CurrentCoordinate.Value;
+
             // Clear previous data for this coordinate from coord specific modifiers
             foreach (var modifier in Modifiers.Where(x => x.IsCoordinateSpecific()))
-                modifier.GetModifier(CurrentCoordinate.Value).Clear();
+                modifier.GetModifier(currentCoord).Clear();
 
             var data = GetCoordinateExtendedData(coordinate);
+            var modifiers = ReadCoordModifiers(data);
+            foreach (var modifier in modifiers)
+            {
+                var target = GetModifier(modifier.BoneName, modifier.BoneLocation);
+                if (target == null)
+                {
+                    // Add any missing modifiers
+                    target = new BoneModifier(modifier.BoneName, modifier.BoneLocation);
+                    AddModifier(target);
+                }
+                target.MakeCoordinateSpecific(ChaFileControl.coordinate.Length);
+                target.CoordinateModifiers[(int)currentCoord] = modifier.CoordinateModifiers[0];
+            }
+
+            StartCoroutine(OnDataChangedCo());
+        }
+
+        internal static List<BoneModifier> ReadCoordModifiers(PluginData data)
+        {
             if (data != null)
             {
                 try
                 {
-                    if (data.version != 2)
-                        throw new NotSupportedException($"Save version {data.version} is not supported");
-
-                    var boneData = LZ4MessagePackSerializer.Deserialize<Dictionary<string, BoneModifierData>>((byte[])data.data[ExtDataBoneDataKey]);
-                    if (boneData != null)
+                    switch (data.version)
                     {
-                        foreach (var modifier in boneData)
-                        {
-                            var target = GetModifier(modifier.Key);
-                            if (target == null)
-                            {
-                                // Add any missing modifiers
-                                target = new BoneModifier(modifier.Key);
-                                AddModifier(target);
-                            }
-                            target.MakeCoordinateSpecific(ChaFileControl.coordinate.Length);
-                            target.CoordinateModifiers[(int)CurrentCoordinate.Value] = modifier.Value;
-                        }
+                        case 3:
+                            return LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
+
+                        case 2:
+                            return LZ4MessagePackSerializer.Deserialize<Dictionary<string, BoneModifierData>>((byte[])data.data[ExtDataBoneDataKey])
+                                                           .Select(x => new BoneModifier(x.Key, BoneLocation.Unknown, new[] { x.Value }))
+                                                           .ToList();
+                        default:
+                            throw new NotSupportedException($"Save version {data.version} is not supported");
                     }
                 }
                 catch (Exception ex)
@@ -185,20 +212,21 @@ namespace KKABMX.Core
                 }
             }
 
-            StartCoroutine(OnDataChangedCo());
+            return new List<BoneModifier>();
         }
 
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
         {
-            var toSave = Modifiers
-                .Where(x => !x.IsEmpty() && x.IsCoordinateSpecific())
-                .ToDictionary(x => x.BoneName, x => x.GetModifier(CurrentCoordinate.Value));
+            var currentCoord = CurrentCoordinate.Value;
+            var toSave = Modifiers.Where(x => !x.IsEmpty() && x.IsCoordinateSpecific() && x.BoneTransform != null)
+                                  .Select(x => new BoneModifier(x.BoneName, x.BoneLocation, new[] { x.GetModifier(currentCoord) }))
+                                  .ToList();
 
             if (toSave.Count == 0)
                 SetCoordinateExtendedData(coordinate, null);
             else
             {
-                var pluginData = new PluginData { version = 2 };
+                var pluginData = new PluginData { version = 3 };
                 pluginData.data.Add(ExtDataBoneDataKey, LZ4MessagePackSerializer.Serialize(toSave));
                 SetCoordinateExtendedData(coordinate, pluginData);
             }
@@ -224,35 +252,52 @@ namespace KKABMX.Core
             StopAllCoroutines();
             _baselineKnown = false;
 
-            if (!maintainState && (GUI.KKABMX_GUI.LoadBody || GUI.KKABMX_GUI.LoadFace))
+            var loadClothes = MakerAPI.GetCharacterLoadFlags()?.Clothes != false;
+            var loadBody = GUI.KKABMX_GUI.LoadBody;
+            var loadFace = GUI.KKABMX_GUI.LoadFace;
+            if (!maintainState && (loadBody || loadFace || loadClothes))
             {
                 var data = GetExtendedData();
                 var newModifiers = ReadModifiers(data);
 
-                if (GUI.KKABMX_GUI.LoadBody && GUI.KKABMX_GUI.LoadFace)
+                if (loadBody && loadFace && loadClothes)
                 {
                     Modifiers = newModifiers;
                 }
                 else
                 {
-#if AI || HS2
-                    var headRoot = transform.FindLoop("cf_J_Head");
-#else
-                    var headRoot = transform.FindLoop("cf_j_head");
-#endif
-                    var headBones = new HashSet<string>(headRoot.GetComponentsInChildren<Transform>().Select(x => x.name));
-                    headBones.Add(headRoot.name);
-                    if (GUI.KKABMX_GUI.LoadFace)
+                    if (loadBody && loadFace)
                     {
-                        Modifiers.RemoveAll(x => headBones.Contains(x.BoneName));
-                        Modifiers.AddRange(newModifiers.Where(x => headBones.Contains(x.BoneName)));
+                        Modifiers.RemoveAll(x => x.BoneLocation < BoneLocation.Accessory);
+                        Modifiers.AddRange(newModifiers.Where(x => x.BoneLocation < BoneLocation.Accessory));
                     }
-                    else if (GUI.KKABMX_GUI.LoadBody)
+                    else
                     {
-                        var bodyBones = new HashSet<string>(transform.FindLoop("BodyTop").GetComponentsInChildren<Transform>().Select(x => x.name).Except(headBones));
+#if AI || HS2
+                        var headRoot = transform.FindLoop("cf_J_Head"); //todo use objHead and walk up the parents to find this to improve perf?
+#else
+                        var headRoot = transform.FindLoop("cf_j_head");
+#endif
+                        var headBones = new HashSet<string>(headRoot.GetComponentsInChildren<Transform>().Select(x => x.name));
+                        headBones.Add(headRoot.name);
+                        if (loadFace)
+                        {
+                            Modifiers.RemoveAll(x => x.BoneLocation < BoneLocation.Accessory && headBones.Contains(x.BoneName));
+                            Modifiers.AddRange(newModifiers.Where(x => x.BoneLocation < BoneLocation.Accessory && headBones.Contains(x.BoneName)));
+                        }
+                        else if (loadBody)
+                        {
+                            var bodyBones = new HashSet<string>(transform.FindLoop("BodyTop").GetComponentsInChildren<Transform>().Select(x => x.name).Except(headBones));
 
-                        Modifiers.RemoveAll(x => bodyBones.Contains(x.BoneName));
-                        Modifiers.AddRange(newModifiers.Where(x => bodyBones.Contains(x.BoneName)));
+                            Modifiers.RemoveAll(x => x.BoneLocation < BoneLocation.Accessory && bodyBones.Contains(x.BoneName));
+                            Modifiers.AddRange(newModifiers.Where(x => x.BoneLocation < BoneLocation.Accessory && bodyBones.Contains(x.BoneName)));
+                        }
+                    }
+
+                    if (loadClothes)
+                    {
+                        Modifiers.RemoveAll(x => x.BoneLocation >= BoneLocation.Accessory);
+                        Modifiers.AddRange(newModifiers.Where(x => x.BoneLocation >= BoneLocation.Accessory));
                     }
                 }
             }
@@ -269,8 +314,7 @@ namespace KKABMX.Core
                     switch (data.version)
                     {
                         case 2:
-                            return LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>(
-                                    (byte[]) data.data[ExtDataBoneDataKey]);
+                            return LZ4MessagePackSerializer.Deserialize<List<BoneModifier>>((byte[])data.data[ExtDataBoneDataKey]);
 #if KK || EC || KKS
                         case 1:
                             KKABMX_Core.Logger.LogDebug("[KKABMX] Loading legacy embedded ABM data");
@@ -291,7 +335,7 @@ namespace KKABMX.Core
 
         internal static PluginData SaveModifiers(List<BoneModifier> modifiers)
         {
-            var toSave = modifiers.Where(x => !x.IsEmpty()).ToList();
+            var toSave = modifiers.Where(x => !x.IsEmpty() && x.BoneTransform != null).ToList();
 
             if (toSave.Count == 0)
                 return null;
@@ -304,6 +348,7 @@ namespace KKABMX.Core
         /// <inheritdoc />
         protected override void Start()
         {
+            _boneSearcher = new BoneFinder(ChaControl);
             base.Start();
             CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
 #if KK // hs2 ais is HScene //todo KKS full game
@@ -350,10 +395,10 @@ namespace KKABMX.Core
                     var effect = additionalBoneEffect.GetEffect(affectedBone, this, CurrentCoordinate.Value);
                     if (effect != null && !effect.IsEmpty())
                     {
-                        var modifier = GetModifier(affectedBone);
+                        var modifier = GetModifier(affectedBone, BoneLocation.BodyTop); //todo allow targeting accessories?
                         if (modifier == null)
                         {
-                            modifier = new BoneModifier(affectedBone);
+                            modifier = new BoneModifier(affectedBone, BoneLocation.BodyTop);
                             AddModifier(modifier);
                         }
 
@@ -497,25 +542,12 @@ namespace KKABMX.Core
         private void ModifiersFillInTransforms()
         {
             if (Modifiers.Count == 0) return;
-
-            var initializedBones = false;
+            //todo somehow fill in the correct location, 
             foreach (var modifier in Modifiers)
             {
                 if (modifier.BoneTransform != null) continue;
-
-                Retry:
-                var boneObj = _boneSearcher.GetObjectFromName(modifier.BoneName);
-                if (boneObj != null)
-                    modifier.BoneTransform = boneObj.transform;
-                else
-                {
-                    if (!initializedBones)
-                    {
-                        initializedBones = true;
-                        _boneSearcher.Initialize(ChaControl.transform);
-                        goto Retry;
-                    }
-                }
+                _boneSearcher.AssignBone(modifier);
+                // todo if (modifier.BoneTransform == null) then remove the modifier?
             }
         }
 
@@ -534,14 +566,18 @@ namespace KKABMX.Core
         /// </summary>
         private static void HandleDynamicBoneModifiers(BoneModifier modifier)
         {
+            // Skip non-body modifiers to speed up the check and avoid affecting accessories
+            if (modifier.BoneLocation > BoneLocation.BodyTop) return;
+
+            var boneName = modifier.BoneName;
 #if KK || KKS || EC
-            if (modifier.BoneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) || 
-                modifier.BoneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) || 
-                modifier.BoneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) || 
-                modifier.BoneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
+            if (boneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) ||
+                boneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) ||
+                boneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) ||
+                boneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
 #elif AI || HS2
-            if (modifier.BoneName.StartsWith("cf_J_SiriDam", StringComparison.Ordinal) ||
-                modifier.BoneName.StartsWith("cf_J_Mune00", StringComparison.Ordinal))
+            if (boneName.StartsWith("cf_J_SiriDam", StringComparison.Ordinal) ||
+                boneName.StartsWith("cf_J_Mune00", StringComparison.Ordinal))
 #else
                 todo fix
 #endif
@@ -549,6 +585,124 @@ namespace KKABMX.Core
                 modifier.Reset();
                 modifier.CollectBaseline();
             }
+        }
+    }
+
+    internal class BoneFinder
+    {
+        public Dictionary<string, GameObject> CreateBoneDic(GameObject rootObject)
+        {
+            KKABMX_Core.Logger.LogDebug($"Creating bone dictionary for char={_ctrl.name} rootObj={rootObject}");
+            var d = new Dictionary<string, GameObject>();
+            FindAll(rootObject.transform, d, _ctrl.objAccessory.Where(x => x != null).Select(x => x.transform).ToArray());
+            return d;
+        }
+
+        private static void FindAll(Transform transform, Dictionary<string, GameObject> dictObjName, Transform[] excludeTransforms)
+        {
+            if (!dictObjName.ContainsKey(transform.name))
+                dictObjName[transform.name] = transform.gameObject;
+
+            for (var i = 0; i < transform.childCount; i++)
+            {
+                var childTransform = transform.GetChild(i);
+                // Exclude accessories
+                if (Array.IndexOf(excludeTransforms, childTransform) < 0)
+                    FindAll(childTransform, dictObjName, excludeTransforms);
+            }
+        }
+
+        private void PurgeDestroyed()
+        {
+            foreach (var nullGo in _lookup.Keys.Where(x => x == null).ToList()) _lookup.Remove(nullGo);
+        }
+
+        public GameObject FindBone(string name, ref BoneLocation location)
+        {
+            if (location == BoneLocation.BodyTop)
+            {
+                return FindBone(name, _ctrl.objTop);
+            }
+
+            if (location >= BoneLocation.Accessory)
+            {
+                var accId = location - BoneLocation.Accessory;
+                var rootObj = _ctrl.objAccessory.SafeGet(accId);
+                return rootObj != null ? FindBone(name, rootObj) : null;
+            }
+
+            // Handle unknown locations by looking everywhere. If the bone is found, update the location
+            try
+            {
+                _noRetry = true;
+                var bone = FindBone(name, _ctrl.objTop);
+                if (bone != null)
+                {
+                    location = BoneLocation.BodyTop;
+                    return bone;
+                }
+
+                for (var index = 0; index < _ctrl.objAccessory.Length; index++)
+                {
+                    var accObj = _ctrl.objAccessory[index];
+                    if (accObj != null)
+                    {
+                        var accBone = FindBone(name, accObj);
+                        if (accBone != null)
+                        {
+                            location = BoneLocation.Accessory + index;
+                            return accBone;
+                        }
+                    }
+                }
+                return null;
+            }
+            finally { _noRetry = false; }
+        }
+
+        private GameObject FindBone(string name, GameObject rootObject)
+        {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (rootObject == null) throw new ArgumentNullException(nameof(rootObject));
+
+            var recreated = false;
+            if (!_lookup.TryGetValue(rootObject, out var boneDic))
+            {
+                boneDic = CreateBoneDic(rootObject);
+                recreated = true;
+                _lookup[rootObject] = boneDic;
+                PurgeDestroyed();
+            }
+
+            boneDic.TryGetValue(name, out var boneObj);
+            if (boneObj == null && !recreated && !_noRetry)
+            {
+                boneDic = CreateBoneDic(rootObject);
+                _lookup[rootObject] = boneDic;
+                boneDic.TryGetValue(name, out boneObj);
+            }
+
+            return boneObj;
+        }
+
+        private bool _noRetry = false;
+
+
+        public BoneFinder(ChaControl ctrl)
+        {
+            _ctrl = ctrl;
+            _lookup = new Dictionary<GameObject, Dictionary<string, GameObject>>();
+        }
+
+        private readonly Dictionary<GameObject, Dictionary<string, GameObject>> _lookup;
+        private readonly ChaControl _ctrl;
+
+        public void AssignBone(BoneModifier modifier)
+        {
+            var loc = modifier.BoneLocation;
+            var bone = FindBone(modifier.BoneName, ref loc);
+            modifier.BoneTransform = bone ? bone.transform : null;
+            modifier.BoneLocation = loc;
         }
     }
 }

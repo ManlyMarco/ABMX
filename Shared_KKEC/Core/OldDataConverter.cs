@@ -80,7 +80,7 @@ namespace KKABMX.Core
                 if (coordinateModifiers.Count > 1 && coordinateModifiers.Count < kkCoordinateCount)
                     coordinateModifiers.RemoveRange(0, coordinateModifiers.Count - 1);
 
-                results.Add(new BoneModifier(groupedBoneDataEntries.Key, coordinateModifiers.ToArray()));
+                results.Add(new BoneModifier(groupedBoneDataEntries.Key, BoneLocation.Unknown, coordinateModifiers.ToArray()));
             }
 
             return results;
