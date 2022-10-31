@@ -39,11 +39,19 @@ namespace KKABMX.GUI
             set => KKABMX_Core.RaiseLimits.Value = value;
         }
 
+        public static bool ResetToLastLoaded
+        {
+            get => KKABMX_Core.ResetToLastLoaded.Value;
+            set => KKABMX_Core.ResetToLastLoaded.Value = value;
+        }
+
         private void Start()
         {
             MakerAPI.RegisterCustomSubCategories += OnRegisterCustomSubCategories;
             MakerAPI.MakerBaseLoaded += OnEarlyMakerFinishedLoading;
             MakerAPI.MakerExiting += OnMakerExiting;
+            KKABMX_Core.ResetToLastLoaded.SettingChanged += UpdateControlValues;
+            ExtensibleSaveFormat.ExtendedSave.CardBeingSaved += file => UpdateControlValues(file, EventArgs.Empty);
         }
 
         private void RegisterCustomControls(RegisterCustomControlsEvent callback)
@@ -124,9 +132,10 @@ namespace KKABMX.GUI
 
             void UpdateDisplay(int _)
             {
-                var boneMod = _boneController.GetModifier(GetFingerBoneNames().First(), BoneLocation.BodyTop);
-                var mod = boneMod?.GetModifier(_boneController.CurrentCoordinate.Value);
-                SetSliders(mod?.ScaleModifier ?? Vector3.one);
+                var coordinate = _boneController.CurrentCoordinate.Value;
+                var boneName = GetFingerBoneNames().First();
+                SetSliders(_boneController.GetModifier(boneName, BoneLocation.BodyTop)?.GetModifier(coordinate)?.ScaleModifier ?? Vector3.one);
+                SetDefaults(_boneController.GetModifierBackup(boneName, BoneLocation.BodyTop)?.GetModifier(coordinate)?.ScaleModifier ?? Vector3.one);
             }
 
             var isUpdatingValue = false;
@@ -139,6 +148,15 @@ namespace KKABMX.GUI
                 if (z != null) z.Value = mod.z;
                 if (v != null) v.Value = (mod.x + mod.y + mod.z) / 3f;
                 isUpdatingValue = false;
+            }
+
+            void SetDefaults(Vector3 mod)
+            {
+                if (!ResetToLastLoaded) mod = Vector3.one;
+                if (x != null) x.DefaultValue = mod.x;
+                if (y != null) y.DefaultValue = mod.y;
+                if (z != null) z.DefaultValue = mod.z;
+                if (v != null) v.DefaultValue = (mod.x + mod.y + mod.z) / 3f;
             }
 
             void PushValueToControls()
@@ -249,10 +267,21 @@ namespace KKABMX.GUI
                 isUpdatingValue = false;
             }
 
+            void SetDefaults(BoneModifierData data)
+            {
+                Vector3 mod = ResetToLastLoaded ? data.ScaleModifier : Vector3.one;
+                float lenMod = ResetToLastLoaded ? data.LengthModifier : 1;
+                if (x != null) x.DefaultValue = mod.x;
+                if (y != null) y.DefaultValue = mod.y;
+                if (z != null) z.DefaultValue = mod.z;
+                if (v != null) v.DefaultValue = (mod.x + mod.y + mod.z) / 3f;
+                if (l != null) l.DefaultValue = lenMod;
+            }
+
             void PushValueToControls()
             {
                 var bone = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate) ?? BoneModifierData.Default;
-
+                var defaultBone = (BoneModifierData)null;
                 if (rb != null)
                 {
                     var bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate) ?? BoneModifierData.Default;
@@ -265,6 +294,7 @@ namespace KKABMX.GUI
                         else if (rb.Value == 2)
                         {
                             bone = bone2;
+                            defaultBone = _boneController.GetModifier(boneMeta.RightBoneName, BoneLocation.BodyTop)?.GetModifier(_boneController.CurrentCoordinate.Value);
                         }
                     }
                     else
@@ -274,6 +304,8 @@ namespace KKABMX.GUI
                 }
 
                 SetSliders(bone.ScaleModifier, bone.LengthModifier);
+
+                SetDefaults(defaultBone ?? _boneController.GetModifier(boneMeta.BoneName, BoneLocation.BodyTop)?.GetModifier(_boneController.CurrentCoordinate.Value) ?? BoneModifierData.Default);
 
                 ActivateSliders();
             }
@@ -426,22 +458,25 @@ namespace KKABMX.GUI
                 return;
             }
 
-            _boneController.NewDataLoaded += (s, args) =>
-            {
-                foreach (var action in _updateActionList)
-                {
-                    try
-                    {
-                        action();
-                    }
-                    catch (Exception ex)
-                    {
-                        KKABMX_Core.Logger.LogError(ex.ToString());
-                    }
-                }
-            };
+            _boneController.NewDataLoaded += UpdateControlValues;
 
             RegisterCustomControls(e);
+        }
+
+        private void UpdateControlValues(object s, EventArgs args)
+        {
+            if (!MakerAPI.InsideMaker) return;
+            foreach (var action in _updateActionList)
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    KKABMX_Core.Logger.LogError(ex.ToString());
+                }
+            }
         }
 
         private void OnMakerExiting(object sender, EventArgs e)

@@ -27,6 +27,7 @@ namespace KKABMX.Core
 
         internal static ConfigEntry<bool> XyzMode { get; private set; }
         internal static ConfigEntry<bool> RaiseLimits { get; private set; }
+        internal static ConfigEntry<bool> ResetToLastLoaded { get; private set; }
         internal static ConfigEntry<bool> TransparentAdvancedWindow { get; private set; }
 
         internal static KKABMX_Core Instance { get; private set; }
@@ -42,8 +43,9 @@ namespace KKABMX.Core
 
             XyzMode = Config.Bind("Maker", Metadata.XyzModeName, false, Metadata.XyzModeDesc);
             RaiseLimits = Config.Bind("Maker", Metadata.RaiseLimitsName, false, Metadata.RaiseLimitsDesc);
+            ResetToLastLoaded = Config.Bind("Maker", Metadata.ResetToLastLoadedName, true, Metadata.ResetToLastLoadedDesc);
             TransparentAdvancedWindow = Config.Bind("General", Metadata.AdvTransparencyName, false, Metadata.AdvTransparencyDesc);
-            _openEditorKey = Config.Bind("General", "Open bonemod editor", KeyboardShortcut.Empty, "Opens advanced bonemod window if there is a character that can be edited.");
+            _openEditorKey = Config.Bind("General", Metadata.OpenEditorKeyName, KeyboardShortcut.Empty, Metadata.OpenEditorKeyDesc);
 
 #if !EC
             if (KKAPI.Studio.StudioAPI.InsideStudio)

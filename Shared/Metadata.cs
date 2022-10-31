@@ -1,4 +1,6 @@
-﻿namespace KKABMX
+﻿using BepInEx.Configuration;
+
+namespace KKABMX
 {
     internal static class Metadata
     {
@@ -28,7 +30,13 @@
                                               "Recommended to only enable when working on furries and superdeformed charas.\n\n" +
                                               "The setting takes effect after maker restart.";
 
-        public const string AdvTransparencyName = "Make advanced window transparent";
-        public const string AdvTransparencyDesc = "If false, the window has a solid background, else it's see-through";
+        public const string AdvTransparencyName = "Use old transparent style for advanced window";
+        public const string AdvTransparencyDesc = "If false, the window uses a new, more compact custom skin with a solid background. If true, the default see-through theme is used.";
+
+        public const string ResetToLastLoadedName = "Reset button restores saved card value";
+        public const string ResetToLastLoadedDesc = "Affects yellow bonemod sliders in maker. If false, the Reset button sets the value to 1 (old behaviour). If true, the Reset button restores the value that is saved in the loaded character card.";
+
+        public const string OpenEditorKeyName = "Open bonemod editor";
+        public const string OpenEditorKeyDesc = "Opens advanced bonemod window if there is a character that can be edited.";
     }
 }
