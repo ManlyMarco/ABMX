@@ -1,32 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
-using KKABMX.Core;
+using System.Reflection;
+using System.Text;
+using System.Xml.Serialization;
+using HarmonyLib;
 using KKAPI.Utilities;
 using UnityEngine;
-#if KK || KKS
-using CoordinateType = ChaFileDefine.CoordinateType;
-#elif EC
-using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
-#elif AI || HS2
-using AIChara;
+
+#if AI || HS2
+using ChaControl = AIChara.ChaControl;
 #endif
 
-namespace KKABMX.GUI
+namespace KKABMX.Core
 {
-
+    // todo support multiple characters, first node on the list
     /// <summary>
     /// Advanced bonemod interface, can be used to access all possible sliders and put in unlimited value ranges
     /// </summary>
-    internal sealed class KKABMX_AdvancedGUI : MonoBehaviour
+    public sealed class KKABMX_AdvancedGUI : ImguiWindow<KKABMX_AdvancedGUI>
     {
-        private static KKABMX_AdvancedGUI _instance;
-
-        private static string _windowTitle;
-        private static Rect _windowRect = new Rect(20, 220, 705, 600);
-
-        private static float _objectTreeHeight => _windowRect.height - 100; //todo properly calc or get
+        private float _objectTreeHeight => WindowRect.height - 100; //todo properly calc or get
         private int _singleObjectTreeItemHeight;
         private Vector2 _treeScrollPosition = Vector2.zero;
         private Vector2 _slidersScrollPosition = Vector2.zero;
@@ -45,46 +41,24 @@ namespace KKABMX.GUI
         private readonly HashSet<BoneModifier> _changedBones = new HashSet<BoneModifier>();
         private readonly HashSet<GameObject> _openedObjects = new HashSet<GameObject>();
 
-        private static BoneLocation _selectedTransformLocation;
-        private static Transform _selectedTransform;
-        public static Transform SelectedTransform
-        {
-            get => _selectedTransform;
-            set
-            {
-                if (_selectedTransform != value)
-                {
-                    _selectedTransform = value;
-                    _selectedTransformLocation = FindLocation(value);
-                }
-            }
-        }
-
-        private static BoneLocation FindLocation(Transform tr)
-        {
-            for (; tr; tr = tr.parent)
-            {
-                var i = Array.IndexOf(_currentChaControl.objAccessory, tr.gameObject);
-                if (i >= 0) return BoneLocation.Accessory + i;
-                if (tr.gameObject == _currentChaControl.objTop) return BoneLocation.BodyTop;
-            }
-            return BoneLocation.Unknown;
-        }
-
-        private static BoneController _currentBoneController;
+        public static KeyValuePair<BoneLocation, Transform> SelectedTransform { get; set; }
+        private static BoneController _currentBoneController; //todo support multiple characters
         private static ChaControl _currentChaControl;
 
         private static readonly float[] _defaultIncrementSize = { 0.1f, 0.1f, 0.01f, 1f };
         private static readonly float[] _incrementSize = _defaultIncrementSize.ToArray();
+        private static readonly bool[] _lockXyz = new bool[_defaultIncrementSize.Length];
 
-        private BoneModifierData[] _copiedModifier;
+        //private BoneModifierData[] _copiedModifier;
         private bool _editSymmetry = true;
 
         private bool _onlyShowCoords;
         private bool _onlyShowModified;
         private bool _onlyShowNewChanges;
 
-        private List<Transform> _searchResults;
+        private bool _enableHelp;
+
+        private List<KeyValuePair<BoneLocation, Transform>> _searchResults;
         private string _searchFieldValue = "";
         private bool _searchFieldValueChanged;
 
@@ -98,13 +72,31 @@ namespace KKABMX.GUI
                 {
                     _searchFieldValue = value;
                     _searchFieldValueChanged = true;
-                    _searchResults = value.Length == 0 ? null : _currentChaControl.objTop.GetComponentsInChildren<Transform>(true).Where(CheckSearchMatch).OrderBy(x => x.name).ToList();
+                    if (value.Length == 0)
+                        _searchResults = null;
+                    else
+                    {
+                        _searchResults = new List<KeyValuePair<BoneLocation, Transform>>();
+
+                        void AddResults(BoneLocation boneLocation)
+                        {
+                            _searchResults.AddRange(_currentBoneController.BoneSearcher.GetAllBones(boneLocation)
+                                                                          .Where(pair => CheckSearchMatch(pair.Key))
+                                                                          .Select(x => new KeyValuePair<BoneLocation, Transform>(boneLocation, x.Value.transform)));
+                        }
+                        AddResults(BoneLocation.BodyTop);
+                        for (int i = 0; i < _currentChaControl.objAccessory.Length; i++)
+                        {
+                            var accObj = _currentChaControl.objAccessory[i];
+                            if (accObj != null) AddResults(BoneLocation.Accessory + i);
+                        }
+                    }
                 }
             }
         }
 
         public static Action<bool> OnEnabledChanged;
-        public static bool Enabled => _currentBoneController != null && _instance.enabled;
+        public static bool Enabled => _currentBoneController != null && Instance.enabled;
 
         public static void Enable(BoneController controller)
         {
@@ -113,41 +105,71 @@ namespace KKABMX.GUI
             else
             {
                 _currentBoneController = controller;
-                _instance.enabled = true;
+                Instance.enabled = true;
                 _currentChaControl = controller.ChaControl;
 
                 var charaName = controller.ChaControl.fileParam.fullname;
                 TranslationHelper.TryTranslate(charaName, out var charaNameTl);
-                _windowTitle = $"Advanced Bone Sliders [{charaNameTl ?? charaName}]";
+                Instance.Title = $"Advanced Bone Sliders [{charaNameTl ?? charaName}]";
+
+                if (_boneTooltips == null)
+                {
+                    try
+                    {
+                        // How to generate BoneTooltips.txt
+                        // var li = File.ReadAllLines(@"E:\List_of_bones_and_what_they_scale_Open_in_notepad_to_read.py");
+                        // var results = li.Where(x => !x.TrimStart().StartsWith("#") && x.Contains("#"))
+                        //                 .Select(x => x.Split(new[] { '#' }, 2).Select(x => x.Trim()).ToArray())
+                        //                 .SelectMany(x => x[0].Contains("_L") ? new[] { x, new[] { x[0].Replace("_L", "_R"), x[1] } } : new[] { x })
+                        //                 .GroupBy(x => x[0])
+                        //                 .ToDictionary(x => x.Key, x => x.First()[1]);
+                        // File.WriteAllLines(@"E:\BoneTooltips.txt", results.Select(x => x.Key + "|" + x.Value));
+
+                        var t = Encoding.UTF8.GetString(ResourceUtils.GetEmbeddedResource("BoneTooltips.txt"));
+                        _boneTooltips = t.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                                         .Select(x => x.Split(new[] { '|' }, 2))
+                                         .Where(x => x.Length == 2)
+                                         .ToDictionary(x => x[0], x => x[1]);
+                    }
+                    catch (Exception e)
+                    {
+                        KKABMX_Core.Logger.LogError("Failed to read BoneTooltips" + e);
+                        _boneTooltips = new Dictionary<string, string>();
+                    }
+                }
             }
         }
 
         public static void Disable()
         {
             _currentBoneController = null;
-            _instance.enabled = false;
-            _instance._changedBones.Clear();
+            Instance.enabled = false;
+            Instance._changedBones.Clear();
         }
 
-        private bool CheckSearchMatch(Transform tr)
+        private bool CheckSearchMatch(string transformName)
         {
-            return tr.name.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0;
+            return transformName.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-        private void Awake()
+        protected override Rect GetDefaultWindowRect(Rect screenRect)
         {
-            _instance = this;
-            enabled = false;
+            return new Rect(20, 220, 705, 600); //todo
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
             if (_currentBoneController == null)
+            {
                 enabled = false;
+            }
             else
+            {
+                base.OnEnable();
                 //_getAllPossibleBoneNames = _currentBoneController.GetAllPossibleBoneNames().OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
                 //RefreshBoneInfo(true);
                 OnEnabledChanged?.Invoke(true);
+            }
         }
 
         private void OnDisable()
@@ -155,7 +177,7 @@ namespace KKABMX.GUI
             OnEnabledChanged?.Invoke(false);
         }
 
-        private void OnGUI()
+        protected override void OnGUI()
         {
             if (_currentBoneController == null)
             {
@@ -171,8 +193,9 @@ namespace KKABMX.GUI
                 _gsLabel.alignment = TextAnchor.MiddleRight;
                 _gsLabel.normal.textColor = Color.white;
 
-                _windowRect.x = Mathf.Min(Screen.width - _windowRect.width, Mathf.Max(0, _windowRect.x));
-                _windowRect.y = Mathf.Min(Screen.height - _windowRect.height, Mathf.Max(0, _windowRect.y));
+                //todo
+                //WindowRect.x = Mathf.Min(Screen.width - WindowRect.width, Mathf.Max(0, WindowRect.x));
+                //WindowRect.y = Mathf.Min(Screen.height - WindowRect.height, Mathf.Max(0, WindowRect.y));
             }
 
             var skin = UnityEngine.GUI.skin;
@@ -180,12 +203,12 @@ namespace KKABMX.GUI
             //if (!KKABMX_Core.TransparentAdvancedWindow.Value)
             UnityEngine.GUI.skin = IMGUIUtils.SolidBackgroundGuiSkin;
 
-            _windowRect = GUILayout.Window(1724, _windowRect, DrawWindowContents, _windowTitle);
+            base.OnGUI();
 
             UnityEngine.GUI.skin = skin;
         }
 
-        private void DrawWindowContents(int id)
+        protected override void DrawContents()
         {
             GUILayout.BeginVertical();
             {
@@ -205,7 +228,11 @@ namespace KKABMX.GUI
 
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.BeginVertical(UnityEngine.GUI.skin.box, GUILayout.Width(_windowRect.width / 2), GUILayout.ExpandHeight(true));
+                    //todo save format - add new field for "target" = body/acc123..., legacy fallback to body if empty
+                    // todo need to gather all body bones and then separately accessory bones and list them separately as root objects
+                    // list face as root object too but leave it also int he body tree
+
+                    GUILayout.BeginVertical(UnityEngine.GUI.skin.box, GUILayout.Width(WindowRect.width / 2), GUILayout.ExpandHeight(true));
                     {
                         // Search box and filters
                         GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
@@ -232,6 +259,28 @@ namespace KKABMX.GUI
                                     SearchFieldValue = "";
                                     UnityEngine.GUI.FocusControl("");
                                 }
+
+                                // todo reduce len
+                                UnityEngine.GUI.color = _enableHelp ? Color.cyan : Color.white;
+                                if (GUILayout.Button(new GUIContent("?", @"Bones adjusted with yellow ABMX sliders in maker tabs are automatically added to this window.
+
+Hover over bones in the list below to see notes (only some bones have them). Bones commented with ""ANIMCOR"" are used by animation correction system, adjusting them can cause weird 
+BL = Bone length. It's the distance between given bone and its parent. In some cases (like cf_j_spine02/03) effect is pretty obvious, in some not so much. Offset and rotation controls can be used instead, but the effect may be a bit different during animations.effects and glitches.
+
+Adjusting any bone also affects all of its children. To get a sense of what adjusting one bone will do, just look at its children.
+# cf_j_neck affects both neck and head since cf_j_head is parented to it, while cf_s_neck only affects the neck itself.
+# cf_d_bust01_L affects entire left breast, cf_s_bust01_L only affects root part of it.
+
+Dont be too afraid to move and rotate bones around, sometimes this is the only way to make things look good (broad shoulders for example)
+If adjusting cf_d_* / j_s_* / cf_s_* bones seem to do the same thing, use cf_s_* - they are least likely to cause issues.
+
+Things to keep in mind:
+- Uneven XYZ scaling of bones with animated child bones (whole arm/leg, torso, cf_j_neck, finger roots) will produce deformities during animations.
+- Rotating cf_j_* bones of the body is a bad idea - those are joits used in animation (face bones are usually fine). They may still prove useful in Studio for tweaking static poses.
+- To fix face Scale sliders are generally safe to use with no major glitches. Length, offset and rotation sliders can cause glitches and misplaced body parts if used on some bones.
+- glithces just reload the character. Body shape glithes (breasts drifting out of place, scewed pelvis etc.) can often only be fixed by restarting character maker."), GUILayout.ExpandWidth(false)))
+                                    _enableHelp = !_enableHelp;
+                                UnityEngine.GUI.color = Color.white;
                             }
                             GUILayout.EndHorizontal();
 
@@ -240,35 +289,42 @@ namespace KKABMX.GUI
                                 GUILayout.Label("Only");
                                 UnityEngine.GUI.color = Color.green;
                                 _onlyShowModified = GUILayout.Toggle(_onlyShowModified, "modified", GUILayout.ExpandWidth(false));
+                                UnityEngine.GUI.color = Color.white;
+                                _onlyShowNewChanges = GUILayout.Toggle(_onlyShowNewChanges, "new", GUILayout.ExpandWidth(false));
 #if !AI
                                 UnityEngine.GUI.color = Color.yellow;
                                 _onlyShowCoords = GUILayout.Toggle(_onlyShowCoords, "per coordinate", GUILayout.ExpandWidth(false));
 #endif
                                 UnityEngine.GUI.color = Color.white;
-                                _onlyShowNewChanges = GUILayout.Toggle(_onlyShowNewChanges, "new", GUILayout.ExpandWidth(false));
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
+
+                            //todo show only body/head/acc
                         }
                         GUILayout.EndVertical();
+
 
                         // Bone list
                         _treeScrollPosition = GUILayout.BeginScrollView(_treeScrollPosition, false, true, GUILayout.ExpandHeight(true));
                         {
-                            //todo favorites - pin bones to have them show up at root level persistently
+                            //todo 
+                            // pin bones to have them show up at root level persistently
 
                             var currentCount = 0;
                             if (_onlyShowModified || _onlyShowCoords || _onlyShowNewChanges)
                             {
-                                foreach (var boneModifier in _currentBoneController.Modifiers)
+                                foreach (var kvp in _currentBoneController.ModifierDict)
                                 {
-                                    if (boneModifier.BoneTransform != null && !boneModifier.IsEmpty())
+                                    foreach (var boneModifier in kvp.Value)
                                     {
-                                        if ((!_onlyShowCoords || boneModifier.IsCoordinateSpecific()) &&
-                                            (!_onlyShowNewChanges || _changedBones.Contains(boneModifier)))
+                                        if (boneModifier.BoneTransform != null && !boneModifier.IsEmpty())
                                         {
-                                            if (_searchFieldValue.Length == 0 || CheckSearchMatch(boneModifier.BoneTransform))
-                                                DisplayObjectTreeHelper(boneModifier.BoneTransform.gameObject, 0, ref currentCount);
+                                            if ((!_onlyShowCoords || boneModifier.IsCoordinateSpecific()) && (!_onlyShowNewChanges || _changedBones.Contains(boneModifier)))
+                                            {
+                                                if (_searchFieldValue.Length == 0 || CheckSearchMatch(boneModifier.BoneTransform.name))
+                                                    DisplayObjectTreeHelper(boneModifier.BoneTransform.gameObject, 0, ref currentCount, kvp.Key);
+                                            }
                                         }
                                     }
                                 }
@@ -276,25 +332,28 @@ namespace KKABMX.GUI
                             else if (_searchResults != null)
                             {
                                 foreach (var searchResult in _searchResults)
-                                    DisplayObjectTreeHelper(searchResult.gameObject, 0, ref currentCount);
+                                    DisplayObjectTreeHelper(searchResult.Value.gameObject, 0, ref currentCount, searchResult.Key);
                             }
                             else
                             {
-                                DisplayObjectTreeHelper(_currentChaControl.objTop, 0, ref currentCount);
-                                DisplayObjectTreeHelper(_currentChaControl.objHeadBone, 0, ref currentCount);
-                                foreach (var rootGameObject in _currentChaControl.objAccessory)
+                                DisplayObjectTreeHelper(_currentChaControl.objTop, 0, ref currentCount, BoneLocation.BodyTop);
+                                DisplayObjectTreeHelper(_currentChaControl.objHeadBone, 0, ref currentCount, BoneLocation.BodyTop);
+                                for (var index = 0; index < _currentChaControl.objAccessory.Length; index++)
                                 {
+                                    var rootGameObject = _currentChaControl.objAccessory[index];
                                     if (rootGameObject != null)
-                                        DisplayObjectTreeHelper(rootGameObject, 0, ref currentCount);
+                                        DisplayObjectTreeHelper(rootGameObject, 0, ref currentCount, BoneLocation.Accessory + index);
                                 }
                             }
 
                             if (currentCount == 0)
                             {
-                                GUILayout.Label(_searchResults != null || _onlyShowCoords || _onlyShowModified || _onlyShowNewChanges
+                                GUILayout.Label(_searchResults != null
                                                     ? "No bones matching the search parameters were found. Make sure you've typed the bone name correctly and that other filters aren't interfering."
                                                     : "No bone modifiers to show, to add a new modifier simply click on a bone and edit any of the sliders.");
                             }
+
+                            GUILayout.Space(_objectTreeHeight / 3);
                         }
                         GUILayout.EndScrollView();
 
@@ -310,35 +369,86 @@ namespace KKABMX.GUI
 
                         GUILayout.BeginHorizontal();
                         {
-                            //if (GUILayout.Button("Export", _gloExpand))
-                            //{
-                            //    //todo proper
-                            //    var toSave = _currentBoneController.Modifiers.Where(x => !x.IsEmpty())
-                            //                                       .Select(x => new MyClass { BoneName = x.BoneName, CoordinateModifiers = x.CoordinateModifiers })
-                            //                                       .ToList(); //.ToDictionary(x => x.BoneName, x => x.CoordinateModifiers);
-                            //
-                            //    using (var w = new StringWriter())
-                            //    {
-                            //        new XmlSerializer(toSave.GetType()).Serialize(w, toSave);
-                            //        Console.WriteLine(w.ToString());
-                            //    }
-                            //}
-                            //
-                            //if (GUILayout.Button("Import", _gloExpand)) ; //todo
+                            if (GUILayout.Button(new GUIContent("Export", "Export all current modifiers in a human-readable form to clipboard."), _gloExpand))
+                            {
+                                try
+                                {
+                                    _currentBoneController.CleanEmptyModifiers();
+                                    //todo proper
+                                    List<SerializedBoneModifier> toSave = _currentBoneController.ModifierDict.Values.SelectMany(x => x)
+                                                                                                .Where(x => !x.IsEmpty())
+                                                                                                .Select(x => new SerializedBoneModifier(x))
+                                                                                                .ToList();
+                                    if (toSave.Count == 0)
+                                    {
+                                        KKABMX_Core.Logger.LogMessage("There are no modifiers to export. Change some bonemod sliders first and try again.");
+                                    }
+                                    else
+                                    {
+                                        using (var w = new StringWriter())
+                                        {
+                                            new XmlSerializer(typeof(List<SerializedBoneModifier>)).Serialize(w, toSave);
+                                            var output = w.ToString();
+                                            Console.WriteLine(output);
+                                            GUIUtility.systemCopyBuffer = output;
+                                            KKABMX_Core.Logger.LogMessage("Exported modifiers to clipboard!");
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    KKABMX_Core.Logger.LogMessage("Failed to export modifiers to clipboard: " + e.Message);
+                                    KKABMX_Core.Logger.LogError(e);
+                                }
+                            }
+
+                            if (GUILayout.Button(new GUIContent("Import", "Import previously exported data from clipboard (copy the exported text in any text editor)."), _gloExpand))
+                            {
+                                try
+                                {
+                                    if (string.IsNullOrEmpty(GUIUtility.systemCopyBuffer))
+                                    {
+                                        KKABMX_Core.Logger.LogMessage("Nothing found in clipboard. Copy serialized bonemod data to clipboard and try again.");
+                                    }
+                                    else
+                                    {
+                                        using (var r = new StringReader(GUIUtility.systemCopyBuffer))
+                                        {
+                                            var result = (List<SerializedBoneModifier>)new XmlSerializer(typeof(List<SerializedBoneModifier>)).Deserialize(r);
+                                            foreach (var modifier in result)
+                                            {
+                                                var m = _currentBoneController.GetModifier(modifier.BoneName, modifier.BoneLocation);
+                                                if (m == null)
+                                                    _currentBoneController.AddModifier(modifier.ToBoneModifier());
+                                                else
+                                                {
+                                                    if (modifier.CoordinateModifiers == null || modifier.CoordinateModifiers.Length < 1)
+                                                        throw new ArgumentException("Invalid data", nameof(modifier.CoordinateModifiers));
+                                                    m.CoordinateModifiers = modifier.CoordinateModifiers;
+                                                }
+                                            }
+                                            KKABMX_Core.Logger.LogMessage("Imported modifiers from clipboard!");
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    KKABMX_Core.Logger.LogMessage("Failed to import modifiers from clipboard: " + e.Message);
+                                    KKABMX_Core.Logger.LogError(e);
+                                }
+                            }
 
                             UnityEngine.GUI.color = _dangerColor;
-
-                            if (GUILayout.Button("Revert", _gloExpand))
+                            if (GUILayout.Button(new GUIContent("Revert", "Reset modifiers to the state from after the current character card was loaded."), _gloExpand))
                                 _currentBoneController.RevertChanges();
-
-                            if (GUILayout.Button("Clear", _gloExpand))
+                            if (GUILayout.Button(new GUIContent("Clear", "Remove all modifiers, even the ones added by using yellow sliders in maker UI."), _gloExpand))
                             {
-                                _currentBoneController.Modifiers.ForEach(modifier => modifier.Reset());
-                                _currentBoneController.Modifiers.Clear();
+                                _currentBoneController.ModifierDict.Values.SelectMany(x => x).Do(modifier => modifier.Reset());
+                                _currentBoneController.ModifierDict.Clear();
                                 _currentChaControl.updateShapeFace = true;
                                 _currentChaControl.updateShapeBody = true;
                                 _changedBones.Clear();
-                                SelectedTransform = null;
+                                SelectedTransform = default;
                             }
 
                             UnityEngine.GUI.color = Color.white;
@@ -350,12 +460,12 @@ namespace KKABMX.GUI
                     // Sliders
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box, _gloExpand, GUILayout.ExpandHeight(true));
                     {
-                        var mod = SelectedTransform == null ? null : GetOrAddBoneModifier(_selectedTransform, _selectedTransformLocation);
+                        var mod = SelectedTransform.Value == null ? null : GetOrAddBoneModifier(SelectedTransform.Value.name, SelectedTransform.Key);
 
                         // Slider list
                         _slidersScrollPosition = GUILayout.BeginScrollView(_slidersScrollPosition, false, false, GUILayout.ExpandHeight(true));
                         {
-                            if (SelectedTransform == null)
+                            if (SelectedTransform.Value == null)
                             {
                                 GUILayout.FlexibleSpace();
                                 GUILayout.Label("Select a bone transform on the left to show available controls.");
@@ -367,40 +477,29 @@ namespace KKABMX.GUI
                                 {
                                     GUILayout.FlexibleSpace();
                                     GUILayout.Label("Current bone:");
-                                    GUILayout.Label(SelectedTransform.name);
+                                    GUILayout.Label(ToDisplayString(SelectedTransform.Key));
+                                    GUILayout.Label(" > ");
+                                    GUILayout.TextField(SelectedTransform.Value.name, _gsLabel);
                                     GUILayout.FlexibleSpace();
                                 }
                                 GUILayout.EndHorizontal();
 
-                                var counterBoneName = GetCounterBoneName(mod);
-                                BoneModifier otherMod = null;
-                                if (_editSymmetry && counterBoneName != null)
-                                {
-                                    otherMod = _currentBoneController.GetModifier(counterBoneName, _selectedTransformLocation);
-                                    if (otherMod == null)
-                                    {
-                                        var counterBone = _currentBoneController._boneSearcher.FindBone(counterBoneName, ref _selectedTransformLocation);
-                                        if (counterBone != null)
-                                        {
-                                            otherMod = new BoneModifier(counterBone.name, _selectedTransformLocation) { BoneTransform = counterBone.transform };
-                                            _currentBoneController.AddModifier(otherMod);
-                                        }
-                                    }
-                                }
-                                if (otherMod == null) UnityEngine.GUI.enabled = false;
+                                var counterBone = GetCounterBoneName(mod);
+                                if (counterBone == null) UnityEngine.GUI.enabled = false;
+                                var otherMod = _editSymmetry && counterBone != null ? GetOrAddBoneModifier(counterBone, mod.BoneLocation) : null;
                                 if (_editSymmetry) UnityEngine.GUI.color = _warningColor;
-                                _editSymmetry = GUILayout.Toggle(_editSymmetry, "Edit both left and right side bones");
+                                _editSymmetry = GUILayout.Toggle(_editSymmetry, new GUIContent("Edit both left and right side bones", "Some bones have a symmetrical pair, like left and right elbow. They all end with _L or _R suffix. This setting will let you edit both sides at the same time (two separate bone modifiers are still used)."));
                                 UnityEngine.GUI.color = Color.white;
-                                GUILayout.Label("Other side bone: " + (counterBoneName ?? "No bone found"));
+                                GUILayout.Label("Other side bone: " + (counterBone ?? "No bone found"));
                                 UnityEngine.GUI.enabled = true;
 
-#if !AI && !HS2 && !EC
+#if !AI && !HS2
                                 GUILayout.Space(5);
 
                                 UnityEngine.GUI.changed = false;
                                 var oldVal = mod.IsCoordinateSpecific();
                                 if (oldVal) UnityEngine.GUI.color = _warningColor;
-                                var newval = GUILayout.Toggle(oldVal, "Use different values for each coordinate");
+                                var newval = GUILayout.Toggle(oldVal, new GUIContent("Use different values for each coordinate", "This will let you set different slider values for each coordinate (outfit slot).\nModifiers set as per-coordinate are saved to coordinate cards (outfit cards) and later loaded from them (they are added to existing modifiers).\nDisabling the option will cause all coordinates to use current slider values."));
                                 UnityEngine.GUI.color = Color.white;
                                 if (UnityEngine.GUI.changed)
                                 {
@@ -431,34 +530,75 @@ namespace KKABMX.GUI
                                 if (mod != null)
                                 {
                                     if (mod.IsEmpty()) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button("Copy", _gloExpand))
-                                        _copiedModifier = mod.CoordinateModifiers.Select(x => x.Clone()).ToArray();
+                                    if (GUILayout.Button(new GUIContent("Copy", "Copy data of this modifier to clipboard so it can be pasted into another modifier, or into any text editor to hand-edit or save for later.\nIf the modifier is per-coordinate, data for all coordinates is copied."), _gloExpand))
+                                    {
+                                        //_copiedModifier = mod.CoordinateModifiers.Select(x => x.Clone()).ToArray();
+                                        try
+                                        {
+                                            using (var w = new StringWriter())
+                                            {
+                                                new XmlSerializer(typeof(BoneModifierData[])).Serialize(w, mod.CoordinateModifiers.Select(x => x.Clone()).ToArray());
+                                                var output = w.ToString();
+                                                Console.WriteLine(output);
+                                                GUIUtility.systemCopyBuffer = output;
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            KKABMX_Core.Logger.LogError(e);
+                                        }
+                                    }
+
                                     UnityEngine.GUI.enabled = true;
 
-                                    if (_copiedModifier == null) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button("Paste", _gloExpand))
-                                        mod.CoordinateModifiers = _copiedModifier.Select(x => x.Clone()).ToArray();
+                                    if (//_copiedModifier == null && 
+                                        string.IsNullOrEmpty(GUIUtility.systemCopyBuffer)) UnityEngine.GUI.enabled = false;
+                                    if (GUILayout.Button(new GUIContent("Paste", "Paste modifier data that is currently in the clipboard. To get modifier data to paste use the Copy button, or copy previously saved data in any text editor."), _gloExpand))
+                                    {
+                                        //if (_copiedModifier != null) mod.CoordinateModifiers = _copiedModifier.Select(x => x.Clone()).ToArray();
+                                        //else
+                                        {
+                                            try
+                                            {
+                                                if (string.IsNullOrEmpty(GUIUtility.systemCopyBuffer))
+                                                {
+                                                    KKABMX_Core.Logger.LogMessage("Nothing to paste.");
+                                                }
+                                                else
+                                                {
+                                                    using (var r = new StringReader(GUIUtility.systemCopyBuffer))
+                                                    {
+                                                        var result = (BoneModifierData[])new XmlSerializer(typeof(BoneModifierData[])).Deserialize(r);
+                                                        if (result == null || result.Length < 1) throw new ArgumentException("Invalid data", nameof(result));
+                                                        mod.CoordinateModifiers = result;
+                                                        KKABMX_Core.Logger.LogMessage("Imported modifiers from clipboard!");
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                KKABMX_Core.Logger.LogMessage("Failed to import modifiers from clipboard: " + e.Message);
+                                                KKABMX_Core.Logger.LogError(e);
+                                            }
+                                        }
+                                    }
+
                                     UnityEngine.GUI.enabled = true;
 
                                     UnityEngine.GUI.color = _dangerColor;
                                     if (mod.IsEmpty()) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button("Remove", _gloExpand))
+                                    if (GUILayout.Button(new GUIContent("Remove", "Reset and remove this modifier."), _gloExpand))
                                     {
                                         _changedBones.Remove(mod);
                                         _currentBoneController.RemoveModifier(mod);
-                                        SelectedTransform = null;
+                                        SelectedTransform = default;
                                     }
 
                                     UnityEngine.GUI.color = Color.white;
                                     UnityEngine.GUI.enabled = true;
-
-                                    GUILayout.Space(10);
                                 }
-                                else
-                                    GUILayout.FlexibleSpace();
 
-                                if (GUILayout.Button(" Close ", GUILayout.ExpandWidth(false)))
-                                    enabled = false;
+                                //GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
 
@@ -476,16 +616,18 @@ namespace KKABMX.GUI
             }
             GUILayout.EndVertical();
 
-            _windowRect = IMGUIUtils.DragResizeEatWindow(id, _windowRect);
+            if (!_enableHelp) UnityEngine.GUI.tooltip = null;
         }
 
-        private BoneModifier GetOrAddBoneModifier(Transform bone, BoneLocation location)
+        private static Dictionary<string, string> _boneTooltips;
+
+        private BoneModifier GetOrAddBoneModifier(string boneName, BoneLocation location)
         {
-            if (bone == null) throw new ArgumentNullException(nameof(bone));
-            var mod = _currentBoneController.GetModifier(bone.name, location);
+            if (boneName == null) throw new ArgumentNullException(nameof(boneName));
+            var mod = _currentBoneController.GetModifier(boneName, location);
             if (mod == null)
             {
-                mod = new BoneModifier(bone.name, location == BoneLocation.Unknown ? FindLocation(bone) : location);
+                mod = new BoneModifier(boneName, location);
                 _currentBoneController.AddModifier(mod);
                 _changedBones.Add(mod);
             }
@@ -494,12 +636,12 @@ namespace KKABMX.GUI
             return mod;
         }
 
-        private void DrawSliders(BoneModifier mod, BoneModifier linkedMod)
+        private static void DrawSliders(BoneModifier mod, BoneModifier linkedMod)
         {
-#if AI || HS2 || EC
-            var coordinateType = (CoordinateType)0;
+#if AI || HS2
+            var coordinateType = CoordinateType.Unknown;
 #else
-            var coordinateType = (CoordinateType)_currentChaControl.fileStatus.coordinateType;
+            var coordinateType = (ChaFileDefine.CoordinateType)_currentChaControl.fileStatus.coordinateType;
 #endif
             var modData = mod.GetModifier(coordinateType);
             var linkedModData = linkedMod?.GetModifier(coordinateType);
@@ -508,71 +650,76 @@ namespace KKABMX.GUI
 
             GUILayout.BeginVertical();
 
-            // Length slider
-            var lengthModifier = modData.LengthModifier;
-            if (DrawSingleSlider("Length:", ref lengthModifier, -2, 2, 1, 0))
+            GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Scale sliders ------------------------------------------------------------
             {
-                modData.LengthModifier = lengthModifier;
-                if (linkedModData != null) linkedModData.LengthModifier = lengthModifier;
-                anyChanged = true;
+                var scale = modData.ScaleModifier;
+                if (DrawXyzSliders(sliderName: "Scale", value: ref scale, minValue: 0, maxValue: 2, defaultValue: 1, incrementIndex: 1))
+                {
+                    modData.ScaleModifier = scale;
+                    if (linkedModData != null) linkedModData.ScaleModifier = scale;
+                    anyChanged = true;
+                }
+
+                DrawIncrementControl(1, true);
             }
+            GUILayout.EndVertical();
 
-            DrawIncrementControl(0);
-
-            GUILayout.Space(10);
-
-            // Scale sliders
-            var scale = modData.ScaleModifier;
-            //if (GUILayout.Button("0", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) scale = Vector3.one;
-            if (DrawSingleSlider("Scale X:", ref scale.x, 0, 2, 1, 1) |
-                DrawSingleSlider("Scale Y:", ref scale.y, 0, 2, 1, 1) |
-                DrawSingleSlider("Scale Z:", ref scale.z, 0, 2, 1, 1))
-            {
-                modData.ScaleModifier = scale;
-                if (linkedModData != null) linkedModData.ScaleModifier = scale;
-                anyChanged = true;
-            }
-
-            DrawIncrementControl(1);
-
-            GUILayout.Space(10);
+            GUILayout.Space(5);
 
             if (KKABMX_Core.NoRotationBones.Contains(mod.BoneName))
             {
-                UnityEngine.GUI.color = _warningColor;
-                GUILayout.Label("Warning: Changing position and rotation of this bone can cause issues.");
+                UnityEngine.GUI.color = Color.yellow;
+                GUILayout.Label("Warning: This bone has known issues with Tilt and possibly Offset/Length sliders. Use at your own risk.");
                 UnityEngine.GUI.color = Color.white;
+
+                GUILayout.Space(5);
             }
 
-            // Position sliders
-            var position = modData.PositionModifier;
-            //if (GUILayout.Button("0", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) position = Vector3.zero;
-            if (DrawSingleSlider("Offset X:", ref position.x, -1, 1, 0, 2) |
-                DrawSingleSlider("Offset Y:", ref position.y, -1, 1, 0, 2) |
-                DrawSingleSlider("Offset Z:", ref position.z, -1, 1, 0, 2))
+            GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Length slider ------------------------------------------------------------
             {
-                modData.PositionModifier = position;
-                if (linkedModData != null) linkedModData.PositionModifier = new Vector3(position.x * -1, position.y, position.z);
-                anyChanged = true;
+                var lengthModifier = modData.LengthModifier;
+                if (DrawSingleSlider(sliderName: "Length:", value: ref lengthModifier, minValue: -2, maxValue: 2, defaultValue: 1, incrementIndex: 0))
+                {
+                    modData.LengthModifier = lengthModifier;
+                    if (linkedModData != null) linkedModData.LengthModifier = lengthModifier;
+                    anyChanged = true;
+                }
+
+                DrawIncrementControl(0, false);
             }
+            GUILayout.EndVertical();
 
-            DrawIncrementControl(2);
+            GUILayout.Space(5);
 
-            GUILayout.Space(10);
-
-            // Rotation sliders
-            var rotation = modData.RotationModifier;
-            //if (GUILayout.Button("0", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) rotation = Vector3.zero;
-            if (DrawSingleSlider("Tilt X:", ref rotation.x, -180, 180, 0, 3) |
-                DrawSingleSlider("Tilt Y:", ref rotation.y, -180, 180, 0, 3) |
-                DrawSingleSlider("Tilt Z:", ref rotation.z, -180, 180, 0, 3))
+            GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Position sliders ------------------------------------------------------------
             {
-                modData.RotationModifier = rotation;
-                if (linkedModData != null) linkedModData.RotationModifier = new Vector3(rotation.x, rotation.y * -1, rotation.z * -1);
-                anyChanged = true;
-            }
+                var position = modData.PositionModifier;
+                if (DrawXyzSliders(sliderName: "Offset", value: ref position, minValue: -1, maxValue: 1, defaultValue: 0, incrementIndex: 2))
+                {
+                    modData.PositionModifier = position;
+                    if (linkedModData != null) linkedModData.PositionModifier = new Vector3(position.x * -1, position.y, position.z);
+                    anyChanged = true;
+                }
 
-            DrawIncrementControl(3);
+                DrawIncrementControl(2, true);
+            }
+            GUILayout.EndVertical();
+
+            GUILayout.Space(5);
+
+            GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Rotation sliders ------------------------------------------------------------
+            {
+                var rotation = modData.RotationModifier;
+                if (DrawXyzSliders(sliderName: "Tilt", value: ref rotation, minValue: -180, maxValue: 180, defaultValue: 0, incrementIndex: 3))
+                {
+                    modData.RotationModifier = rotation;
+                    if (linkedModData != null) linkedModData.RotationModifier = new Vector3(rotation.x, rotation.y * -1, rotation.z * -1);
+                    anyChanged = true;
+                }
+
+                DrawIncrementControl(3, true);
+            }
+            GUILayout.EndVertical();
 
             GUILayout.EndVertical();
 
@@ -580,7 +727,35 @@ namespace KKABMX.GUI
                 UnityEngine.GUI.changed = true;
         }
 
-        private static void DrawIncrementControl(int index)
+        private static bool DrawXyzSliders(string sliderName, ref Vector3 value, float minValue, float maxValue, float defaultValue, int incrementIndex)
+        {
+            var x = DrawSingleSlider(sliderName + " X:", ref value.x, minValue, maxValue, defaultValue, incrementIndex);
+            var y = DrawSingleSlider(sliderName + " Y:", ref value.y, minValue, maxValue, defaultValue, incrementIndex);
+            var z = DrawSingleSlider(sliderName + " Z:", ref value.z, minValue, maxValue, defaultValue, incrementIndex);
+
+            if (_lockXyz[incrementIndex])
+            {
+                if (x)
+                {
+                    value.y = value.x;
+                    value.z = value.x;
+                }
+                else if (y)
+                {
+                    value.x = value.y;
+                    value.z = value.y;
+                }
+                else if (z)
+                {
+                    value.x = value.z;
+                    value.y = value.z;
+                }
+            }
+
+            return x || y || z;
+        }
+
+        private static void DrawIncrementControl(int index, bool showLock)
         {
             GUILayout.BeginHorizontal();
             {
@@ -595,6 +770,16 @@ namespace KKABMX.GUI
                 if (GUILayout.Button("-", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize[index] = RoundToPowerOf10(_incrementSize[index] * 0.1f);
                 if (GUILayout.Button("+", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize[index] = RoundToPowerOf10(_incrementSize[index] * 10f);
                 if (GUILayout.Button("Reset", GUILayout.ExpandWidth(false))) _incrementSize[index] = _defaultIncrementSize[index];
+
+                if (showLock)
+                {
+                    GUILayout.Space(4);
+
+                    var isLock = _lockXyz[index];
+                    if (isLock) UnityEngine.GUI.color = Color.yellow;
+                    _lockXyz[index] = GUILayout.Toggle(isLock, "Lock XYZ", GUILayout.ExpandWidth(false));
+                    UnityEngine.GUI.color = Color.white;
+                }
             }
             GUILayout.EndHorizontal();
         }
@@ -608,7 +793,7 @@ namespace KKABMX.GUI
                 if (sliderName != null)
                     GUILayout.Label(sliderName, GUILayout.Width(70), _gloHeight);
 
-                value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _gloExpand, _gloHeight);
+                value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _gloExpand, _gloHeight); //todo better style, stock too low height
 
                 float.TryParse(GUILayout.TextField(value.ToString(maxValue >= 100 ? "F1" : "F3", CultureInfo.InvariantCulture), _gsInput, GUILayout.Width(43), _gloHeight),
                                out value);
@@ -622,7 +807,7 @@ namespace KKABMX.GUI
             return UnityEngine.GUI.changed;
         }
 
-        private void DisplayObjectTreeHelper(GameObject go, int indent, ref int currentCount)
+        private void DisplayObjectTreeHelper(GameObject go, int indent, ref int currentCount, BoneLocation location)
         {
             currentCount++;
 
@@ -634,7 +819,7 @@ namespace KKABMX.GUI
             if (isVisible || needsHeightMeasure)
             {
                 var c = UnityEngine.GUI.color;
-                if (SelectedTransform == go.transform)
+                if (SelectedTransform.Value == go.transform)
                     UnityEngine.GUI.color = Color.cyan;
                 //else if (_changedBones.Any(modifier => modifier.BoneTransform == go.transform && !modifier.IsEmpty()))
                 //{
@@ -642,15 +827,27 @@ namespace KKABMX.GUI
                 //}
                 else
                 {
-                    var mod = _currentBoneController.Modifiers.Find(modifier => modifier.BoneTransform == go.transform && !modifier.IsEmpty());
-                    if (mod != null) UnityEngine.GUI.color = mod.IsCoordinateSpecific() ? Color.yellow : Color.green;
+                    BoneModifier FindModifier(BoneLocation boneLocation, Transform boneTransform)
+                    {
+                        return _currentBoneController.ModifierDict.TryGetValue(boneLocation, out var list)
+                            ? list.Find(modifier => modifier.BoneTransform == boneTransform)
+                            : null;
+                    }
+                    BoneModifier mod;
+                    if (location >= BoneLocation.Accessory)
+                        mod = FindModifier(location, go.transform);
+                    else
+                        mod = FindModifier(BoneLocation.BodyTop, go.transform) ?? FindModifier(BoneLocation.Unknown, go.transform);
+
+                    if (mod != null && !mod.IsEmpty()) UnityEngine.GUI.color = mod.IsCoordinateSpecific() ? Color.yellow : Color.green;
                 }
 
                 if (!go.activeSelf) UnityEngine.GUI.color = new Color(UnityEngine.GUI.color.r, UnityEngine.GUI.color.g, UnityEngine.GUI.color.b, 0.6f);
 
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Space(indent * 20f);
+                    if (indent > 0)
+                        GUILayout.Space(indent * 20f);
 
                     GUILayout.BeginHorizontal();
                     {
@@ -664,16 +861,19 @@ namespace KKABMX.GUI
                         else
                             GUILayout.Space(20f);
 
-                        if (GUILayout.Button(go.name, UnityEngine.GUI.skin.label, _gloExpand, GUILayout.MinWidth(200)))
+                        var goName = indent > 0 ? go.name : $"{go.name} ({ToDisplayString(location)})";
+                        string tooltip = null;
+                        if (_enableHelp) _boneTooltips.TryGetValue(go.name, out tooltip);
+                        if (GUILayout.Button(new GUIContent(goName, tooltip), UnityEngine.GUI.skin.label, _gloExpand, GUILayout.MinWidth(200)))
                         {
-                            if (SelectedTransform == go.transform)
+                            if (SelectedTransform.Value == go.transform)
                             {
                                 // Toggle on/off
                                 if (!_openedObjects.Add(go))
                                     _openedObjects.Remove(go);
                             }
                             else
-                                SelectedTransform = go.transform;
+                                SelectedTransform = new KeyValuePair<BoneLocation, Transform>(location, go.transform);
                         }
 
                         UnityEngine.GUI.color = c;
@@ -693,9 +893,11 @@ namespace KKABMX.GUI
                 for (var i = 0; i < go.transform.childCount; ++i)
                 {
                     var cgo = go.transform.GetChild(i).gameObject;
+                    //todo bone controller needs to deal with this as well
+                    // dont do it with head bone at all?
                     if (cgo == _currentChaControl.objHeadBone || Array.IndexOf(_currentChaControl.objAccessory, cgo) >= 0)
                         continue;
-                    DisplayObjectTreeHelper(cgo, indent + 1, ref currentCount);
+                    DisplayObjectTreeHelper(cgo, indent + 1, ref currentCount, location);
                 }
             }
         }
@@ -712,5 +914,37 @@ namespace KKABMX.GUI
                 return mod.BoneName.Remove(mod.BoneName.Length - 4) + "R_00";
             return null;
         }
+
+        private static string ToDisplayString(BoneLocation location)
+        {
+            if (location == BoneLocation.BodyTop) return "Body";
+            if (location < BoneLocation.Unknown) return "Invalid";
+            if (location >= BoneLocation.Accessory) return $"Slot {1 + location - BoneLocation.Accessory:00}";
+            return location.ToString();
+        }
     }
+
+#pragma warning disable CS1591
+    public class SerializedBoneModifier
+    {
+        // Needed for serialization
+        public SerializedBoneModifier() { }
+
+        public SerializedBoneModifier(BoneModifier orig)
+        {
+            BoneName = orig.BoneName;
+            BoneLocation = orig.BoneLocation;
+            CoordinateModifiers = orig.CoordinateModifiers;
+        }
+
+        public string BoneName { get; set; }
+        public BoneLocation BoneLocation { get; set; }
+        public BoneModifierData[] CoordinateModifiers { get; set; }
+
+        public BoneModifier ToBoneModifier()
+        {
+            return new BoneModifier(BoneName, BoneLocation, CoordinateModifiers);
+        }
+    }
+#pragma warning restore CS1591
 }
