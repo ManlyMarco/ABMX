@@ -66,6 +66,7 @@ namespace KKABMX.Core
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeBodyValue))]
             [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.SetShapeFaceValue))]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeAccessoryParent))]
             public static void ChangeValuePost(ChaControl __instance)
             {
                 if (__instance != null)

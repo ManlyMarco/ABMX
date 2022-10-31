@@ -19,7 +19,7 @@ namespace KKABMX.Core
 
         [Key(3)]
         public Vector3 RotationModifier;
-        
+
         public BoneModifierData() : this(Vector3.one, 1, Vector3.zero, Vector3.zero) { }
         public BoneModifierData(Vector3 scaleModifier, float lengthModifier) : this(scaleModifier, lengthModifier, Vector3.zero, Vector3.zero) { }
         public BoneModifierData(Vector3 scaleModifier, float lengthModifier, Vector3 positionModifier, Vector3 rotationModifier)
@@ -69,6 +69,14 @@ namespace KKABMX.Core
             RotationModifier = Vector3.zero;
             PositionModifier = Vector3.zero;
             LengthModifier = 1;
+        }
+
+        public void CopyTo(BoneModifierData other)
+        {
+            other.ScaleModifier = ScaleModifier;
+            other.RotationModifier = RotationModifier;
+            other.PositionModifier = PositionModifier;
+            other.LengthModifier = LengthModifier;
         }
     }
 }

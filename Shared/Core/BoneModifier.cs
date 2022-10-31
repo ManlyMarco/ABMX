@@ -51,6 +51,7 @@ namespace KKABMX.Core
         /// Needs to be either 1 long to apply to all coordinates or 7 to apply to specific
         /// coords
         /// </param>
+        [SerializationConstructor]
         public BoneModifier(string boneName, BoneLocation boneLocation, BoneModifierData[] coordinateModifiers)
         {
             if (string.IsNullOrEmpty(boneName))
@@ -360,6 +361,11 @@ namespace KKABMX.Core
         private bool HasLenBaseline()
         {
             return _positionBaseline != Vector3.zero;
+        }
+
+        public BoneModifier Clone()
+        {
+            return new BoneModifier(BoneName, BoneLocation, CoordinateModifiers.Select(x => x.Clone()).ToArray());
         }
     }
 }
