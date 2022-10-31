@@ -16,17 +16,13 @@ namespace KKABMX.Core
     public sealed class BoneModifier
     {
         private bool _hasBaseline;
-        private float _lenBaseline;
         private Vector3 _sclBaseline = Vector3.one;
         private Vector3 _posBaseline = Vector3.zero;
         private Quaternion _rotBaseline;
 
-        private bool _lenModForceUpdate;
-        private bool _lenModNeedsPositionRestore;
-        private Vector3 _positionBaseline;
-
         private bool _changedScale, _changedRotation, _changedPosition;
 
+        private bool _lenModForceUpdate;
         private bool _forceApply;
 
         [Obsolete]
@@ -94,7 +90,7 @@ namespace KKABMX.Core
         /// <summary>
         /// Apply the modifiers
         /// </summary>
-        public void Apply(CoordinateType coordinate, IList<BoneModifierData> additionalModifiers, bool alwaysRestorePosition)
+        public void Apply(CoordinateType coordinate, IList<BoneModifierData> additionalModifiers)
         {
             if (BoneTransform == null) return;
 
@@ -105,82 +101,49 @@ namespace KKABMX.Core
             else if (modifier == null)
                 return;
 
-            if (CanApply(modifier))
+            if (!CanApply(modifier)) return;
+
+            if (modifier.HasScale())
             {
-                if (modifier.HasScale())
-                {
-                    BoneTransform.localScale = new Vector3(
-                        _sclBaseline.x * modifier.ScaleModifier.x,
-                        _sclBaseline.y * modifier.ScaleModifier.y,
-                        _sclBaseline.z * modifier.ScaleModifier.z);
-                    _changedScale = true;
-                }
-                else if (_changedScale)
-                {
-                    BoneTransform.localScale = _sclBaseline;
-                    _changedScale = false;
-                }
+                BoneTransform.localScale = new Vector3(
+                    _sclBaseline.x * modifier.ScaleModifier.x,
+                    _sclBaseline.y * modifier.ScaleModifier.y,
+                    _sclBaseline.z * modifier.ScaleModifier.z);
+                _changedScale = true;
+            }
+            else if (_changedScale)
+            {
+                BoneTransform.localScale = _sclBaseline;
+                _changedScale = false;
+            }
 
-                if (modifier.HasRotation() && !KKABMX_Core.NoRotationBones.Contains(BoneTransform.name))
-                {
-                    // Multiplying Quaternions has same effect as applying them in order
-                    BoneTransform.localRotation = _rotBaseline * Quaternion.Euler(modifier.RotationModifier);
-                    _changedRotation = true;
-                }
-                else if (_changedRotation)
-                {
-                    BoneTransform.localRotation = _rotBaseline;
-                    _changedRotation = false;
-                }
+            if (modifier.HasRotation()/* && !KKABMX_Core.NoRotationBones.Contains(BoneTransform.name)*/)
+            {
+                // Multiplying Quaternions has same effect as applying them in order
+                BoneTransform.localRotation = _rotBaseline * Quaternion.Euler(modifier.RotationModifier);
+                _changedRotation = true;
+            }
+            else if (_changedRotation)
+            {
+                BoneTransform.localRotation = _rotBaseline;
+                _changedRotation = false;
+            }
 
-                if (_lenModForceUpdate || modifier.HasLength())
-                {
-                    if (HasLenBaseline())
-                    {
-                        var localPosition = BoneTransform.localPosition;
-                        // Handle negative position modifiers, needed to prevent position sign changing on every frame
-                        // (since negative modifier.LengthModifier would constantly flip it)
-                        // Also needed for values near 0 to prevent losing the position data
-                        if (modifier.LengthModifier < 0.1f || localPosition == Vector3.zero || alwaysRestorePosition)
-                        {
-                            // Fall back to more aggresive mode
-                            localPosition = _positionBaseline;
-                            _lenModNeedsPositionRestore = true;
-                        }
-
-                        BoneTransform.localPosition = localPosition / localPosition.magnitude * _lenBaseline * modifier.LengthModifier;
-
-                        _lenModForceUpdate = false;
-
-                        if (modifier.HasPosition())
-                        {
-                            BoneTransform.localPosition = new Vector3(
-                                BoneTransform.localPosition.x + modifier.PositionModifier.x,
-                                BoneTransform.localPosition.y + modifier.PositionModifier.y,
-                                BoneTransform.localPosition.z + modifier.PositionModifier.z
-                            );
-                            _changedPosition = true;
-                        }
-                        else if (_changedPosition)
-                        {
-                            BoneTransform.localPosition = _posBaseline;
-                            _changedPosition = false;
-                        }
-
-                        return;
-                    }
-                }
-
-                if (modifier.HasPosition())
-                {
-                    BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
-                    _changedPosition = true;
-                }
-                else if (_changedPosition)
-                {
-                    BoneTransform.localPosition = _posBaseline;
-                    _changedPosition = false;
-                }
+            if (_lenModForceUpdate || modifier.HasLength())
+            {
+                BoneTransform.localPosition = _posBaseline * modifier.LengthModifier + modifier.PositionModifier;
+                _lenModForceUpdate = false;
+                _changedPosition = true;
+            }
+            else if (modifier.HasPosition())
+            {
+                BoneTransform.localPosition = _posBaseline + modifier.PositionModifier;
+                _changedPosition = true;
+            }
+            else if (_changedPosition)
+            {
+                BoneTransform.localPosition = _posBaseline;
+                _changedPosition = false;
             }
         }
 
@@ -219,13 +182,6 @@ namespace KKABMX.Core
             _sclBaseline = BoneTransform.localScale;
             _posBaseline = BoneTransform.localPosition;
             _rotBaseline = BoneTransform.localRotation;
-
-            if (!HasLenBaseline())
-            {
-                _lenBaseline = BoneTransform.localPosition.magnitude;
-                _positionBaseline = BoneTransform.localPosition;
-                _lenModNeedsPositionRestore = false;
-            }
 
             _hasBaseline = true;
         }
@@ -319,20 +275,6 @@ namespace KKABMX.Core
                 BoneTransform.localScale = _sclBaseline;
                 BoneTransform.localRotation = _rotBaseline;
                 BoneTransform.localPosition = _posBaseline;
-                if (HasLenBaseline())
-                {
-                    var baseline = _lenBaseline;
-                    // Flip position back to normal if necessary
-                    if (_lenModNeedsPositionRestore || BoneTransform.localPosition == Vector3.zero)
-                    {
-                        BoneTransform.localPosition = _positionBaseline;
-                        _lenModNeedsPositionRestore = false;
-                    }
-                    else
-                    {
-                        BoneTransform.localPosition = BoneTransform.localPosition / BoneTransform.localPosition.magnitude * baseline;
-                    }
-                }
             }
         }
 
@@ -356,11 +298,6 @@ namespace KKABMX.Core
                 return true;
 
             return false;
-        }
-
-        private bool HasLenBaseline()
-        {
-            return _positionBaseline != Vector3.zero;
         }
 
         public BoneModifier Clone()

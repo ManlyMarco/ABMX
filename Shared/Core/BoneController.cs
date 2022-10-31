@@ -71,8 +71,6 @@ namespace KKABMX.Core
         public IEnumerable<BoneEffect> AdditionalBoneEffects => _additionalBoneEffects;
         private readonly List<BoneEffect> _additionalBoneEffects = new List<BoneEffect>();
 
-        private bool _isDuringHScene;
-
         /// <summary>
         /// Signals that new modifier data was loaded and custom Modifiers and AdditionalBoneEffects might need to be updated
         /// </summary>
@@ -461,9 +459,6 @@ namespace KKABMX.Core
             BoneSearcher = new BoneFinder(ChaControl);
             base.Start();
             CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
-#if KK // hs2 ais is HScene //todo KKS full game
-            _isDuringHScene = "H".Equals(Scene.Instance.LoadSceneName, StringComparison.Ordinal);
-#endif
         }
 
         private void LateUpdate()
@@ -559,7 +554,7 @@ namespace KKABMX.Core
                 if (boneLocation == BoneLocation.Unknown || boneLocation == BoneLocation.BodyTop)
                     _effectsToUpdate.TryGetValue(modifier, out extraEffects);
 
-                modifier.Apply(CurrentCoordinate.Value, extraEffects, _isDuringHScene);
+                modifier.Apply(CurrentCoordinate.Value, extraEffects);
             }
         }
 
