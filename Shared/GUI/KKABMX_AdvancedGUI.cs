@@ -264,8 +264,8 @@ namespace KKABMX.Core
                                 UnityEngine.GUI.color = _enableHelp ? Color.cyan : Color.white;
                                 if (GUILayout.Button(new GUIContent("?", @"Bones adjusted with yellow ABMX sliders in maker tabs are automatically added to this window.
 
-Hover over bones in the list below to see notes (only some bones have them). Bones commented with ""ANIMCOR"" are used by animation correction system, adjusting them can cause weird 
-BL = Bone length. It's the distance between given bone and its parent. In some cases (like cf_j_spine02/03) effect is pretty obvious, in some not so much. Offset and rotation controls can be used instead, but the effect may be a bit different during animations.effects and glitches.
+Hover over bones in the list below to see notes (only some bones have them). Bones commented with ""ANIMCOR"" are used by animation correction system, adjusting them can cause weird effects during gameplay.
+BL = Bone length. It's the distance between given bone and its parent. In some cases (like cf_j_spine02/03) effect is pretty obvious, in some not so much. Offset and rotation controls can be used instead, but the effect may be a bit different during animations.effects and glitches. If the BL slider is grayed out it means it has no effect on that bone.
 
 Adjusting any bone also affects all of its children. To get a sense of what adjusting one bone will do, just look at its children.
 # cf_j_neck affects both neck and head since cf_j_head is parented to it, while cf_s_neck only affects the neck itself.
@@ -677,6 +677,9 @@ Things to keep in mind:
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Length slider ------------------------------------------------------------
             {
+                if (!mod.CanApplyLength())
+                    UnityEngine.GUI.enabled = false;
+
                 var lengthModifier = modData.LengthModifier;
                 if (DrawSingleSlider(sliderName: "Length:", value: ref lengthModifier, minValue: -2, maxValue: 2, defaultValue: 1, incrementIndex: 0))
                 {
@@ -686,6 +689,7 @@ Things to keep in mind:
                 }
 
                 DrawIncrementControl(0, false);
+                UnityEngine.GUI.enabled = true;
             }
             GUILayout.EndVertical();
 

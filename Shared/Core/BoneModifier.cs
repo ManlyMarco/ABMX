@@ -47,7 +47,6 @@ namespace KKABMX.Core
         /// Needs to be either 1 long to apply to all coordinates or 7 to apply to specific
         /// coords
         /// </param>
-        [SerializationConstructor]
         public BoneModifier(string boneName, BoneLocation boneLocation, BoneModifierData[] coordinateModifiers)
         {
             if (string.IsNullOrEmpty(boneName))
@@ -61,6 +60,9 @@ namespace KKABMX.Core
             BoneLocation = boneLocation;
             CoordinateModifiers = coordinateModifiers.ToArray();
         }
+
+        [SerializationConstructor, Obsolete("Only for deserialization", true)]
+        public BoneModifier(string boneName, BoneModifierData[] coordinateModifiers, BoneLocation boneLocation) : this(boneName, boneLocation, coordinateModifiers) { }
 
         /// <summary>
         /// Name of the targetted bone
@@ -303,6 +305,13 @@ namespace KKABMX.Core
         public BoneModifier Clone()
         {
             return new BoneModifier(BoneName, BoneLocation, CoordinateModifiers.Select(x => x.Clone()).ToArray());
+        }
+
+        public bool CanApplyLength()
+        {
+            if (_hasBaseline) return _posBaseline != Vector3.zero;
+            if (BoneTransform != null) return BoneTransform.position != Vector3.zero;
+            return false;
         }
     }
 }
