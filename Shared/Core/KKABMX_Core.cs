@@ -29,7 +29,7 @@ namespace KKABMX.Core
         internal static ConfigEntry<bool> XyzMode { get; private set; }
         internal static ConfigEntry<bool> RaiseLimits { get; private set; }
         internal static ConfigEntry<bool> ResetToLastLoaded { get; private set; }
-        internal static ConfigEntry<bool> TransparentAdvancedWindow { get; private set; }
+        internal static ConfigEntry<string> Favorites;
 
         internal static KKABMX_Core Instance { get; private set; }
         internal static new ManualLogSource Logger { get; private set; }
@@ -45,8 +45,8 @@ namespace KKABMX.Core
             XyzMode = Config.Bind("Maker", Metadata.XyzModeName, false, Metadata.XyzModeDesc);
             RaiseLimits = Config.Bind("Maker", Metadata.RaiseLimitsName, false, Metadata.RaiseLimitsDesc);
             ResetToLastLoaded = Config.Bind("Maker", Metadata.ResetToLastLoadedName, true, Metadata.ResetToLastLoadedDesc);
-            TransparentAdvancedWindow = Config.Bind("General", Metadata.AdvTransparencyName, false, Metadata.AdvTransparencyDesc);
             _openEditorKey = Config.Bind("General", Metadata.OpenEditorKeyName, KeyboardShortcut.Empty, Metadata.OpenEditorKeyDesc);
+            Favorites = Config.Bind("Advanced", "Favorites", string.Empty, new ConfigDescription("Favorites in advanced window separated by /", null, "Advanced"));
 
 #if !EC
             if (KKAPI.Studio.StudioAPI.InsideStudio)
