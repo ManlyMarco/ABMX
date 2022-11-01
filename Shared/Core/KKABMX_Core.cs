@@ -7,6 +7,7 @@ using ExtensibleSaveFormat;
 using KKABMX.GUI;
 using KKAPI;
 using KKAPI.Chara;
+using KKAPI.MainGame;
 using KKAPI.Maker;
 using UniRx;
 #if AI || HS2
@@ -81,6 +82,9 @@ namespace KKABMX.Core
                 else
                 {
                     var g = GetCurrentVisibleGirl();
+                    if (g == null)
+                        g = FindObjectsOfType<ChaControl>().OrderByDescending(x => x.isActiveAndEnabled).ThenBy(x => x.name).FirstOrDefault();
+
                     if (g != null)
                         KKABMX_AdvancedGUI.Enable(g.GetComponent<BoneController>());
                     else
@@ -100,23 +104,8 @@ namespace KKABMX.Core
                 return c?.ChaControl;
             }
 #endif
-#if KK //todo KKS full game
-            var talkScene = FindObjectOfType<TalkScene>();
-            var result = talkScene?.targetHeroine;
-            if (result != null) return result.chaCtrl;
-
-            var hFlag = FindObjectOfType<HFlag>();
-            result = hFlag?.lstHeroine.FirstOrDefault(x => x != null);
-            if (result != null) return result.chaCtrl;
-
-            var advScene = FindObjectOfType<ADVScene>();
-            if (advScene != null)
-            {
-                if (advScene.Scenario?.currentHeroine != null)
-                    return advScene.Scenario.currentHeroine.chaCtrl;
-                if (advScene.nowScene is TalkScene s && s.targetHeroine != null)
-                    return s.targetHeroine.chaCtrl;
-            }
+#if !EC && !AI && !HS2
+            return GameAPI.GetCurrentHeroine()?.chaCtrl;
 #endif
             return null;
         }

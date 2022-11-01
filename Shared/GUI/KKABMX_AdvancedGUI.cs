@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
 using HarmonyLib;
+using KKAPI.Maker;
 using KKAPI.Utilities;
 using UnityEngine;
 
@@ -16,7 +16,6 @@ using ChaControl = AIChara.ChaControl;
 
 namespace KKABMX.Core
 {
-    // todo support multiple characters, first node on the list
     /// <summary>
     /// Advanced bonemod interface, can be used to access all possible sliders and put in unlimited value ranges
     /// </summary>
@@ -41,9 +40,12 @@ namespace KKABMX.Core
         private readonly HashSet<BoneModifier> _changedBones = new HashSet<BoneModifier>();
         private readonly HashSet<GameObject> _openedObjects = new HashSet<GameObject>();
 
-        public static KeyValuePair<BoneLocation, Transform> SelectedTransform { get; set; }
-        private static BoneController _currentBoneController; //todo support multiple characters
+        private static KeyValuePair<BoneLocation, Transform> _selectedTransform;
+        private static BoneController _currentBoneController;
         private static ChaControl _currentChaControl;
+
+        private readonly ImguiComboBox _charaSelectBox = new ImguiComboBox();
+        private static GUIContent _selectedContent;
 
         private static readonly float[] _defaultIncrementSize = { 0.1f, 0.1f, 0.01f, 1f };
         private static readonly float[] _incrementSize = _defaultIncrementSize.ToArray();
@@ -108,9 +110,9 @@ namespace KKABMX.Core
                 Instance.enabled = true;
                 _currentChaControl = controller.ChaControl;
 
-                var charaName = controller.ChaControl.fileParam.fullname;
-                TranslationHelper.TryTranslate(charaName, out var charaNameTl);
-                Instance.Title = $"Advanced Bone Sliders [{charaNameTl ?? charaName}]";
+                var characterName = GetCharacterName(controller);
+                _selectedContent = new GUIContent(characterName);
+                Instance.Title = $"Advanced Bone Sliders - {characterName}";
 
                 if (_boneTooltips == null)
                 {
@@ -138,6 +140,14 @@ namespace KKABMX.Core
                     }
                 }
             }
+        }
+
+        private static string GetCharacterName(BoneController controller)
+        {
+            var objName = controller.name;
+            var charaName = controller.ChaControl.fileParam.fullname;
+            TranslationHelper.TryTranslate(charaName, out var charaNameTl);
+            return $"{objName} ({charaNameTl})" ?? charaName;
         }
 
         public static void Disable()
@@ -181,7 +191,7 @@ namespace KKABMX.Core
         {
             if (_currentBoneController == null)
             {
-                enabled = false;
+                Disable();
                 return;
             }
 
@@ -212,28 +222,35 @@ namespace KKABMX.Core
         {
             GUILayout.BeginVertical();
             {
-                //DrawHeader();
-
                 UnityEngine.GUI.changed = false;
 
-
-                // |------|-------|
-                // |      |options|
-                // |      |-------|
-                // |      |       |
-                // |      |       |
-                // |------|       |
-                // |search|       |
-                // |------|-------|
+                // |-------|-------|
+                // |search |options|
+                // |-------|-------|
+                // |       |       |
+                // |       |       |
+                // |-------|-------|
+                // |buttons|buttons|
+                // |-------|-------|
 
                 GUILayout.BeginHorizontal();
                 {
-                    //todo save format - add new field for "target" = body/acc123..., legacy fallback to body if empty
-                    // todo need to gather all body bones and then separately accessory bones and list them separately as root objects
-                    // list face as root object too but leave it also int he body tree
-
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box, GUILayout.Width(WindowRect.width / 2), GUILayout.ExpandHeight(true));
                     {
+                        if (!MakerAPI.InsideMaker)
+                        {
+                            // Select character
+                            GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
+                            {
+                                GUILayout.Label("Character: ", GUILayout.ExpandWidth(false));
+                                _charaSelectBox.Show(_selectedContent,
+                                                     () => GetAllControllersSorted().Select(x => new GUIContent(GetCharacterName(x))).ToArray(),
+                                                     i => Enable(GetAllControllersSorted().Skip(i).FirstOrDefault()),
+                                                     (int)WindowRect.yMax);
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+
                         // Search box and filters
                         GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
                         {
@@ -299,8 +316,6 @@ Things to keep in mind:
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-
-                            //todo show only body/head/acc
                         }
                         GUILayout.EndVertical();
 
@@ -308,9 +323,6 @@ Things to keep in mind:
                         // Bone list
                         _treeScrollPosition = GUILayout.BeginScrollView(_treeScrollPosition, false, true, GUILayout.ExpandHeight(true));
                         {
-                            //todo 
-                            // pin bones to have them show up at root level persistently
-
                             var currentCount = 0;
                             if (_onlyShowModified || _onlyShowCoords || _onlyShowNewChanges)
                             {
@@ -448,7 +460,7 @@ Things to keep in mind:
                                 _currentChaControl.updateShapeFace = true;
                                 _currentChaControl.updateShapeBody = true;
                                 _changedBones.Clear();
-                                SelectedTransform = default;
+                                _selectedTransform = default;
                             }
 
                             UnityEngine.GUI.color = Color.white;
@@ -460,12 +472,12 @@ Things to keep in mind:
                     // Sliders
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box, _gloExpand, GUILayout.ExpandHeight(true));
                     {
-                        var mod = SelectedTransform.Value == null ? null : GetOrAddBoneModifier(SelectedTransform.Value.name, SelectedTransform.Key);
+                        var mod = _selectedTransform.Value == null ? null : GetOrAddBoneModifier(_selectedTransform.Value.name, _selectedTransform.Key);
 
                         // Slider list
                         _slidersScrollPosition = GUILayout.BeginScrollView(_slidersScrollPosition, false, false, GUILayout.ExpandHeight(true));
                         {
-                            if (SelectedTransform.Value == null)
+                            if (_selectedTransform.Value == null)
                             {
                                 GUILayout.FlexibleSpace();
                                 GUILayout.Label("Select a bone transform on the left to show available controls.");
@@ -477,9 +489,9 @@ Things to keep in mind:
                                 {
                                     GUILayout.FlexibleSpace();
                                     GUILayout.Label("Current bone:");
-                                    GUILayout.Label(ToDisplayString(SelectedTransform.Key));
+                                    GUILayout.Label(ToDisplayString(_selectedTransform.Key));
                                     GUILayout.Label(" > ");
-                                    GUILayout.TextField(SelectedTransform.Value.name, _gsLabel);
+                                    GUILayout.TextField(_selectedTransform.Value.name, _gsLabel);
                                     GUILayout.FlexibleSpace();
                                 }
                                 GUILayout.EndHorizontal();
@@ -591,7 +603,7 @@ Things to keep in mind:
                                     {
                                         _changedBones.Remove(mod);
                                         _currentBoneController.RemoveModifier(mod);
-                                        SelectedTransform = default;
+                                        _selectedTransform = default;
                                     }
 
                                     UnityEngine.GUI.color = Color.white;
@@ -616,7 +628,14 @@ Things to keep in mind:
             }
             GUILayout.EndVertical();
 
-            if (!_enableHelp) UnityEngine.GUI.tooltip = null;
+            // Do not show tooltip if help is disabled or it could get in the way
+            if (_charaSelectBox.DrawDropdownIfOpen() || !_enableHelp)
+                UnityEngine.GUI.tooltip = null;
+        }
+
+        private static IOrderedEnumerable<BoneController> GetAllControllersSorted()
+        {
+            return FindObjectsOfType<BoneController>().OrderBy(x => x.name);
         }
 
         private static Dictionary<string, string> _boneTooltips;
@@ -788,7 +807,6 @@ Things to keep in mind:
             GUILayout.EndHorizontal();
         }
 
-
         private static bool DrawSingleSlider(string sliderName, ref float value, float minValue, float maxValue, float defaultValue, int incrementIndex)
         {
             UnityEngine.GUI.changed = false;
@@ -797,7 +815,7 @@ Things to keep in mind:
                 if (sliderName != null)
                     GUILayout.Label(sliderName, GUILayout.Width(70), _gloHeight);
 
-                value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _gloExpand, _gloHeight); //todo better style, stock too low height
+                value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _gloExpand, _gloHeight);
 
                 float.TryParse(GUILayout.TextField(value.ToString(maxValue >= 100 ? "F1" : "F3", CultureInfo.InvariantCulture), _gsInput, GUILayout.Width(43), _gloHeight),
                                out value);
@@ -823,7 +841,7 @@ Things to keep in mind:
             if (isVisible || needsHeightMeasure)
             {
                 var c = UnityEngine.GUI.color;
-                if (SelectedTransform.Value == go.transform)
+                if (_selectedTransform.Value == go.transform)
                     UnityEngine.GUI.color = Color.cyan;
                 //else if (_changedBones.Any(modifier => modifier.BoneTransform == go.transform && !modifier.IsEmpty()))
                 //{
@@ -870,14 +888,14 @@ Things to keep in mind:
                         if (_enableHelp) _boneTooltips.TryGetValue(go.name, out tooltip);
                         if (GUILayout.Button(new GUIContent(goName, tooltip), UnityEngine.GUI.skin.label, _gloExpand, GUILayout.MinWidth(200)))
                         {
-                            if (SelectedTransform.Value == go.transform)
+                            if (_selectedTransform.Value == go.transform)
                             {
                                 // Toggle on/off
                                 if (!_openedObjects.Add(go))
                                     _openedObjects.Remove(go);
                             }
                             else
-                                SelectedTransform = new KeyValuePair<BoneLocation, Transform>(location, go.transform);
+                                _selectedTransform = new KeyValuePair<BoneLocation, Transform>(location, go.transform);
                         }
 
                         UnityEngine.GUI.color = c;
@@ -897,8 +915,6 @@ Things to keep in mind:
                 for (var i = 0; i < go.transform.childCount; ++i)
                 {
                     var cgo = go.transform.GetChild(i).gameObject;
-                    //todo bone controller needs to deal with this as well
-                    // dont do it with head bone at all?
                     if (cgo == _currentChaControl.objHeadBone || Array.IndexOf(_currentChaControl.objAccessory, cgo) >= 0)
                         continue;
                     DisplayObjectTreeHelper(cgo, indent + 1, ref currentCount, location);
