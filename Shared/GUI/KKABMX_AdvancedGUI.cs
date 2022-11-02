@@ -9,6 +9,7 @@ using HarmonyLib;
 using KKAPI.Maker;
 using KKAPI.Utilities;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 #if AI || HS2
 using ChaControl = AIChara.ChaControl;
@@ -35,7 +36,7 @@ namespace KKABMX.Core
         private static readonly GUILayoutOption _gloHeight = GUILayout.Height(23);
 
         private static readonly Color _dangerColor = new Color(1, 0.4f, 0.4f, 1);
-        private static readonly Color _warningColor = new Color(1, 1, 0.7f, 1);
+        private static readonly Color _warningColor = new Color(1, 1, 0.6f, 1);
 
         private readonly HashSet<BoneModifier> _changedBones = new HashSet<BoneModifier>();
         private readonly HashSet<GameObject> _openedObjects = new HashSet<GameObject>();
@@ -211,12 +212,62 @@ namespace KKABMX.Core
                 //_getAllPossibleBoneNames = _currentBoneController.GetAllPossibleBoneNames().OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
                 //RefreshBoneInfo(true);
                 OnEnabledChanged?.Invoke(true);
+                Camera.onPostRender += OnRendered;
             }
         }
 
         private void OnDisable()
         {
             OnEnabledChanged?.Invoke(false);
+            Camera.onPostRender -= OnRendered;
+        }
+
+        private static Material _gizmoMaterial;
+        private static bool _enableGizmo = true;
+        private static bool _gizmoOnTop = true;
+
+        private static void OnRendered(Camera camera)
+        {
+            //todo cache main cam
+            if (!_enableGizmo || _selectedTransform.Value == null || camera != Camera.main)
+                return;
+
+            if (_gizmoMaterial == null)
+            {
+                // Unity has a built-in shader that is useful for drawing simple colored things.
+                var shader = Shader.Find("Hidden/Internal-Colored");
+                _gizmoMaterial = new Material(shader);
+                _gizmoMaterial.hideFlags = HideFlags.HideAndDontSave;
+
+                // Turn on alpha blending
+                _gizmoMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+                _gizmoMaterial.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+                // Always draw
+                _gizmoMaterial.SetInt("_Cull", (int)CullMode.Off);
+                _gizmoMaterial.SetInt("_ZWrite", 0);
+            }
+
+            _gizmoMaterial.SetInt("_ZTest", (int)(_gizmoOnTop ? CompareFunction.Always : CompareFunction.LessEqual));
+            // Set the material as currently used https://docs.unity3d.com/ScriptReference/Material.SetPass.html
+            _gizmoMaterial.SetPass(0);
+
+            GL.PushMatrix();
+            GL.MultMatrix(Matrix4x4.identity);
+            GL.Begin(GL.LINES);
+
+            var tr = _selectedTransform.Value;
+            GL.Color(new Color (0, 1, 0, 0.7f));
+            GL.Vertex(tr.position);
+            GL.Vertex(tr.position + tr.forward * 0.05f);
+            GL.Color(new Color (1, 0, 0, 0.7f));
+            GL.Vertex(tr.position);
+            GL.Vertex(tr.position + tr.right * 0.05f);
+            GL.Color(new Color (0, 0, 1, 0.7f));
+            GL.Vertex(tr.position);
+            GL.Vertex(tr.position + tr.up * 0.05f);
+
+            GL.End();
+            GL.PopMatrix();
         }
 
         protected override void OnGUI()
@@ -553,8 +604,6 @@ Things to keep in mind:
                                 }
                                 GUILayout.EndHorizontal();
 
-                                GUILayout.Space(4);
-
                                 var counterBone = GetCounterBoneName(mod);
                                 var origEnabled = UnityEngine.GUI.enabled;
                                 if (counterBone == null) UnityEngine.GUI.enabled = false;
@@ -566,11 +615,9 @@ Things to keep in mind:
                                 UnityEngine.GUI.enabled = origEnabled;
 
 #if !AI && !HS2
-                                GUILayout.Space(3);
-
                                 UnityEngine.GUI.changed = false;
                                 var oldVal = mod.IsCoordinateSpecific();
-                                if (oldVal) UnityEngine.GUI.color = _warningColor;
+                                if (oldVal) UnityEngine.GUI.color = Color.yellow;
                                 var newval = GUILayout.Toggle(oldVal, new GUIContent("Use different values for each coordinate", "This will let you set different slider values for each coordinate (outfit slot).\nModifiers set as per-coordinate are saved to coordinate cards (outfit cards) and later loaded from them (they are added to existing modifiers).\nDisabling the option will cause all coordinates to use current slider values."));
                                 UnityEngine.GUI.color = Color.white;
                                 if (UnityEngine.GUI.changed)
@@ -586,7 +633,25 @@ Things to keep in mind:
                                 }
 #endif
 
-                                GUILayout.Space(5);
+                                GUILayout.BeginHorizontal();
+                                {
+                                    _enableGizmo = UnityEngine.GUILayout.Toggle(_enableGizmo, "Show bone gizmo ");
+                                    var prevEnabled = UnityEngine.GUI.enabled;
+                                    UnityEngine.GUI.enabled = _enableGizmo;
+                                    _gizmoOnTop = GUILayout.Toggle(_gizmoOnTop, "on top ");
+                                    UnityEngine.GUILayout.Label("(", GUILayout.ExpandWidth(false));
+                                    UnityEngine.GUI.color = new Color(1, 0.3f, 0.3f);
+                                    UnityEngine.GUILayout.Label("X", GUILayout.ExpandWidth(false));
+                                    UnityEngine.GUI.color = new Color(0.3f, 0.3f, 1);
+                                    UnityEngine.GUILayout.Label("Y", GUILayout.ExpandWidth(false));
+                                    UnityEngine.GUI.color = new Color(0.3f, 1, 0.3f);
+                                    UnityEngine.GUILayout.Label("Z", GUILayout.ExpandWidth(false));
+                                    UnityEngine.GUI.color = Color.white;
+                                    UnityEngine.GUILayout.Label(")", GUILayout.ExpandWidth(false));
+                                    GUILayout.FlexibleSpace();
+                                    UnityEngine.GUI.enabled = prevEnabled;
+                                }
+                                GUILayout.EndHorizontal();
 
                                 DrawSliders(mod, otherMod);
                             }
@@ -742,15 +807,15 @@ Things to keep in mind:
             }
             GUILayout.EndVertical();
 
-            GUILayout.Space(5);
+            GUILayout.Space(2);
 
             if (KKABMX_Core.NoRotationBones.Contains(mod.BoneName))
             {
-                UnityEngine.GUI.color = Color.yellow;
+                UnityEngine.GUI.color = _warningColor;
                 GUILayout.Label("Warning: This bone has known issues with Tilt and possibly Offset/Length sliders. Use at your own risk.");
                 UnityEngine.GUI.color = Color.white;
 
-                GUILayout.Space(5);
+                GUILayout.Space(2);
             }
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Length slider ------------------------------------------------------------
@@ -772,7 +837,7 @@ Things to keep in mind:
             }
             GUILayout.EndVertical();
 
-            GUILayout.Space(5);
+            GUILayout.Space(2);
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Position sliders ------------------------------------------------------------
             {
@@ -788,7 +853,7 @@ Things to keep in mind:
             }
             GUILayout.EndVertical();
 
-            GUILayout.Space(5);
+            GUILayout.Space(2);
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Rotation sliders ------------------------------------------------------------
             {
@@ -842,7 +907,7 @@ Things to keep in mind:
         {
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Increment:", GUILayout.Width(70));
+                GUILayout.Label("Increment:", GUILayout.Width(65));
 
                 float RoundToPowerOf10(float value)
                 {
@@ -859,7 +924,7 @@ Things to keep in mind:
                     GUILayout.Space(4);
 
                     var isLock = _lockXyz[index];
-                    if (isLock) UnityEngine.GUI.color = Color.yellow;
+                    if (isLock) UnityEngine.GUI.color = _warningColor;
                     _lockXyz[index] = GUILayout.Toggle(isLock, "Lock XYZ", GUILayout.ExpandWidth(false));
                     UnityEngine.GUI.color = Color.white;
                 }
@@ -873,7 +938,7 @@ Things to keep in mind:
             GUILayout.BeginHorizontal();
             {
                 if (sliderName != null)
-                    GUILayout.Label(sliderName, GUILayout.Width(70), _gloHeight);
+                    GUILayout.Label(sliderName, GUILayout.Width(65), _gloHeight);
 
                 value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _gloExpand, _gloHeight);
 
