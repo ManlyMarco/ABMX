@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using HarmonyLib;
+using KKABMX.Core;
 using KKAPI.Maker;
 using KKAPI.Utilities;
 using UnityEngine;
@@ -15,14 +16,14 @@ using UnityEngine.Rendering;
 using ChaControl = AIChara.ChaControl;
 #endif
 
-namespace KKABMX.Core
+namespace KKABMX.GUI
 {
     /// <summary>
     /// Advanced bonemod interface, can be used to access all possible sliders and put in unlimited value ranges
     /// </summary>
     public sealed class KKABMX_AdvancedGUI : ImguiWindow<KKABMX_AdvancedGUI>
     {
-        private float _objectTreeHeight => WindowRect.height - 100; //todo properly calc or get
+        private float ObjectTreeHeight => WindowRect.height - 100; //todo properly calc or get
         private int _singleObjectTreeItemHeight;
         private Vector2 _treeScrollPosition = Vector2.zero;
         private Vector2 _slidersScrollPosition = Vector2.zero;
@@ -31,12 +32,12 @@ namespace KKABMX.Core
         private static GUIStyle _gsInput;
         private static GUIStyle _gsLabel;
 
-        private static readonly GUILayoutOption _gloExpand = GUILayout.ExpandWidth(true);
-        private static readonly GUILayoutOption _gloSmallButtonWidth = GUILayout.Width(20);
-        private static readonly GUILayoutOption _gloHeight = GUILayout.Height(23);
+        private static readonly GUILayoutOption _GloExpand = GUILayout.ExpandWidth(true);
+        private static readonly GUILayoutOption _GloSmallButtonWidth = GUILayout.Width(20);
+        private static readonly GUILayoutOption _GloHeight = GUILayout.Height(23);
 
-        private static readonly Color _dangerColor = new Color(1, 0.4f, 0.4f, 1);
-        private static readonly Color _warningColor = new Color(1, 1, 0.6f, 1);
+        private static readonly Color _DangerColor = new Color(1, 0.4f, 0.4f, 1);
+        private static readonly Color _WarningColor = new Color(1, 1, 0.6f, 1);
 
         private readonly HashSet<BoneModifier> _changedBones = new HashSet<BoneModifier>();
         private readonly HashSet<GameObject> _openedObjects = new HashSet<GameObject>();
@@ -48,9 +49,9 @@ namespace KKABMX.Core
         private readonly ImguiComboBox _charaSelectBox = new ImguiComboBox();
         private static GUIContent _selectedContent;
 
-        private static readonly float[] _defaultIncrementSize = { 0.1f, 0.1f, 0.01f, 1f };
-        private static readonly float[] _incrementSize = _defaultIncrementSize.ToArray();
-        private static readonly bool[] _lockXyz = new bool[_defaultIncrementSize.Length];
+        private static readonly float[] _DefaultIncrementSize = { 0.1f, 0.1f, 0.01f, 1f };
+        private static readonly float[] _IncrementSize = _DefaultIncrementSize.ToArray();
+        private static readonly bool[] _LockXyz = new bool[_DefaultIncrementSize.Length];
 
         //private BoneModifierData[] _copiedModifier;
         private bool _editSymmetry = true;
@@ -197,7 +198,10 @@ namespace KKABMX.Core
 
         protected override Rect GetDefaultWindowRect(Rect screenRect)
         {
-            return new Rect(20, 220, 705, 600); //todo
+            //todo
+            //WindowRect.x = Mathf.Min(Screen.width - WindowRect.width, Mathf.Max(0, WindowRect.x));
+            //WindowRect.y = Mathf.Min(Screen.height - WindowRect.height, Mathf.Max(0, WindowRect.y));
+            return new Rect(20, 220, 705, 600);
         }
 
         protected override void OnEnable()
@@ -256,13 +260,13 @@ namespace KKABMX.Core
             GL.Begin(GL.LINES);
 
             var tr = _selectedTransform.Value;
-            GL.Color(new Color (0, 1, 0, 0.7f));
+            GL.Color(new Color(0, 1, 0, 0.7f));
             GL.Vertex(tr.position);
             GL.Vertex(tr.position + tr.forward * 0.05f);
-            GL.Color(new Color (1, 0, 0, 0.7f));
+            GL.Color(new Color(1, 0, 0, 0.7f));
             GL.Vertex(tr.position);
             GL.Vertex(tr.position + tr.right * 0.05f);
-            GL.Color(new Color (0, 0, 1, 0.7f));
+            GL.Color(new Color(0, 0, 1, 0.7f));
             GL.Vertex(tr.position);
             GL.Vertex(tr.position + tr.up * 0.05f);
 
@@ -285,10 +289,6 @@ namespace KKABMX.Core
                 _gsButtonReset = new GUIStyle(UnityEngine.GUI.skin.button);
                 _gsLabel.alignment = TextAnchor.MiddleRight;
                 _gsLabel.normal.textColor = Color.white;
-
-                //todo
-                //WindowRect.x = Mathf.Min(Screen.width - WindowRect.width, Mathf.Max(0, WindowRect.x));
-                //WindowRect.y = Mathf.Min(Screen.height - WindowRect.height, Mathf.Max(0, WindowRect.y));
             }
 
             var skin = UnityEngine.GUI.skin;
@@ -349,7 +349,7 @@ namespace KKABMX.Core
 
                                 var showTipString = SearchFieldValue.Length == 0 && UnityEngine.GUI.GetNameOfFocusedControl() != "sbox";
                                 //if(showTipString) UnityEngine.GUI.color = Color.gray; - grays the whole box, no easy way to only gray the label
-                                var newVal = GUILayout.TextField(showTipString ? "Search..." : SearchFieldValue, _gloExpand);
+                                var newVal = GUILayout.TextField(showTipString ? "Search..." : SearchFieldValue, _GloExpand);
                                 if (UnityEngine.GUI.changed)
                                     SearchFieldValue = newVal;
                                 //UnityEngine.GUI.color = Color.white;
@@ -465,23 +465,23 @@ Things to keep in mind:
                                                     : "No bone modifiers to show, to add a new modifier simply click on a bone and edit any of the sliders.");
                             }
 
-                            GUILayout.Space(_objectTreeHeight / 3);
+                            GUILayout.Space(ObjectTreeHeight / 3);
                         }
                         GUILayout.EndScrollView();
 
 
                         GUILayout.BeginHorizontal();
                         {
-                            if (GUILayout.Button("Collapse all", _gloExpand))
+                            if (GUILayout.Button("Collapse all", _GloExpand))
                                 _openedObjects.Clear();
-                            if (GUILayout.Button("Expand all", _gloExpand))
+                            if (GUILayout.Button("Expand all", _GloExpand))
                                 Array.ForEach(_currentBoneController.gameObject.GetComponentsInChildren<Transform>(), child => _openedObjects.Add(child.gameObject));
                         }
                         GUILayout.EndHorizontal();
 
                         GUILayout.BeginHorizontal();
                         {
-                            if (GUILayout.Button(new GUIContent("Export", "Export all current modifiers in a human-readable form to clipboard."), _gloExpand))
+                            if (GUILayout.Button(new GUIContent("Export", "Export all current modifiers in a human-readable form to clipboard."), _GloExpand))
                             {
                                 try
                                 {
@@ -513,7 +513,7 @@ Things to keep in mind:
                                 }
                             }
 
-                            if (GUILayout.Button(new GUIContent("Import", "Import previously exported data from clipboard (copy the exported text in any text editor)."), _gloExpand))
+                            if (GUILayout.Button(new GUIContent("Import", "Import previously exported data from clipboard (copy the exported text in any text editor)."), _GloExpand))
                             {
                                 try
                                 {
@@ -549,10 +549,10 @@ Things to keep in mind:
                                 }
                             }
 
-                            UnityEngine.GUI.color = _dangerColor;
-                            if (GUILayout.Button(new GUIContent("Revert", "Reset modifiers to the state from after the current character card was loaded."), _gloExpand))
+                            UnityEngine.GUI.color = _DangerColor;
+                            if (GUILayout.Button(new GUIContent("Revert", "Reset modifiers to the state from after the current character card was loaded."), _GloExpand))
                                 _currentBoneController.RevertChanges();
-                            if (GUILayout.Button(new GUIContent("Clear", "Remove all modifiers, even the ones added by using yellow sliders in maker UI."), _gloExpand))
+                            if (GUILayout.Button(new GUIContent("Clear", "Remove all modifiers, even the ones added by using yellow sliders in maker UI."), _GloExpand))
                             {
                                 _currentBoneController.ModifierDict.Values.SelectMany(x => x).Do(modifier => modifier.Reset());
                                 _currentBoneController.ModifierDict.Clear();
@@ -569,7 +569,7 @@ Things to keep in mind:
                     GUILayout.EndVertical();
 
                     // Sliders
-                    GUILayout.BeginVertical(UnityEngine.GUI.skin.box, _gloExpand, GUILayout.ExpandHeight(true));
+                    GUILayout.BeginVertical(UnityEngine.GUI.skin.box, _GloExpand, GUILayout.ExpandHeight(true));
                     {
                         var mod = _selectedTransform.Value == null ? null : GetOrAddBoneModifier(_selectedTransform.Value.name, _selectedTransform.Key);
 
@@ -608,13 +608,13 @@ Things to keep in mind:
                                 var origEnabled = UnityEngine.GUI.enabled;
                                 if (counterBone == null) UnityEngine.GUI.enabled = false;
                                 var otherMod = _editSymmetry && counterBone != null ? GetOrAddBoneModifier(counterBone, mod.BoneLocation) : null;
-                                if (_editSymmetry) UnityEngine.GUI.color = _warningColor;
+                                if (_editSymmetry) UnityEngine.GUI.color = _WarningColor;
                                 _editSymmetry = GUILayout.Toggle(_editSymmetry, new GUIContent("Edit both left and right side bones", "Some bones have a symmetrical pair, like left and right elbow. They all end with _L or _R suffix. This setting will let you edit both sides at the same time (two separate bone modifiers are still used)."));
                                 UnityEngine.GUI.color = Color.white;
                                 GUILayout.Label("Other side bone: " + (counterBone ?? "No bone found"));
                                 UnityEngine.GUI.enabled = origEnabled;
 
-#if !AI && !HS2
+#if !AI && !HS2 && !EC
                                 UnityEngine.GUI.changed = false;
                                 var oldVal = mod.IsCoordinateSpecific();
                                 if (oldVal) UnityEngine.GUI.color = Color.yellow;
@@ -668,7 +668,7 @@ Things to keep in mind:
                                 {
                                     var origEnabled = UnityEngine.GUI.enabled;
                                     if (mod.IsEmpty()) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button(new GUIContent("Copy", "Copy data of this modifier to clipboard so it can be pasted into another modifier, or into any text editor to hand-edit or save for later.\nIf the modifier is per-coordinate, data for all coordinates is copied."), _gloExpand))
+                                    if (GUILayout.Button(new GUIContent("Copy", "Copy data of this modifier to clipboard so it can be pasted into another modifier, or into any text editor to hand-edit or save for later.\nIf the modifier is per-coordinate, data for all coordinates is copied."), _GloExpand))
                                     {
                                         //_copiedModifier = mod.CoordinateModifiers.Select(x => x.Clone()).ToArray();
                                         try
@@ -691,7 +691,7 @@ Things to keep in mind:
 
                                     if (//_copiedModifier == null && 
                                         string.IsNullOrEmpty(GUIUtility.systemCopyBuffer)) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button(new GUIContent("Paste", "Paste modifier data that is currently in the clipboard. To get modifier data to paste use the Copy button, or copy previously saved data in any text editor."), _gloExpand))
+                                    if (GUILayout.Button(new GUIContent("Paste", "Paste modifier data that is currently in the clipboard. To get modifier data to paste use the Copy button, or copy previously saved data in any text editor."), _GloExpand))
                                     {
                                         //if (_copiedModifier != null) mod.CoordinateModifiers = _copiedModifier.Select(x => x.Clone()).ToArray();
                                         //else
@@ -723,9 +723,9 @@ Things to keep in mind:
 
                                     UnityEngine.GUI.enabled = origEnabled;
 
-                                    UnityEngine.GUI.color = _dangerColor;
+                                    UnityEngine.GUI.color = _DangerColor;
                                     if (mod.IsEmpty()) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button(new GUIContent("Remove", "Reset and remove this modifier."), _gloExpand))
+                                    if (GUILayout.Button(new GUIContent("Remove", "Reset and remove this modifier."), _GloExpand))
                                     {
                                         _changedBones.Remove(mod);
                                         _currentBoneController.RemoveModifier(mod);
@@ -739,9 +739,6 @@ Things to keep in mind:
                                 //GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-
-                            // Selection grid for gizmo pos/rot/scl? Use the all at once mode? Hotkeys?
-                            //todo GUILayout.Toggle(false, "Show gizmo", _gloExpand);
                         }
                         GUILayout.EndVertical();
                     }
@@ -783,6 +780,8 @@ Things to keep in mind:
         {
 #if AI || HS2
             var coordinateType = CoordinateType.Unknown;
+#elif EC
+            var coordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01;
 #else
             var coordinateType = (ChaFileDefine.CoordinateType)_currentChaControl.fileStatus.coordinateType;
 #endif
@@ -811,7 +810,7 @@ Things to keep in mind:
 
             if (KKABMX_Core.NoRotationBones.Contains(mod.BoneName))
             {
-                UnityEngine.GUI.color = _warningColor;
+                UnityEngine.GUI.color = _WarningColor;
                 GUILayout.Label("Warning: This bone has known issues with Tilt and possibly Offset/Length sliders. Use at your own risk.");
                 UnityEngine.GUI.color = Color.white;
 
@@ -881,7 +880,7 @@ Things to keep in mind:
             var y = DrawSingleSlider(sliderName + " Y:", ref value.y, minValue, maxValue, defaultValue, incrementIndex);
             var z = DrawSingleSlider(sliderName + " Z:", ref value.z, minValue, maxValue, defaultValue, incrementIndex);
 
-            if (_lockXyz[incrementIndex])
+            if (_LockXyz[incrementIndex])
             {
                 if (x)
                 {
@@ -914,18 +913,18 @@ Things to keep in mind:
                     return Mathf.Pow(10, Mathf.Round(Mathf.Log10(value)));
                 }
 
-                float.TryParse(GUILayout.TextField(_incrementSize[index].ToString(CultureInfo.InvariantCulture), _gsInput, _gloExpand, _gloHeight), out _incrementSize[index]);
-                if (GUILayout.Button("-", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize[index] = RoundToPowerOf10(_incrementSize[index] * 0.1f);
-                if (GUILayout.Button("+", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) _incrementSize[index] = RoundToPowerOf10(_incrementSize[index] * 10f);
-                if (GUILayout.Button("Reset", GUILayout.ExpandWidth(false))) _incrementSize[index] = _defaultIncrementSize[index];
+                float.TryParse(GUILayout.TextField(_IncrementSize[index].ToString(CultureInfo.InvariantCulture), _gsInput, _GloExpand, _GloHeight), out _IncrementSize[index]);
+                if (GUILayout.Button("-", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) _IncrementSize[index] = RoundToPowerOf10(_IncrementSize[index] * 0.1f);
+                if (GUILayout.Button("+", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) _IncrementSize[index] = RoundToPowerOf10(_IncrementSize[index] * 10f);
+                if (GUILayout.Button("Reset", GUILayout.ExpandWidth(false))) _IncrementSize[index] = _DefaultIncrementSize[index];
 
                 if (showLock)
                 {
                     GUILayout.Space(4);
 
-                    var isLock = _lockXyz[index];
-                    if (isLock) UnityEngine.GUI.color = _warningColor;
-                    _lockXyz[index] = GUILayout.Toggle(isLock, "Lock XYZ", GUILayout.ExpandWidth(false));
+                    var isLock = _LockXyz[index];
+                    if (isLock) UnityEngine.GUI.color = _WarningColor;
+                    _LockXyz[index] = GUILayout.Toggle(isLock, "Lock XYZ", GUILayout.ExpandWidth(false));
                     UnityEngine.GUI.color = Color.white;
                 }
             }
@@ -938,17 +937,17 @@ Things to keep in mind:
             GUILayout.BeginHorizontal();
             {
                 if (sliderName != null)
-                    GUILayout.Label(sliderName, GUILayout.Width(65), _gloHeight);
+                    GUILayout.Label(sliderName, GUILayout.Width(65), _GloHeight);
 
-                value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _gloExpand, _gloHeight);
+                value = GUILayout.HorizontalSlider(value, minValue, maxValue, _gsButtonReset, _gsButtonReset, _GloExpand, _GloHeight);
 
-                float.TryParse(GUILayout.TextField(value.ToString(maxValue >= 100 ? "F1" : "F3", CultureInfo.InvariantCulture), _gsInput, GUILayout.Width(43), _gloHeight),
+                float.TryParse(GUILayout.TextField(value.ToString(maxValue >= 100 ? "F1" : "F3", CultureInfo.InvariantCulture), _gsInput, GUILayout.Width(43), _GloHeight),
                                out value);
 
-                if (GUILayout.Button("-", _gsButtonReset, GUILayout.Width(20), _gloHeight)) value -= _incrementSize[incrementIndex];
-                if (GUILayout.Button("+", _gsButtonReset, GUILayout.Width(20), _gloHeight)) value += _incrementSize[incrementIndex];
+                if (GUILayout.Button("-", _gsButtonReset, GUILayout.Width(20), _GloHeight)) value -= _IncrementSize[incrementIndex];
+                if (GUILayout.Button("+", _gsButtonReset, GUILayout.Width(20), _GloHeight)) value += _IncrementSize[incrementIndex];
 
-                if (GUILayout.Button("0", _gsButtonReset, _gloSmallButtonWidth, _gloHeight)) value = defaultValue;
+                if (GUILayout.Button("0", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) value = defaultValue;
             }
             GUILayout.EndHorizontal();
             return UnityEngine.GUI.changed;
@@ -961,7 +960,7 @@ Things to keep in mind:
             var needsHeightMeasure = _singleObjectTreeItemHeight == 0;
 
             var isVisible = currentCount * _singleObjectTreeItemHeight >= _treeScrollPosition.y &&
-                            (currentCount - 1) * _singleObjectTreeItemHeight <= _treeScrollPosition.y + _objectTreeHeight;
+                            (currentCount - 1) * _singleObjectTreeItemHeight <= _treeScrollPosition.y + ObjectTreeHeight;
 
             if (isVisible || needsHeightMeasure)
             {
@@ -1012,7 +1011,7 @@ Things to keep in mind:
                         var fancyObjName = indent > 0 ? go.name : $"{go.name} ({ToDisplayString(location)})";
                         string tooltip = null;
                         if (_enableHelp) _boneTooltips.TryGetValue(go.name, out tooltip);
-                        if (GUILayout.Button(new GUIContent(fancyObjName, tooltip), UnityEngine.GUI.skin.label, _gloExpand, GUILayout.MinWidth(120)))
+                        if (GUILayout.Button(new GUIContent(fancyObjName, tooltip), UnityEngine.GUI.skin.label, _GloExpand, GUILayout.MinWidth(120)))
                         {
                             if (isSelected)
                             {

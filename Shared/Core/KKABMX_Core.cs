@@ -106,8 +106,9 @@ namespace KKABMX.Core
 #endif
 #if !EC && !AI && !HS2
             return GameAPI.GetCurrentHeroine()?.chaCtrl;
+#else
+      return null;
 #endif
-            return null;
         }
     }
 }
