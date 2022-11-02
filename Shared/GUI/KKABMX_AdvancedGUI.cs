@@ -1101,12 +1101,16 @@ Things to keep in mind:
         {
             if (mod.BoneName.EndsWith("R", StringComparison.Ordinal))
                 return mod.BoneName.Remove(mod.BoneName.Length - 1) + "L";
+
             if (mod.BoneName.EndsWith("L", StringComparison.Ordinal))
                 return mod.BoneName.Remove(mod.BoneName.Length - 1) + "R";
-            if (mod.BoneName.EndsWith("R_00", StringComparison.Ordinal))
-                return mod.BoneName.Remove(mod.BoneName.Length - 4) + "L_00";
-            if (mod.BoneName.EndsWith("L_00", StringComparison.Ordinal))
-                return mod.BoneName.Remove(mod.BoneName.Length - 4) + "R_00";
+
+            var i = mod.BoneName.IndexOf("R_", StringComparison.Ordinal);
+            if (i > 0) return mod.BoneName.Remove(i, 1).Insert(i, "L");
+
+            i = mod.BoneName.IndexOf("L_", StringComparison.Ordinal);
+            if (i > 0) return mod.BoneName.Remove(i, 1).Insert(i, "R");
+
             return null;
         }
 
