@@ -108,6 +108,16 @@ namespace KKABMX.GUI
         public static Action<bool> OnEnabledChanged;
         public static bool Enabled => _currentBoneController != null && Instance.enabled;
 
+        /// <summary>
+        /// Specifies which (if any) bone in the bone list the mouse cursor is currently hovering over.
+        /// </summary>
+        public static KeyValuePair<Transform, BoneLocation> BoneListMouseHoversOver { get; private set; }
+        /// <summary>
+        /// Fired when user hovers mouse cursor over items in the bone list, and the hovered-over item changes.
+        /// The Transform is the bone being hovered over. It can be null to signify not hovering over any bone.
+        /// </summary>
+        public static event Action<Transform, BoneLocation> OnBoneListMouseHover;
+
         public static void Enable(BoneController controller)
         {
             if (controller == null)
@@ -217,6 +227,7 @@ namespace KKABMX.GUI
                 //RefreshBoneInfo(true);
                 OnEnabledChanged?.Invoke(true);
                 Camera.onPostRender += OnRendered;
+                BoneListMouseHoversOver = default;
             }
         }
 
@@ -224,6 +235,12 @@ namespace KKABMX.GUI
         {
             OnEnabledChanged?.Invoke(false);
             Camera.onPostRender -= OnRendered;
+
+            if (BoneListMouseHoversOver.Key != null)
+            {
+                BoneListMouseHoversOver = default;
+                OnBoneListMouseHover?.Invoke(null, BoneLocation.Unknown);
+            }
         }
 
         private static Material _gizmoMaterial;
@@ -292,8 +309,6 @@ namespace KKABMX.GUI
             }
 
             var skin = UnityEngine.GUI.skin;
-
-            //if (!KKABMX_Core.TransparentAdvancedWindow.Value)
             UnityEngine.GUI.skin = IMGUIUtils.SolidBackgroundGuiSkin;
 
             base.OnGUI();
@@ -334,7 +349,7 @@ namespace KKABMX.GUI
                             GUILayout.EndHorizontal();
                         }
 
-                        // Search box and filters
+                        // Search box and filters ------------------------------------------------------------------------------------------------------------------------
                         GUILayout.BeginVertical(UnityEngine.GUI.skin.box);
                         {
                             GUILayout.BeginHorizontal();
@@ -411,8 +426,15 @@ Things to keep in mind:
                         }
                         GUILayout.EndVertical();
 
+                        // Bone list ------------------------------------------------------------------------------------------------------------------------
 
-                        // Bone list
+                        KeyValuePair<Transform, BoneLocation> prevHover = default;
+                        if (Event.current.type == EventType.Repaint)
+                        {
+                            prevHover = BoneListMouseHoversOver;
+                            BoneListMouseHoversOver = default;
+                        }
+
                         _treeScrollPosition = GUILayout.BeginScrollView(_treeScrollPosition, false, true, GUILayout.ExpandHeight(true));
                         {
                             var currentCount = 0;
@@ -469,6 +491,16 @@ Things to keep in mind:
                         }
                         GUILayout.EndScrollView();
 
+                        if (Event.current.type == EventType.Repaint)
+                        {
+                            if (prevHover.Key != BoneListMouseHoversOver.Key)
+                            {
+                                OnBoneListMouseHover?.Invoke(BoneListMouseHoversOver.Key, BoneListMouseHoversOver.Value);
+                                //Console.WriteLine($"OnBoneListMouseHover {BoneListMouseHoversOver.Key} - {BoneListMouseHoversOver.Value}");
+                            }
+                        }
+
+                        // Buttons below bone list ------------------------------------------------------------------------------------------------------------------------
 
                         GUILayout.BeginHorizontal();
                         {
@@ -568,7 +600,7 @@ Things to keep in mind:
                     }
                     GUILayout.EndVertical();
 
-                    // Sliders
+                    // Sliders ------------------------------------------------------------------------------------------------------------------------
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box, _GloExpand, GUILayout.ExpandHeight(true));
                     {
                         var mod = _selectedTransform.Value == null ? null : GetOrAddBoneModifier(_selectedTransform.Value.name, _selectedTransform.Key);
@@ -658,7 +690,7 @@ Things to keep in mind:
                         }
                         GUILayout.EndScrollView();
 
-                        // Slider options
+                        // Slider options ------------------------------------------------------------------------------------------------------------------------
                         GUILayout.BeginVertical();
                         {
                             // Toolbar
@@ -1035,8 +1067,20 @@ Things to keep in mind:
                 }
                 GUILayout.EndHorizontal();
 
-                if (needsHeightMeasure && Event.current.type == EventType.Repaint)
-                    _singleObjectTreeItemHeight = Mathf.CeilToInt(GUILayoutUtility.GetLastRect().height);
+                if (Event.current.type == EventType.Repaint)
+                {
+                    var rect = GUILayoutUtility.GetLastRect();
+                    var pos = Event.current.mousePosition;
+
+                    if (rect.Contains(pos))
+                    {
+                        BoneListMouseHoversOver = new KeyValuePair<Transform, BoneLocation>(go.transform, location);
+                        //Console.WriteLine("hover " + go.transform);
+                    }
+
+                    if (needsHeightMeasure)
+                        _singleObjectTreeItemHeight = Mathf.CeilToInt(rect.height);
+                }
             }
             else
                 GUILayout.Space(_singleObjectTreeItemHeight);

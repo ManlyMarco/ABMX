@@ -234,7 +234,7 @@ namespace KKABMX.GUI
             z?.ValueChanged.Subscribe(obs);
             v?.ValueChanged.Subscribe(obs);
 
-            SpawnedSliders.Add(new SliderData(GetFingerBoneNames, x, y, z, v));
+            SpawnedSliders.Add(new SliderData(GetFingerBoneNames, BoneLocation.BodyTop, x, y, z, v));
         }
 
         private void RegisterSingleControl(MakerCategory category, BoneMeta boneMeta, RegisterCustomControlsEvent callback)
@@ -422,7 +422,7 @@ namespace KKABMX.GUI
                         break;
                 }
             }
-            SpawnedSliders.Add(new SliderData(GetAffectedBoneNames, x, y, z, v, l));
+            SpawnedSliders.Add(new SliderData(GetAffectedBoneNames, BoneLocation.BodyTop, x, y, z, v, l));
         }
 
         private BoneModifierData GetBoneModifier(string boneName, bool coordinateUnique)
@@ -499,14 +499,16 @@ namespace KKABMX.GUI
         public static List<SliderData> SpawnedSliders { get; private set; }
         public class SliderData
         {
-            public SliderData(Func<IEnumerable<string>> getAffectedBones, params MakerSlider[] sliders)
+            public SliderData(Func<IEnumerable<string>> getAffectedBones, BoneLocation boneLocation, params MakerSlider[] sliders)
             {
                 GetAffectedBones = getAffectedBones;
+                BoneLocation = boneLocation;
                 Sliders = sliders.Where(x => x != null).ToArray();
             }
 
             public MakerSlider[] Sliders { get; }
             public Func<IEnumerable<string>> GetAffectedBones { get; }
+            public BoneLocation BoneLocation { get; }
         }
     }
 }
