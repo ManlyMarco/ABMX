@@ -82,9 +82,14 @@ namespace KKABMX.GUI
                 {
                     _searchFieldValue = value;
                     _searchFieldValueChanged = true;
-                    _searchResults = value.Length == 0 ? null : FindAllBones(CheckSearchMatch);
+                    UpdateSearchResults();
                 }
             }
+        }
+
+        private void UpdateSearchResults()
+        {
+            _searchResults = _searchFieldValue.Length == 0 ? null : FindAllBones(CheckSearchMatch);
         }
 
         private static List<KeyValuePair<BoneLocation, Transform>> FindAllBones(Func<string, bool> nameFilter)
@@ -208,10 +213,11 @@ namespace KKABMX.GUI
 
         protected override Rect GetDefaultWindowRect(Rect screenRect)
         {
-            //todo
-            //WindowRect.x = Mathf.Min(Screen.width - WindowRect.width, Mathf.Max(0, WindowRect.x));
-            //WindowRect.y = Mathf.Min(Screen.height - WindowRect.height, Mathf.Max(0, WindowRect.y));
-            return new Rect(20, 220, 705, 600);
+            const int margin = 20;
+            const int height = 600;
+            const int width = 705;
+            var y = Mathf.Max(Screen.height - height - margin, 0);
+            return new Rect(margin, y, width, height);
         }
 
         protected override void OnEnable()
@@ -276,16 +282,21 @@ namespace KKABMX.GUI
             GL.MultMatrix(Matrix4x4.identity);
             GL.Begin(GL.LINES);
 
+#if AI || HS2
+            var scaleFactor = 0.5f;
+#else
+            var scaleFactor = 0.05f;
+#endif
             var tr = _selectedTransform.Value;
             GL.Color(new Color(0, 1, 0, 0.7f));
             GL.Vertex(tr.position);
-            GL.Vertex(tr.position + tr.forward * 0.05f);
+            GL.Vertex(tr.position + tr.forward * scaleFactor);
             GL.Color(new Color(1, 0, 0, 0.7f));
             GL.Vertex(tr.position);
-            GL.Vertex(tr.position + tr.right * 0.05f);
+            GL.Vertex(tr.position + tr.right * scaleFactor);
             GL.Color(new Color(0, 0, 1, 0.7f));
             GL.Vertex(tr.position);
-            GL.Vertex(tr.position + tr.up * 0.05f);
+            GL.Vertex(tr.position + tr.up * scaleFactor);
 
             GL.End();
             GL.PopMatrix();
@@ -404,19 +415,19 @@ Things to keep in mind:
                                 var origEnabled = UnityEngine.GUI.enabled;
                                 if (_onlyShowFavorites) UnityEngine.GUI.enabled = false;
                                 UnityEngine.GUI.color = Color.green;
-                                _onlyShowModified = GUILayout.Toggle(_onlyShowModified, "Modified", GUILayout.ExpandWidth(false));
+                                _onlyShowModified = GUILayout.Toggle(_onlyShowModified, new GUIContent("Modified", "Show all modifiers that aren't empty (i.e. have an actual effect)."), GUILayout.ExpandWidth(false));
                                 UnityEngine.GUI.color = Color.white;
-                                _onlyShowNewChanges = GUILayout.Toggle(_onlyShowNewChanges, "New", GUILayout.ExpandWidth(false));
-#if !AI
+                                _onlyShowNewChanges = GUILayout.Toggle(_onlyShowNewChanges, new GUIContent("New", "Show only modifiers that were added during this session."), GUILayout.ExpandWidth(false));
+#if !AI && !HS2 && !EC
                                 UnityEngine.GUI.color = Color.yellow;
-                                _onlyShowCoords = GUILayout.Toggle(_onlyShowCoords, "Per-coord", GUILayout.ExpandWidth(false));
+                                _onlyShowCoords = GUILayout.Toggle(_onlyShowCoords, new GUIContent("Per-coord", "Show only modifiers set as per-coordinate (different values for each clothing slot)."), GUILayout.ExpandWidth(false));
 #endif
                                 GUILayout.FlexibleSpace();
 
                                 UnityEngine.GUI.enabled = origEnabled;
                                 UnityEngine.GUI.changed = false;
                                 UnityEngine.GUI.color = _FavColor;
-                                _onlyShowFavorites = GUILayout.Toggle(_onlyShowFavorites, "Fav's", GUILayout.ExpandWidth(false));
+                                _onlyShowFavorites = GUILayout.Toggle(_onlyShowFavorites, new GUIContent("Fav's", "Show all bones that you've favorited. To add a bone to favorites select it on the list below and click the 'Fav' button on top right."), GUILayout.ExpandWidth(false));
                                 if (UnityEngine.GUI.changed && _onlyShowFavorites)
                                     _favoritesResults = FindAllBones(IsFavorite);
 
@@ -438,8 +449,11 @@ Things to keep in mind:
                         _treeScrollPosition = GUILayout.BeginScrollView(_treeScrollPosition, false, true, GUILayout.ExpandHeight(true));
                         {
                             var currentCount = 0;
-                            if (_onlyShowFavorites && _favoritesResults != null)
+                            if (_onlyShowFavorites)
                             {
+                                if (_favoritesResults == null || _favoritesResults.Any(x => x.Value == null))
+                                    _favoritesResults = FindAllBones(IsFavorite);
+
                                 foreach (var favoritesResult in _favoritesResults)
                                 {
                                     if (_searchFieldValue.Length == 0 || CheckSearchMatch(favoritesResult.Value.name))
@@ -465,6 +479,9 @@ Things to keep in mind:
                             }
                             else if (_searchResults != null)
                             {
+                                if (_searchResults.Any(x => x.Value == null))
+                                    UpdateSearchResults();
+
                                 foreach (var searchResult in _searchResults)
                                     DisplayObjectTreeHelper(searchResult.Value.gameObject, 0, ref currentCount, searchResult.Key);
                             }
@@ -611,7 +628,7 @@ Things to keep in mind:
                             if (_selectedTransform.Value == null)
                             {
                                 GUILayout.FlexibleSpace();
-                                GUILayout.Label("Select a bone transform on the left to show available controls.");
+                                GUILayout.Label("Select a bone transform on the left to show available controls.\n\nPress the ? button to see help tooltips when hovering over different controls.\n\nYou can open this menu at any time by setting an open hotkey in plugin settings (none by default).");
                                 GUILayout.FlexibleSpace();
                             }
                             else

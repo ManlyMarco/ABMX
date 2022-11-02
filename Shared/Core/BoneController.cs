@@ -301,10 +301,9 @@ namespace KKABMX.Core
             foreach (var modifier in ModifierDict.SelectMany(x => x.Value))
                 modifier.Reset();
 
-            ChaControl.updateShapeFace = true;
-            ChaControl.updateShapeBody = true;
-
             ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(ModifierDictBackup.ToDictionary(x => x.Key, x => x.Value.Select(y => y.Clone()).ToList()));
+
+            NeedsFullRefresh = true;
         }
 
         internal void RevertChangesModifier(string boneName, BoneLocation location)
