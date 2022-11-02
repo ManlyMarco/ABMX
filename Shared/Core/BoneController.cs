@@ -62,6 +62,9 @@ namespace KKABMX.Core
         [Obsolete("No longer works for changing modifiers, every get returns a new copy of the list and is expensive. Use AddModifier, GetModifier and GetAllModifiers instead.", true)]
         public List<BoneModifier> Modifiers => GetAllModifiers().ToList();
 
+        /// <summary>
+        /// Container of all bonemod data. Do not hold references to this, always get the current one!
+        /// </summary>
         internal SortedDictionary<BoneLocation, List<BoneModifier>> ModifierDict { get; private set; } = new SortedDictionary<BoneLocation, List<BoneModifier>>();
         internal Dictionary<BoneLocation, List<BoneModifier>> ModifierDictBackup { get; private set; } = new Dictionary<BoneLocation, List<BoneModifier>>();
 
@@ -192,7 +195,7 @@ namespace KKABMX.Core
         /// Get all transform names under the character object that could be bones (excludes accessories).
         /// Warning: Expensive to run, ToList the result and cache it if you want to reuse it!
         /// </summary>
-        public IEnumerable<string> GetAllPossibleBoneNames() => GetAllPossibleBoneNames(ChaControl.objTop);
+        public IEnumerable<string> GetAllPossibleBoneNames() => GetAllPossibleBoneNames(ChaControl.objBodyBone);
 
         /// <summary>
         /// Get all transform names under the rootObject that could be bones (could be from BodyTop or objAccessory, BodyTop excludes accessories).
@@ -588,12 +591,12 @@ namespace KKABMX.Core
         {
             CleanEmptyModifiers();
 
-            MakeModifiersBackup();
-
             // Needed to let accessories load in
             yield return CoroutineUtils.WaitForEndOfFrame;
 
             ModifiersFillInTransforms();
+
+            MakeModifiersBackup();
 
             NeedsBaselineUpdate = false;
 
@@ -696,12 +699,22 @@ namespace KKABMX.Core
         private void ModifiersFillInTransforms()
         {
             if (ModifierDict.Count == 0) return;
-            foreach (var modifier in ModifierDict.Values.SelectMany(x => x))
+            var dictRecalcNeeded = false;
+            foreach (var modifiers in ModifierDict.Values)
             {
-                if (modifier.BoneTransform != null) continue;
-                BoneSearcher.AssignBone(modifier);
-                // todo if (modifier.BoneTransform == null) then remove the modifier?
+                foreach (var modifier in modifiers)
+                {
+                    if (modifier.BoneTransform != null)
+                        continue;
+                    else if (BoneSearcher.AssignBone(modifier))
+                        dictRecalcNeeded = true;
+                    else
+                        KKABMX_Core.Logger.LogWarning($"Failed to find a bone {modifier.BoneName} in location {modifier.BoneLocation} - modifier will be ignored");
+                }
             }
+
+            if (dictRecalcNeeded)
+                ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(ModifierDict.SelectMany(x => x.Value).GroupBy(x => x.BoneLocation).ToDictionary(x => x.Key, x => x.ToList()));
         }
 
         internal void CleanEmptyModifiers()
@@ -789,7 +802,7 @@ namespace KKABMX.Core
         {
             if (location == BoneLocation.BodyTop)
             {
-                return FindBone(name, _ctrl.objTop);
+                return FindBone(name, _ctrl.objBodyBone);
             }
 
             if (location >= BoneLocation.Accessory)
@@ -803,7 +816,7 @@ namespace KKABMX.Core
             try
             {
                 _noRetry = true;
-                var bone = FindBone(name, _ctrl.objTop);
+                var bone = FindBone(name, _ctrl.objBodyBone);
                 if (bone != null)
                 {
                     location = BoneLocation.BodyTop;
@@ -891,12 +904,14 @@ namespace KKABMX.Core
         private readonly Dictionary<GameObject, Dictionary<string, GameObject>> _lookup; //todo switching accs doesnt update?
         private readonly ChaControl _ctrl;
 
-        public void AssignBone(BoneModifier modifier)
+        public bool AssignBone(BoneModifier modifier)
         {
             var loc = modifier.BoneLocation;
             var bone = FindBone(modifier.BoneName, ref loc);
-            modifier.BoneTransform = bone ? bone.transform : null;
+            var boneFound = bone != null;
+            modifier.BoneTransform = boneFound ? bone.transform : null;
             modifier.BoneLocation = loc;
+            return boneFound;
         }
     }
 }
