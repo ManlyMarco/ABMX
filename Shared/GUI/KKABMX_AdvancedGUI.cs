@@ -43,6 +43,7 @@ namespace KKABMX.GUI
         private readonly HashSet<GameObject> _openedObjects = new HashSet<GameObject>();
 
         private static KeyValuePair<BoneLocation, Transform> _selectedTransform;
+        private static Transform _otherSideSelectedTransform;
         private static BoneController _currentBoneController;
         private static ChaControl _currentChaControl;
 
@@ -54,7 +55,7 @@ namespace KKABMX.GUI
         private static readonly bool[] _LockXyz = new bool[_DefaultIncrementSize.Length];
 
         //private BoneModifierData[] _copiedModifier;
-        private bool _editSymmetry = true;
+        private static bool _editSymmetry = true;
 
         private bool _onlyShowCoords;
         private bool _onlyShowModified;
@@ -83,7 +84,50 @@ namespace KKABMX.GUI
                     _searchFieldValue = value;
                     _searchFieldValueChanged = true;
                     UpdateSearchResults();
+
+                    OnFiltersChanged();
                 }
+            }
+        }
+
+        private void OnFiltersChanged()
+        {
+            if (SearchFieldValue.Length == 0 && !_onlyShowModified && !_onlyShowNewChanges && !_onlyShowCoords && !_onlyShowFavorites)
+                EnsureSelectionIsVisible();
+        }
+        private void EnsureSelectionIsVisible()
+        {
+            if (_selectedTransform.Value == null) return;
+
+            _scrollTreeToSelected = true;
+
+            if (IsRootBone(_selectedTransform.Value)) return;
+
+            var parent = _selectedTransform.Value.parent;
+            while (parent != null)
+            {
+                _openedObjects.Add(parent.gameObject);
+
+                if (IsRootBone(parent)) return;
+
+                parent = parent.parent;
+            }
+        }
+
+        private static bool IsRootBone(Transform parent)
+        {
+            return parent.gameObject == _currentChaControl.objBodyBone ||
+                   parent.gameObject == _currentChaControl.objHeadBone ||
+                   Array.IndexOf(_currentChaControl.objAccessory, parent.gameObject) >= 0;
+        }
+
+        private void Update()
+        {
+            if (_scrollTreeToSelected && _scrollTarget != null)
+            {
+                _scrollTreeToSelected = false;
+                _treeScrollPosition = _scrollTarget.Value;
+                _scrollTarget = null;
             }
         }
 
@@ -252,6 +296,8 @@ namespace KKABMX.GUI
         private static Material _gizmoMaterial;
         private static bool _enableGizmo = true;
         private static bool _gizmoOnTop = true;
+        private bool _scrollTreeToSelected;
+        private Vector2? _scrollTarget;
 
         private static void OnRendered(Camera camera)
         {
@@ -282,21 +328,29 @@ namespace KKABMX.GUI
             GL.MultMatrix(Matrix4x4.identity);
             GL.Begin(GL.LINES);
 
+            void DrawTransformGizmo(Transform transform, float scale)
+            {
+                GL.Color(new Color(0, 1, 0, 0.8f));
+                GL.Vertex(transform.position);
+                GL.Vertex(transform.position + transform.forward * scale);
+                GL.Color(new Color(1, 0, 0, 0.8f));
+                GL.Vertex(transform.position);
+                GL.Vertex(transform.position + transform.right * scale);
+                GL.Color(new Color(0, 0, 1, 0.8f));
+                GL.Vertex(transform.position);
+                GL.Vertex(transform.position + transform.up * scale);
+            }
+
 #if AI || HS2
-            var scaleFactor = 0.5f;
+            const float scaleFactor = 0.5f;
 #else
-            var scaleFactor = 0.05f;
+            const float scaleFactor = 0.05f;
 #endif
-            var tr = _selectedTransform.Value;
-            GL.Color(new Color(0, 1, 0, 0.7f));
-            GL.Vertex(tr.position);
-            GL.Vertex(tr.position + tr.forward * scaleFactor);
-            GL.Color(new Color(1, 0, 0, 0.7f));
-            GL.Vertex(tr.position);
-            GL.Vertex(tr.position + tr.right * scaleFactor);
-            GL.Color(new Color(0, 0, 1, 0.7f));
-            GL.Vertex(tr.position);
-            GL.Vertex(tr.position + tr.up * scaleFactor);
+
+            DrawTransformGizmo(_selectedTransform.Value, scaleFactor);
+
+            if (_editSymmetry && _otherSideSelectedTransform != null)
+                DrawTransformGizmo(_otherSideSelectedTransform, scaleFactor);
 
             GL.End();
             GL.PopMatrix();
@@ -411,6 +465,7 @@ Things to keep in mind:
 
                             GUILayout.BeginHorizontal();
                             {
+                                UnityEngine.GUI.changed = false;
                                 GUILayout.Label("Only");
                                 var origEnabled = UnityEngine.GUI.enabled;
                                 if (_onlyShowFavorites) UnityEngine.GUI.enabled = false;
@@ -422,14 +477,22 @@ Things to keep in mind:
                                 UnityEngine.GUI.color = Color.yellow;
                                 _onlyShowCoords = GUILayout.Toggle(_onlyShowCoords, new GUIContent("Per-coord", "Show only modifiers set as per-coordinate (different values for each clothing slot)."), GUILayout.ExpandWidth(false));
 #endif
+                                UnityEngine.GUI.enabled = origEnabled;
+
                                 GUILayout.FlexibleSpace();
 
-                                UnityEngine.GUI.enabled = origEnabled;
+                                if (UnityEngine.GUI.changed)
+                                    OnFiltersChanged();
+
                                 UnityEngine.GUI.changed = false;
                                 UnityEngine.GUI.color = _FavColor;
                                 _onlyShowFavorites = GUILayout.Toggle(_onlyShowFavorites, new GUIContent("Fav's", "Show all bones that you've favorited. To add a bone to favorites select it on the list below and click the 'Fav' button on top right."), GUILayout.ExpandWidth(false));
-                                if (UnityEngine.GUI.changed && _onlyShowFavorites)
-                                    _favoritesResults = FindAllBones(IsFavorite);
+                                if (UnityEngine.GUI.changed)
+                                {
+                                    if (_onlyShowFavorites)
+                                        _favoritesResults = FindAllBones(IsFavorite);
+                                    OnFiltersChanged();
+                                }
 
                                 UnityEngine.GUI.color = Color.white;
                             }
@@ -641,6 +704,15 @@ Things to keep in mind:
                                     GUILayout.TextField(boneName, _gsLabel);
                                     GUILayout.FlexibleSpace();
 
+                                    if (GUILayout.Button(new GUIContent("P", "Copy full path of this bone"), GUILayout.ExpandWidth(false)))
+                                    {
+                                        var globalPath = _selectedTransform.Value.gameObject.GetFullPath();
+                                        var relativePath = globalPath.Substring(_currentChaControl.gameObject.GetFullPath().Length + 1);
+                                        GUIUtility.systemCopyBuffer = relativePath;
+                                        KKABMX_Core.Logger.LogMessage("Copied bone transform path to clipboard");
+                                        KKABMX_Core.Logger.LogInfo($"Global path: {globalPath}      Relative path: {relativePath}");
+                                    }
+
                                     var isFav = IsFavorite(boneName);
                                     if (isFav)
                                         UnityEngine.GUI.color = _FavColor;
@@ -653,18 +725,33 @@ Things to keep in mind:
                                 }
                                 GUILayout.EndHorizontal();
 
-                                var counterBone = GetCounterBoneName(mod);
+                                // Edit L/R symmetry ------------------------------------
+                                var otherSideBoneName = GetCounterBoneName(mod);
                                 var origEnabled = UnityEngine.GUI.enabled;
-                                if (counterBone == null) UnityEngine.GUI.enabled = false;
-                                var otherMod = _editSymmetry && counterBone != null ? GetOrAddBoneModifier(counterBone, mod.BoneLocation) : null;
-                                if (_editSymmetry) UnityEngine.GUI.color = _WarningColor;
+                                if (otherSideBoneName == null) UnityEngine.GUI.enabled = false;
+                                BoneModifier otherMod = null;
+                                if (_editSymmetry)
+                                {
+                                    if (otherSideBoneName != null)
+                                    {
+                                        otherMod = GetOrAddBoneModifier(otherSideBoneName, mod.BoneLocation);
+                                        _otherSideSelectedTransform = otherMod.BoneTransform;
+                                    }
+                                    else
+                                    {
+                                        _otherSideSelectedTransform = null;
+                                    }
+
+                                    UnityEngine.GUI.color = _WarningColor;
+                                }
                                 _editSymmetry = GUILayout.Toggle(_editSymmetry, new GUIContent("Edit both left and right side bones", "Some bones have a symmetrical pair, like left and right elbow. They all end with _L or _R suffix. This setting will let you edit both sides at the same time (two separate bone modifiers are still used)."));
                                 UnityEngine.GUI.color = Color.white;
-                                GUILayout.Label("Other side bone: " + (counterBone ?? "No bone found"));
+                                GUILayout.Label("Other side bone: " + (otherSideBoneName ?? "No bone found"));
                                 UnityEngine.GUI.enabled = origEnabled;
+                                // --------------------------------------------------------
 
-#if !AI && !HS2 && !EC
                                 UnityEngine.GUI.changed = false;
+#if !AI && !HS2 && !EC
                                 var oldVal = mod.IsCoordinateSpecific();
                                 if (oldVal) UnityEngine.GUI.color = Color.yellow;
                                 var newval = GUILayout.Toggle(oldVal, new GUIContent("Use different values for each coordinate", "This will let you set different slider values for each coordinate (outfit slot).\nModifiers set as per-coordinate are saved to coordinate cards (outfit cards) and later loaded from them (they are added to existing modifiers).\nDisabling the option will cause all coordinates to use current slider values."));
@@ -841,6 +928,15 @@ Things to keep in mind:
 
             GUILayout.BeginVertical();
 
+            if (KKABMX_Core.IssuesWithScaleBones.Contains(mod.BoneName))
+            {
+                UnityEngine.GUI.color = _WarningColor;
+                GUILayout.Label("Warning: This bone has known issues with Scale sliders. Use at your own risk.");
+                UnityEngine.GUI.color = Color.white;
+
+                GUILayout.Space(2);
+            }
+
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Scale sliders ------------------------------------------------------------
             {
                 var scale = modData.ScaleModifier;
@@ -857,7 +953,7 @@ Things to keep in mind:
 
             GUILayout.Space(2);
 
-            if (KKABMX_Core.NoRotationBones.Contains(mod.BoneName))
+            if (KKABMX_Core.IssuesWithRotationBones.Contains(mod.BoneName))
             {
                 UnityEngine.GUI.color = _WarningColor;
                 GUILayout.Label("Warning: This bone has known issues with Tilt and possibly Offset/Length sliders. Use at your own risk.");
@@ -1011,12 +1107,20 @@ Things to keep in mind:
             var isVisible = currentCount * _singleObjectTreeItemHeight >= _treeScrollPosition.y &&
                             (currentCount - 1) * _singleObjectTreeItemHeight <= _treeScrollPosition.y + ObjectTreeHeight;
 
-            if (isVisible || needsHeightMeasure)
+            if (isVisible || needsHeightMeasure || _scrollTreeToSelected)
             {
                 var originalColor = UnityEngine.GUI.color;
                 var isSelected = _selectedTransform.Value == go.transform;
                 if (isSelected)
+                {
                     UnityEngine.GUI.color = Color.cyan;
+
+                    if (_scrollTreeToSelected && Event.current.type == EventType.Repaint)
+                    {
+                        var lastRect = GUILayoutUtility.GetLastRect();
+                        _scrollTarget = new Vector2(Mathf.Max(0, (indent - 2) * 20), (int)(lastRect.y - WindowRect.height / 3));
+                    }
+                }
                 //else if (_changedBones.Any(modifier => modifier.BoneTransform == go.transform && !modifier.IsEmpty()))
                 //{
                 //    UnityEngine.GUI.color = Color.green;

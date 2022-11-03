@@ -94,7 +94,7 @@ namespace KKABMX.Core
         /// </summary>
         public void Apply(CoordinateType coordinate, IList<BoneModifierData> additionalModifiers)
         {
-            if (BoneTransform == null) return;
+            if (BoneTransform == null || !_hasBaseline) return;
 
             var modifier = GetModifier(coordinate);
 
@@ -312,6 +312,11 @@ namespace KKABMX.Core
             if (_hasBaseline) return _posBaseline != Vector3.zero;
             if (BoneTransform != null) return BoneTransform.position != Vector3.zero;
             return false;
+        }
+
+        public void ClearBaseline()
+        {
+            _hasBaseline = false;
         }
     }
 }

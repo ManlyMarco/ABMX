@@ -475,7 +475,7 @@ namespace KKABMX.Core
             if (_baselineKnown == true)
             {
                 if (NeedsBaselineUpdate)
-                    UpdateBaseline();
+                    StartCoroutine(UpdateBaseline());
 
                 ApplyEffects();
             }
@@ -484,8 +484,6 @@ namespace KKABMX.Core
                 _baselineKnown = null;
                 CollectBaseline();
             }
-
-            NeedsBaselineUpdate = false;
         }
 
         private readonly Dictionary<BoneModifier, List<BoneModifierData>> _effectsToUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
@@ -670,29 +668,46 @@ namespace KKABMX.Core
             _previousAnimSpeed = null;
         }
 
+        private List<BoneModifier> _partialBaselineUpdateTargets;
         /// <summary>
         /// Partial baseline update.
         /// Needed mainly to prevent vanilla sliders in chara maker from being overriden by bone modifiers.
         /// </summary>
-        private void UpdateBaseline()
+        private IEnumerator UpdateBaseline()
         {
-            var distSrc = ChaControl.sibFace.dictDst;
-            var distSrc2 = ChaControl.sibBody.dictDst;
-            var affectedBones = new HashSet<Transform>(distSrc.Concat(distSrc2).Select(x => x.Value.trfBone));
-            var affectedModifiers = ModifierDict.Values.SelectMany(x => x).Where(x => affectedBones.Contains(x.BoneTransform)).ToList();
+            if (_partialBaselineUpdateTargets == null)
+            {
+                // Run after DynamicBones finish their late updates
+                yield return new WaitForEndOfFrame();
+            
+                var distSrc = ChaControl.sibFace.dictDst;
+                var distSrc2 = ChaControl.sibBody.dictDst;
+                var affectedBones = new HashSet<Transform>(distSrc.Concat(distSrc2).Select(x => x.Value.trfBone));
+                _partialBaselineUpdateTargets = ModifierDict.Values.SelectMany(x => x).Where(x => affectedBones.Contains(x.BoneTransform)).ToList();
 
-            // Prevent some scales from being added to the baseline, mostly skirt scale
-            foreach (var boneModifier in affectedModifiers)
-                boneModifier.Reset();
+                // Prevent some scales from being added to the baseline, mostly skirt scale
+                foreach (var boneModifier in _partialBaselineUpdateTargets)
+                {
+                    boneModifier.Reset();
+                    // Clear baseline so the modifier doesn't get applied anymore
+                    boneModifier.ClearBaseline();
+                }
 
-            // Force game to recalculate bone scales. Misses some so we need to reset above
-            ChaControl.UpdateShapeFace();
-            ChaControl.UpdateShapeBody();
+                ModifiersFillInTransforms();
 
-            ModifiersFillInTransforms();
+                NeedsBaselineUpdate = true;
+            }
+            else
+            {
+                // This runs on next LateUpdate, before DynamicBones
+                // Force the game to update all body bones to make sure we are getting the right baseline
+                ChaControl.UpdateShapeFace();
+                ChaControl.UpdateShapeBody();
+                foreach (var boneModifier in _partialBaselineUpdateTargets)
+                    boneModifier.CollectBaseline();
 
-            foreach (var boneModifier in affectedModifiers)
-                boneModifier.CollectBaseline();
+                NeedsBaselineUpdate = false;
+            }
         }
 
         private void ModifiersFillInTransforms()
