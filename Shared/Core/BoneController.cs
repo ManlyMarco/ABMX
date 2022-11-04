@@ -378,11 +378,7 @@ namespace KKABMX.Core
                             if (oldList.Count == 0)
                                 ModifierDict.Remove(targetBoneLocation);
                         }
-#if AI || HS2
-                        var headRoot = transform.FindLoop("cf_J_Head"); //todo use objHead and walk up the parents to find this to improve perf?
-#else
-                        var headRoot = transform.FindLoop("cf_j_head");
-#endif
+                        var headRoot = ChaControl.objHeadBone;
                         var headBones = new HashSet<string>(headRoot.GetComponentsInChildren<Transform>().Select(x => x.name));
                         headBones.Add(headRoot.name);
 
