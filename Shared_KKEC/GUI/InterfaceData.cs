@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
 using KKAPI.Maker;
+#pragma warning disable CS1591
 
 namespace KKABMX.GUI
 {
+    /// <summary>
+    /// Data needed for creating yellow sliders and custom maker categories
+    /// </summary>
     public static class InterfaceData
     {
         public static List<BoneMeta> BoneControls { get; }
@@ -234,7 +238,7 @@ cf_d_bust03_R
                 new BoneMeta("cf_d_sk_06_00"     , "Skirt Sides"            , 0, 3f, BodySkirtScl , "cf_d_sk_02_00")    {L = true          , UniquePerCoordinate = true, LMax = 2.5f, LDisplayName = "Skirt Sides Offset"},
                 new BoneMeta("cf_d_sk_05_00"     , "Skirt Back Sides"       , 0, 3f, BodySkirtScl , "cf_d_sk_03_00")    {L = true          , UniquePerCoordinate = true, LMax = 2.5f, LDisplayName = "Skirt Back Sides Offset"},
                 new BoneMeta("cf_d_sk_04_00"     , "Skirt Back"             , 0, 3f, BodySkirtScl , "")                 {L = true          , UniquePerCoordinate = true, LMax = 2.5f, LDisplayName = "Skirt Back Offset"},
-                
+
                 new BoneMeta("cf_d_kokan"        , "Genital Area"           , 0, 3f, BodyGenitals , "")                 {L = true          , LMax = 2.5f, LDisplayName = "Genital Area Length"},
                 new BoneMeta("cf_j_kokan"        , "Pubic Mound"            , 0, 3f, BodyGenitals , "")                                    ,
                 new BoneMeta("cm_J_dan100_00"    , "Penis"                  , 0, 3f, BodyGenitals , "")                                    ,

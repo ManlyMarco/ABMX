@@ -5,11 +5,9 @@ using System.Linq;
 using IllusionUtility.GetUtility;
 using KKAPI;
 using KKAPI.Chara;
-using Manager;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
-using Illusion.Extensions;
 using KKAPI.Maker;
 using KKAPI.Utilities;
 using UniRx;
@@ -164,6 +162,22 @@ namespace KKABMX.Core
             return GetModifierInt(boneName, location, GetModifierListForLocation(location, false, ModifierDict));
         }
 
+        /// <summary>
+        /// Get a modifier. If it doesn't exist, create a new empty one.
+        /// </summary>
+        /// <param name="boneName">Name of the bone that the modifier targets</param>
+        /// <param name="location">Where the bone is located</param>
+        public BoneModifier GetOrAddModifier(string boneName, BoneLocation location)
+        {
+            var m = GetModifier(boneName, location);
+            if (m == null)
+            {
+                m = new BoneModifier(boneName, location);
+                AddModifier(m);
+            }
+            return m;
+        }
+
         private static BoneModifier GetModifierInt(string boneName, BoneLocation location, List<BoneModifier> modifierList)
         {
             if (boneName == null) throw new ArgumentNullException(nameof(boneName));
@@ -213,6 +227,7 @@ namespace KKABMX.Core
         }
 
 #if !EC && !AI && !HS2 //No coordinate saving in AIS
+        /// <inheritdoc />
         protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate, bool maintainState)
         {
             if (maintainState) return;
@@ -227,13 +242,8 @@ namespace KKABMX.Core
             var modifiers = ReadCoordModifiers(data);
             foreach (var modifier in modifiers)
             {
-                var target = GetModifier(modifier.BoneName, modifier.BoneLocation);
-                if (target == null)
-                {
-                    // Add any missing modifiers
-                    target = new BoneModifier(modifier.BoneName, modifier.BoneLocation);
-                    AddModifier(target);
-                }
+                // Add any missing modifiers
+                var target = GetOrAddModifier(modifier.BoneName, modifier.BoneLocation);
                 target.MakeCoordinateSpecific(ChaFileControl.coordinate.Length);
                 target.CoordinateModifiers[(int)currentCoord] = modifier.CoordinateModifiers[0];
             }
@@ -269,6 +279,7 @@ namespace KKABMX.Core
             return new List<BoneModifier>();
         }
 
+        /// <inheritdoc />
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
         {
             var currentCoord = CurrentCoordinate.Value;
@@ -497,13 +508,7 @@ namespace KKABMX.Core
                     var effect = additionalBoneEffect.GetEffect(affectedBone, this, CurrentCoordinate.Value);
                     if (effect != null && !effect.IsEmpty())
                     {
-                        var modifier = GetModifier(affectedBone, BoneLocation.BodyTop); //todo allow targeting accessories?
-                        if (modifier == null)
-                        {
-                            modifier = new BoneModifier(affectedBone, BoneLocation.BodyTop);
-                            AddModifier(modifier);
-                        }
-
+                        var modifier = GetOrAddModifier(affectedBone, BoneLocation.BodyTop); //todo allow targeting accessories?
                         if (!_effectsToUpdate.TryGetValue(modifier, out var list))
                         {
                             list = new List<BoneModifierData>();
@@ -513,13 +518,7 @@ namespace KKABMX.Core
                     }
                 }
             }
-
-            //todo
-            // gather all dynamic bones under the character
-            // sort them based on location that they target
-            // disable them and run them right after the modifiers are applied, but before the event is fired
-            // 
-
+            
             var anyUnknown = false;
             // Modifiers must be sorted by location key
             foreach (var kvp in ModifierDict)
@@ -540,7 +539,10 @@ namespace KKABMX.Core
             }
         }
 
-        // Patched by C2A, needs to stay unless both plugins are updated
+        /// <summary>
+        /// Apply all modifiers to the specified location. Location set on modifiers is ignored.
+        /// This is patched by C2A, needs to stay unless both plugins are updated.
+        /// </summary>
         public void ApplyEffectsToLocation(BoneLocation boneLocation, List<BoneModifier> boneModifiers)
         {
             foreach (var modifier in boneModifiers)
@@ -561,26 +563,7 @@ namespace KKABMX.Core
             // bug - causes gravity issues on its own
             ChaControl.UpdateBustGravity();
         }
-
-        public sealed class EffectsAppliedEventArgs : EventArgs
-        {
-            public EffectsAppliedEventArgs(BoneLocation appliedLocation, BoneController controller)
-            {
-                AppliedLocation = appliedLocation;
-                Controller = controller;
-            }
-            public BoneLocation AppliedLocation { get; }
-            public BoneController Controller { get; }
-            public ChaControl Character => Controller.ChaControl;
-        }
-
-        /// <summary>
-        /// Event fired after BoneEffects are applied to a character, giving other plugins a reliable way to know when this happens.
-        /// A separate event is fired for each BoneLocation as they are applied.
-        /// If there are no modifiers in a given location, the event is not fired. If there are no modifiers, it's not fired at all.
-        /// </summary>
-        //todo public static event EventHandler<EffectsAppliedEventArgs> OnEffectsApplied;
-
+        
         private IEnumerator OnDataChangedCo()
         {
             CleanEmptyModifiers();
@@ -676,7 +659,7 @@ namespace KKABMX.Core
             {
                 // Run after DynamicBones finish their late updates
                 yield return new WaitForEndOfFrame();
-            
+
                 var distSrc = ChaControl.sibFace.dictDst;
                 var distSrc2 = ChaControl.sibBody.dictDst;
                 var affectedBones = new HashSet<Transform>(distSrc.Concat(distSrc2).Select(x => x.Value.trfBone));
@@ -781,6 +764,10 @@ namespace KKABMX.Core
     /// </summary>
     public class BoneFinder
     {
+        /// <summary>
+        /// Create a dictionary of all bones and their names under the specified root object (itself included).
+        /// Accessories and other characters are not included (the search stops at them).
+        /// </summary>
         public Dictionary<string, GameObject> CreateBoneDic(GameObject rootObject)
         {
             KKABMX_Core.Logger.LogDebug($"Creating bone dictionary for char={_ctrl.name} rootObj={rootObject}");
@@ -809,6 +796,12 @@ namespace KKABMX.Core
             foreach (var nullGo in _lookup.Keys.Where(x => x == null).ToList()) _lookup.Remove(nullGo);
         }
 
+        /// <summary>
+        /// Find bone of a given name in the specified location.
+        /// If location is Unknown, all locations will be searched and location value will be replaced with location where it was found (if it was found).
+        /// </summary>
+        /// <param name="name">Name of the bone to search for</param>
+        /// <param name="location">Where to search for the bone. If Unknown, the value is replaced by the location the bone was found in if the bone was found.</param>
         public GameObject FindBone(string name, ref BoneLocation location)
         {
             if (location == BoneLocation.BodyTop)
@@ -878,8 +871,11 @@ namespace KKABMX.Core
             return boneObj;
         }
 
-        private bool _noRetry = false;
+        private bool _noRetry;
 
+        /// <summary>
+        /// Get a dictionary of all bones and their names in a given location.
+        /// </summary>
         public IDictionary<string, GameObject> GetAllBones(BoneLocation location)
         {
             GameObject rootObject = null;
@@ -906,6 +902,9 @@ namespace KKABMX.Core
             return boneDic.ToReadOnlyDictionary();
         }
 
+        /// <summary>
+        /// Create a new instance for a given character.
+        /// </summary>
         public BoneFinder(ChaControl ctrl)
         {
             _ctrl = ctrl;
@@ -915,6 +914,9 @@ namespace KKABMX.Core
         private readonly Dictionary<GameObject, Dictionary<string, GameObject>> _lookup; //todo switching accs doesnt update?
         private readonly ChaControl _ctrl;
 
+        /// <summary>
+        /// Try to find and assign target bone to a bone modifier. Returns true if successful.
+        /// </summary>
         public bool AssignBone(BoneModifier modifier)
         {
             var loc = modifier.BoneLocation;

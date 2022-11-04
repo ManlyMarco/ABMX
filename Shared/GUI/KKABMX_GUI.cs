@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace KKABMX.GUI
 {
+    /// <summary>
+    /// Manages UI integration with maker
+    /// </summary>
     public class KKABMX_GUI : MonoBehaviour
     {
         private const int LimitRaiseAmount = 2;
@@ -27,18 +30,27 @@ namespace KKABMX.GUI
         internal static void OnIsAdvancedModeChanged(object sender, EventArgs args) => IsAdvancedModeChanged?.Invoke(sender, args);
         private static event EventHandler IsAdvancedModeChanged;
 
+        /// <summary>
+        /// If true, split sliders into separate XYZ sliders, otherwise only show one All slider
+        /// </summary>
         public static bool XyzMode
         {
             get => KKABMX_Core.XyzMode.Value;
             set => KKABMX_Core.XyzMode.Value = value;
         }
 
+        /// <summary>
+        /// Increase value limits of yellow sliders
+        /// </summary>
         public static bool RaiseLimits
         {
             get => KKABMX_Core.RaiseLimits.Value;
             set => KKABMX_Core.RaiseLimits.Value = value;
         }
 
+        /// <summary>
+        /// If true, the reset button uses the value from the last load, not the empty value
+        /// </summary>
         public static bool ResetToLastLoaded
         {
             get => KKABMX_Core.ResetToLastLoaded.Value;
@@ -85,8 +97,10 @@ namespace KKABMX.GUI
             _faceLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Face Bonemod"));
             _bodyLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Body Bonemod"));
 
+#pragma warning disable CS0618
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
-                .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
+                    .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
+#pragma warning restore CS0618
 
             callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
                 .ValueChanged.Subscribe(b => XyzMode = b);
@@ -496,9 +510,19 @@ namespace KKABMX.GUI
             SpawnedSliders = null;
         }
 
+        /// <summary>
+        /// List of all yellow sliders created so far. Mainly for use by the SliderHighlight plugin.
+        /// null if outside of maker.
+        /// </summary>
         public static List<SliderData> SpawnedSliders { get; private set; }
+        /// <summary>
+        /// Metadata of a created yellow slider
+        /// </summary>
         public class SliderData
         {
+            /// <summary>
+            /// Make a new instance
+            /// </summary>
             public SliderData(Func<IEnumerable<string>> getAffectedBones, BoneLocation boneLocation, params MakerSlider[] sliders)
             {
                 GetAffectedBones = getAffectedBones;
@@ -506,8 +530,17 @@ namespace KKABMX.GUI
                 Sliders = sliders.Where(x => x != null).ToArray();
             }
 
+            /// <summary>
+            /// All sliders in this slider group (X, Y, Z and All, possibly more for fingers)
+            /// </summary>
             public MakerSlider[] Sliders { get; }
+            /// <summary>
+            /// A func that finds names of all bones affected by this slider group
+            /// </summary>
             public Func<IEnumerable<string>> GetAffectedBones { get; }
+            /// <summary>
+            /// Location where the affected bones are located
+            /// </summary>
             public BoneLocation BoneLocation { get; }
         }
     }

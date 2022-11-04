@@ -12,6 +12,9 @@ using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 
 namespace KKABMX.Core
 {
+    /// <summary>
+    /// Class that handles applying modifiers to bones
+    /// </summary>
     [MessagePackObject]
     public sealed class BoneModifier
     {
@@ -25,9 +28,11 @@ namespace KKABMX.Core
         private bool _lenModForceUpdate;
         private bool _forceApply;
 
+        /// <summary> Use other overloads instead </summary>
         [Obsolete]
         public BoneModifier(string boneName) : this(boneName, BoneLocation.Unknown, new[] { new BoneModifierData() }) { }
 
+        /// <summary> Use other overloads instead </summary>
         [Obsolete]
         public BoneModifier(string boneName, BoneModifierData[] coordinateModifiers) : this(boneName, BoneLocation.Unknown, coordinateModifiers) { }
 
@@ -61,6 +66,7 @@ namespace KKABMX.Core
             CoordinateModifiers = coordinateModifiers.ToArray();
         }
 
+        /// <summary> Use other overloads instead </summary>
         [SerializationConstructor, Obsolete("Only for deserialization", true)]
         public BoneModifier(string boneName, BoneModifierData[] coordinateModifiers, BoneLocation boneLocation) : this(boneName, boneLocation, coordinateModifiers) { }
 
@@ -177,6 +183,10 @@ namespace KKABMX.Core
             return _combineModifiersCachedReturn;
         }
 
+        /// <summary>
+        /// Set current values of the bone as its default/base values.
+        /// Warning: Do not call after the modifier was applied, it has to be reset first!
+        /// </summary>
         public void CollectBaseline()
         {
             if (BoneTransform == null) return;
@@ -188,6 +198,9 @@ namespace KKABMX.Core
             _hasBaseline = true;
         }
 
+        /// <summary>
+        /// Get data for a specific coordinate
+        /// </summary>
         public BoneModifierData GetModifier(CoordinateType coordinate)
         {
             if (!IsCoordinateSpecific()) return CoordinateModifiers[0];
@@ -302,11 +315,17 @@ namespace KKABMX.Core
             return false;
         }
 
+        /// <summary>
+        /// Create a copy of this modifier
+        /// </summary>
         public BoneModifier Clone()
         {
             return new BoneModifier(BoneName, BoneLocation, CoordinateModifiers.Select(x => x.Clone()).ToArray());
         }
 
+        /// <summary>
+        /// Check if length can be applied in current state
+        /// </summary>
         public bool CanApplyLength()
         {
             if (_hasBaseline) return _posBaseline != Vector3.zero;
@@ -314,6 +333,9 @@ namespace KKABMX.Core
             return false;
         }
 
+        /// <summary>
+        /// Clear the stored baseline, if any
+        /// </summary>
         public void ClearBaseline()
         {
             _hasBaseline = false;

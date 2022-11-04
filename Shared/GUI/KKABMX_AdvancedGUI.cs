@@ -28,6 +28,9 @@ namespace KKABMX.GUI
         private Vector2 _treeScrollPosition = Vector2.zero;
         private Vector2 _slidersScrollPosition = Vector2.zero;
 
+        private bool _scrollTreeToSelected;
+        private Vector2? _scrollTarget;
+
         private static GUIStyle _gsButtonReset;
         private static GUIStyle _gsInput;
         private static GUIStyle _gsLabel;
@@ -73,6 +76,14 @@ namespace KKABMX.GUI
         private string _searchFieldValue = "";
         private bool _searchFieldValueChanged;
 
+        private static Material _gizmoMaterial;
+        private static bool _enableGizmo = true;
+        private static bool _gizmoOnTop = true;
+        private static Camera _currentCamera;
+
+        /// <summary>
+        /// String to search for in bone names
+        /// </summary>
         public string SearchFieldValue
         {
             get => _searchFieldValue;
@@ -154,7 +165,13 @@ namespace KKABMX.GUI
             return results;
         }
 
+        /// <summary>
+        /// Triggered whenever the UI is hidden or opened. New enabled state is given as parameter.
+        /// </summary>
         public static Action<bool> OnEnabledChanged;
+        /// <summary>
+        /// Whether the UI is hidden or opened.
+        /// </summary>
         public static bool Enabled => _currentBoneController != null && Instance.enabled;
 
         /// <summary>
@@ -167,6 +184,9 @@ namespace KKABMX.GUI
         /// </summary>
         public static event Action<Transform, BoneLocation> OnBoneListMouseHover;
 
+        /// <summary>
+        /// Show the UI with a character already selected. If controller is null, the UI is disabled instead.
+        /// </summary>
         public static void Enable(BoneController controller)
         {
             if (controller == null)
@@ -243,11 +263,15 @@ namespace KKABMX.GUI
             return string.IsNullOrEmpty(charaNameTl) ? charaName.Trim() : $"{objName} ({charaNameTl.Trim()})";
         }
 
+        /// <summary>
+        /// Hide the UI if it's shown.
+        /// </summary>
         public static void Disable()
         {
             _currentBoneController = null;
             Instance.enabled = false;
             Instance._changedBones.Clear();
+            _currentCamera = null;
         }
 
         private bool CheckSearchMatch(string transformName)
@@ -255,6 +279,7 @@ namespace KKABMX.GUI
             return transformName.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
+        /// <inheritdoc />
         protected override Rect GetDefaultWindowRect(Rect screenRect)
         {
             const int margin = 20;
@@ -264,6 +289,7 @@ namespace KKABMX.GUI
             return new Rect(margin, y, width, height);
         }
 
+        /// <inheritdoc />
         protected override void OnEnable()
         {
             if (_currentBoneController == null)
@@ -278,6 +304,7 @@ namespace KKABMX.GUI
                 OnEnabledChanged?.Invoke(true);
                 Camera.onPostRender += OnRendered;
                 BoneListMouseHoversOver = default;
+                _currentCamera = Camera.main;
             }
         }
 
@@ -293,16 +320,9 @@ namespace KKABMX.GUI
             }
         }
 
-        private static Material _gizmoMaterial;
-        private static bool _enableGizmo = true;
-        private static bool _gizmoOnTop = true;
-        private bool _scrollTreeToSelected;
-        private Vector2? _scrollTarget;
-
         private static void OnRendered(Camera camera)
         {
-            //todo cache main cam
-            if (!_enableGizmo || _selectedTransform.Value == null || camera != Camera.main)
+            if (!_enableGizmo || _selectedTransform.Value == null || camera != _currentCamera)
                 return;
 
             if (_gizmoMaterial == null)
@@ -356,6 +376,7 @@ namespace KKABMX.GUI
             GL.PopMatrix();
         }
 
+        /// <inheritdoc />
         protected override void OnGUI()
         {
             if (_currentBoneController == null)
@@ -381,6 +402,7 @@ namespace KKABMX.GUI
             UnityEngine.GUI.skin = skin;
         }
 
+        /// <inheritdoc />
         protected override void DrawContents()
         {
             GUILayout.BeginVertical();
@@ -899,16 +921,8 @@ Things to keep in mind:
 
         private BoneModifier GetOrAddBoneModifier(string boneName, BoneLocation location)
         {
-            if (boneName == null) throw new ArgumentNullException(nameof(boneName));
-            var mod = _currentBoneController.GetModifier(boneName, location);
-            if (mod == null)
-            {
-                mod = new BoneModifier(boneName, location);
-                _currentBoneController.AddModifier(mod);
-                _changedBones.Add(mod);
-            }
-            else if (mod.IsEmpty()) _changedBones.Add(mod);
-
+            var mod = _currentBoneController.GetOrAddModifier(boneName, location);
+            if (mod.IsEmpty()) _changedBones.Add(mod);
             return mod;
         }
 
@@ -1244,9 +1258,12 @@ Things to keep in mind:
         }
     }
 
-#pragma warning disable CS1591
+    /// <summary>
+    /// Only used for converting to xml to output user-readable data into clipboard/file.
+    /// </summary>
     public class SerializedBoneModifier
     {
+#pragma warning disable CS1591
         // Needed for serialization
         public SerializedBoneModifier() { }
 
@@ -1265,6 +1282,6 @@ Things to keep in mind:
         {
             return new BoneModifier(BoneName, BoneLocation, CoordinateModifiers);
         }
-    }
 #pragma warning restore CS1591
+    }
 }

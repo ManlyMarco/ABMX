@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using ADV;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -16,13 +15,19 @@ using AIChara;
 
 namespace KKABMX.Core
 {
+    /// <summary>
+    /// Entry point
+    /// </summary>
     [BepInPlugin(GUID, Name, Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public partial class KKABMX_Core : BaseUnityPlugin
     {
+        /// <summary> Version of this plugin </summary>
         public const string Version = Metadata.Version;
+        /// <summary> GUID of this plugin </summary>
         public const string GUID = Metadata.GUID;
+        /// <summary> GUID used for ext data of this plugin </summary>
         public const string ExtDataGUID = Metadata.ExtDataGUID;
         private const string Name = Metadata.Name;
 
