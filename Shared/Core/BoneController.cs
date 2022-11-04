@@ -43,7 +43,8 @@ namespace KKABMX.Core
     {
         private const string ExtDataBoneDataKey = "boneData";
 
-        internal BoneFinder BoneSearcher { get; private set; }
+        /// <inheritdoc cref="BoneFinder"/>
+        public BoneFinder BoneSearcher { get; private set; }
 
         private bool? _baselineKnown;
 
