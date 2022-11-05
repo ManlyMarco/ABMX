@@ -14,4 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\OldDataConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\InterfaceData.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)BoneTooltips.txt" />
+  </ItemGroup>
 </Project>

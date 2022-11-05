@@ -1,7 +1,11 @@
 ﻿using KKAPI.Maker;
+#pragma warning disable CS1591
 
 namespace KKABMX.GUI
 {
+    /// <summary>
+    /// Data needed to create a yellow UI slider
+    /// </summary>
     public sealed class BoneMeta
     {
         private float? _lMax;

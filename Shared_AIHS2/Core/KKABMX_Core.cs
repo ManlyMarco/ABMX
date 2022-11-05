@@ -6,7 +6,7 @@ namespace KKABMX.Core
     public partial class KKABMX_Core : BaseUnityPlugin
     {
         // Bones that misbehave with rotation adjustments
-        internal static HashSet<string> NoRotationBones = new HashSet<string>
+        internal static HashSet<string> IssuesWithRotationBones = new HashSet<string>
         {
             "cf_J_Hips",
             "cf_J_Head",
@@ -122,6 +122,11 @@ namespace KKABMX.Core
             "cf_J_Legsk_07_03",
             "cf_J_Legsk_07_04",
             "cf_J_Legsk_07_05",
+        };
+
+        internal static HashSet<string> IssuesWithScaleBones = new HashSet<string>
+        {
+            // Doesn't look like there's any in AI/HS2?
         };
     }
 }

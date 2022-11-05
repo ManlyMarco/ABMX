@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace KKABMX.GUI
 {
+    /// <summary>
+    /// Manages UI integration with maker
+    /// </summary>
     public class KKABMX_GUI : MonoBehaviour
     {
         private const int LimitRaiseAmount = 2;
@@ -27,16 +30,31 @@ namespace KKABMX.GUI
         internal static void OnIsAdvancedModeChanged(object sender, EventArgs args) => IsAdvancedModeChanged?.Invoke(sender, args);
         private static event EventHandler IsAdvancedModeChanged;
 
+        /// <summary>
+        /// If true, split sliders into separate XYZ sliders, otherwise only show one All slider
+        /// </summary>
         public static bool XyzMode
         {
             get => KKABMX_Core.XyzMode.Value;
             set => KKABMX_Core.XyzMode.Value = value;
         }
 
+        /// <summary>
+        /// Increase value limits of yellow sliders
+        /// </summary>
         public static bool RaiseLimits
         {
             get => KKABMX_Core.RaiseLimits.Value;
             set => KKABMX_Core.RaiseLimits.Value = value;
+        }
+
+        /// <summary>
+        /// If true, the reset button uses the value from the last load, not the empty value
+        /// </summary>
+        public static bool ResetToLastLoaded
+        {
+            get => KKABMX_Core.ResetToLastLoaded.Value;
+            set => KKABMX_Core.ResetToLastLoaded.Value = value;
         }
 
         private void Start()
@@ -44,6 +62,8 @@ namespace KKABMX.GUI
             MakerAPI.RegisterCustomSubCategories += OnRegisterCustomSubCategories;
             MakerAPI.MakerBaseLoaded += OnEarlyMakerFinishedLoading;
             MakerAPI.MakerExiting += OnMakerExiting;
+            KKABMX_Core.ResetToLastLoaded.SettingChanged += UpdateControlValues;
+            ExtensibleSaveFormat.ExtendedSave.CardBeingSaved += file => UpdateControlValues(file, EventArgs.Empty);
         }
 
         private void RegisterCustomControls(RegisterCustomControlsEvent callback)
@@ -77,8 +97,10 @@ namespace KKABMX.GUI
             _faceLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Face Bonemod"));
             _bodyLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Body Bonemod"));
 
+#pragma warning disable CS0618
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
-                .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
+                    .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
+#pragma warning restore CS0618
 
             callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
                 .ValueChanged.Subscribe(b => XyzMode = b);
@@ -124,9 +146,10 @@ namespace KKABMX.GUI
 
             void UpdateDisplay(int _)
             {
-                var boneMod = _boneController.GetModifier(GetFingerBoneNames().First());
-                var mod = boneMod?.GetModifier(_boneController.CurrentCoordinate.Value);
-                SetSliders(mod?.ScaleModifier ?? Vector3.one);
+                var coordinate = _boneController.CurrentCoordinate.Value;
+                var boneName = GetFingerBoneNames().First();
+                SetSliders(_boneController.GetModifier(boneName, BoneLocation.BodyTop)?.GetModifier(coordinate)?.ScaleModifier ?? Vector3.one);
+                SetDefaults(_boneController.GetModifierBackup(boneName, BoneLocation.BodyTop)?.GetModifier(coordinate)?.ScaleModifier ?? Vector3.one);
             }
 
             var isUpdatingValue = false;
@@ -139,6 +162,15 @@ namespace KKABMX.GUI
                 if (z != null) z.Value = mod.z;
                 if (v != null) v.Value = (mod.x + mod.y + mod.z) / 3f;
                 isUpdatingValue = false;
+            }
+
+            void SetDefaults(Vector3 mod)
+            {
+                if (!ResetToLastLoaded) mod = Vector3.one;
+                if (x != null) x.DefaultValue = mod.x;
+                if (y != null) y.DefaultValue = mod.y;
+                if (z != null) z.DefaultValue = mod.z;
+                if (v != null) v.DefaultValue = (mod.x + mod.y + mod.z) / 3f;
             }
 
             void PushValueToControls()
@@ -162,7 +194,7 @@ namespace KKABMX.GUI
 
                 foreach (var boneName in GetFingerBoneNames())
                 {
-                    var bone = _boneController.GetModifier(boneName);
+                    var bone = _boneController.GetModifier(boneName, BoneLocation.BodyTop);
                     var modifier = bone?.GetModifier(_boneController.CurrentCoordinate.Value);
 
                     var prevValue = modifier?.ScaleModifier ?? Vector3.one;
@@ -176,7 +208,7 @@ namespace KKABMX.GUI
                             return;
 
                         if (bone == null)
-                            bone = new BoneModifier(boneName);
+                            bone = new BoneModifier(boneName, BoneLocation.BodyTop);
 
                         _boneController.AddModifier(bone);
                         modifier = bone.GetModifier(_boneController.CurrentCoordinate.Value);
@@ -216,7 +248,7 @@ namespace KKABMX.GUI
             z?.ValueChanged.Subscribe(obs);
             v?.ValueChanged.Subscribe(obs);
 
-            SpawnedSliders.Add(new SliderData(GetFingerBoneNames, x, y, z, v));
+            SpawnedSliders.Add(new SliderData(GetFingerBoneNames, BoneLocation.BodyTop, x, y, z, v));
         }
 
         private void RegisterSingleControl(MakerCategory category, BoneMeta boneMeta, RegisterCustomControlsEvent callback)
@@ -249,10 +281,21 @@ namespace KKABMX.GUI
                 isUpdatingValue = false;
             }
 
+            void SetDefaults(BoneModifierData data)
+            {
+                Vector3 mod = ResetToLastLoaded ? data.ScaleModifier : Vector3.one;
+                float lenMod = ResetToLastLoaded ? data.LengthModifier : 1;
+                if (x != null) x.DefaultValue = mod.x;
+                if (y != null) y.DefaultValue = mod.y;
+                if (z != null) z.DefaultValue = mod.z;
+                if (v != null) v.DefaultValue = (mod.x + mod.y + mod.z) / 3f;
+                if (l != null) l.DefaultValue = lenMod;
+            }
+
             void PushValueToControls()
             {
                 var bone = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate) ?? BoneModifierData.Default;
-
+                var defaultBone = (BoneModifierData)null;
                 if (rb != null)
                 {
                     var bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate) ?? BoneModifierData.Default;
@@ -265,6 +308,7 @@ namespace KKABMX.GUI
                         else if (rb.Value == 2)
                         {
                             bone = bone2;
+                            defaultBone = _boneController.GetModifier(boneMeta.RightBoneName, BoneLocation.BodyTop)?.GetModifier(_boneController.CurrentCoordinate.Value);
                         }
                     }
                     else
@@ -274,6 +318,8 @@ namespace KKABMX.GUI
                 }
 
                 SetSliders(bone.ScaleModifier, bone.LengthModifier);
+
+                SetDefaults(defaultBone ?? _boneController.GetModifier(boneMeta.BoneName, BoneLocation.BodyTop)?.GetModifier(_boneController.CurrentCoordinate.Value) ?? BoneModifierData.Default);
 
                 ActivateSliders();
             }
@@ -311,7 +357,7 @@ namespace KKABMX.GUI
                     var hasLen = l != null && Math.Abs(l.Value - 1f) > 0.001;
                     if (newValue == Vector3.one && !hasLen) return;
 
-                    _boneController.AddModifier(new BoneModifier(boneMeta.BoneName));
+                    _boneController.AddModifier(new BoneModifier(boneMeta.BoneName, BoneLocation.BodyTop));
                     modifier = GetBoneModifier(boneMeta.BoneName, boneMeta.UniquePerCoordinate);
                 }
 
@@ -322,7 +368,7 @@ namespace KKABMX.GUI
                         var bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate);
                         if (bone2 == null)
                         {
-                            _boneController.AddModifier(new BoneModifier(boneMeta.RightBoneName));
+                            _boneController.AddModifier(new BoneModifier(boneMeta.RightBoneName, BoneLocation.BodyTop));
                             bone2 = GetBoneModifier(boneMeta.RightBoneName, boneMeta.UniquePerCoordinate);
                         }
 
@@ -390,12 +436,12 @@ namespace KKABMX.GUI
                         break;
                 }
             }
-            SpawnedSliders.Add(new SliderData(GetAffectedBoneNames, x, y, z, v, l));
+            SpawnedSliders.Add(new SliderData(GetAffectedBoneNames, BoneLocation.BodyTop, x, y, z, v, l));
         }
 
         private BoneModifierData GetBoneModifier(string boneName, bool coordinateUnique)
         {
-            var boneMod = _boneController.GetModifier(boneName);
+            var boneMod = _boneController.GetModifier(boneName, BoneLocation.BodyTop);
             if (boneMod == null)
                 return null;
 
@@ -426,22 +472,25 @@ namespace KKABMX.GUI
                 return;
             }
 
-            _boneController.NewDataLoaded += (s, args) =>
-            {
-                foreach (var action in _updateActionList)
-                {
-                    try
-                    {
-                        action();
-                    }
-                    catch (Exception ex)
-                    {
-                        KKABMX_Core.Logger.LogError(ex.ToString());
-                    }
-                }
-            };
+            _boneController.NewDataLoaded += UpdateControlValues;
 
             RegisterCustomControls(e);
+        }
+
+        private void UpdateControlValues(object s, EventArgs args)
+        {
+            if (!MakerAPI.InsideMaker) return;
+            foreach (var action in _updateActionList)
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    KKABMX_Core.Logger.LogError(ex.ToString());
+                }
+            }
         }
 
         private void OnMakerExiting(object sender, EventArgs e)
@@ -461,17 +510,38 @@ namespace KKABMX.GUI
             SpawnedSliders = null;
         }
 
+        /// <summary>
+        /// List of all yellow sliders created so far. Mainly for use by the SliderHighlight plugin.
+        /// null if outside of maker.
+        /// </summary>
         public static List<SliderData> SpawnedSliders { get; private set; }
+        /// <summary>
+        /// Metadata of a created yellow slider
+        /// </summary>
         public class SliderData
         {
-            public SliderData(Func<IEnumerable<string>> getAffectedBones, params MakerSlider[] sliders)
+            /// <summary>
+            /// Make a new instance
+            /// </summary>
+            public SliderData(Func<IEnumerable<string>> getAffectedBones, BoneLocation boneLocation, params MakerSlider[] sliders)
             {
                 GetAffectedBones = getAffectedBones;
+                BoneLocation = boneLocation;
                 Sliders = sliders.Where(x => x != null).ToArray();
             }
 
+            /// <summary>
+            /// All sliders in this slider group (X, Y, Z and All, possibly more for fingers)
+            /// </summary>
             public MakerSlider[] Sliders { get; }
+            /// <summary>
+            /// A func that finds names of all bones affected by this slider group
+            /// </summary>
             public Func<IEnumerable<string>> GetAffectedBones { get; }
+            /// <summary>
+            /// Location where the affected bones are located
+            /// </summary>
+            public BoneLocation BoneLocation { get; }
         }
     }
 }

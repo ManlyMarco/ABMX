@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneEffect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\BoneLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BoneModifierData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\KKABMX_Core.cs" />

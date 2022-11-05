@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using ADV;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -7,6 +6,7 @@ using ExtensibleSaveFormat;
 using KKABMX.GUI;
 using KKAPI;
 using KKAPI.Chara;
+using KKAPI.MainGame;
 using KKAPI.Maker;
 using UniRx;
 #if AI || HS2
@@ -15,19 +15,26 @@ using AIChara;
 
 namespace KKABMX.Core
 {
+    /// <summary>
+    /// Entry point
+    /// </summary>
     [BepInPlugin(GUID, Name, Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public partial class KKABMX_Core : BaseUnityPlugin
     {
+        /// <summary> Version of this plugin </summary>
         public const string Version = Metadata.Version;
+        /// <summary> GUID of this plugin </summary>
         public const string GUID = Metadata.GUID;
+        /// <summary> GUID used for ext data of this plugin </summary>
         public const string ExtDataGUID = Metadata.ExtDataGUID;
         private const string Name = Metadata.Name;
 
         internal static ConfigEntry<bool> XyzMode { get; private set; }
         internal static ConfigEntry<bool> RaiseLimits { get; private set; }
-        internal static ConfigEntry<bool> TransparentAdvancedWindow { get; private set; }
+        internal static ConfigEntry<bool> ResetToLastLoaded { get; private set; }
+        internal static ConfigEntry<string> Favorites;
 
         internal static KKABMX_Core Instance { get; private set; }
         internal static new ManualLogSource Logger { get; private set; }
@@ -42,8 +49,9 @@ namespace KKABMX.Core
 
             XyzMode = Config.Bind("Maker", Metadata.XyzModeName, false, Metadata.XyzModeDesc);
             RaiseLimits = Config.Bind("Maker", Metadata.RaiseLimitsName, false, Metadata.RaiseLimitsDesc);
-            TransparentAdvancedWindow = Config.Bind("General", Metadata.AdvTransparencyName, false, Metadata.AdvTransparencyDesc);
-            _openEditorKey = Config.Bind("General", "Open bonemod editor", KeyboardShortcut.Empty, "Opens advanced bonemod window if there is a character that can be edited.");
+            ResetToLastLoaded = Config.Bind("Maker", Metadata.ResetToLastLoadedName, true, Metadata.ResetToLastLoadedDesc);
+            _openEditorKey = Config.Bind("General", Metadata.OpenEditorKeyName, KeyboardShortcut.Empty, Metadata.OpenEditorKeyDesc);
+            Favorites = Config.Bind("Advanced", "Favorites", string.Empty, new ConfigDescription("Favorites in advanced window separated by /", null, "Advanced"));
 
 #if !EC
             if (KKAPI.Studio.StudioAPI.InsideStudio)
@@ -79,6 +87,9 @@ namespace KKABMX.Core
                 else
                 {
                     var g = GetCurrentVisibleGirl();
+                    if (g == null)
+                        g = FindObjectsOfType<ChaControl>().OrderByDescending(x => x.isActiveAndEnabled).ThenBy(x => x.name).FirstOrDefault();
+
                     if (g != null)
                         KKABMX_AdvancedGUI.Enable(g.GetComponent<BoneController>());
                     else
@@ -98,25 +109,11 @@ namespace KKABMX.Core
                 return c?.ChaControl;
             }
 #endif
-#if KK //todo KKS full game
-            var talkScene = FindObjectOfType<TalkScene>();
-            var result = talkScene?.targetHeroine;
-            if (result != null) return result.chaCtrl;
-
-            var hFlag = FindObjectOfType<HFlag>();
-            result = hFlag?.lstHeroine.FirstOrDefault(x => x != null);
-            if (result != null) return result.chaCtrl;
-
-            var advScene = FindObjectOfType<ADVScene>();
-            if (advScene != null)
-            {
-                if (advScene.Scenario?.currentHeroine != null)
-                    return advScene.Scenario.currentHeroine.chaCtrl;
-                if (advScene.nowScene is TalkScene s && s.targetHeroine != null)
-                    return s.targetHeroine.chaCtrl;
-            }
+#if !EC && !AI && !HS2
+            return GameAPI.GetCurrentHeroine()?.chaCtrl;
+#else
+      return null;
 #endif
-            return null;
         }
     }
 }

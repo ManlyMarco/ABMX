@@ -1,0 +1,130 @@
+cf_n_height|Entire body scale
+cf_j_hips|Scale this to correct IK animations (all axes should have the same scale): in default standing animations legs and arms should be very slightly bent, in "Bouncing" animation they should not toggle straight to bent. First scale this to get legs to correct length, then scale arms if necessary.
+cf_j_spine01|Upper body
+cf_j_spine02|Upper body from ribcage and above
+cf_j_spine03|Upper body from upper ribcage and above
+cf_d_backsk_00|Back parts of Top clothing with physics, like Sailor Collar back side
+cf_d_bust00|(. Y .) (both of 'em); Modifying BL of bust bones may produce glitches and side effects in CharaMaker like Breast sliders doing something you're not expecting them to do. No reason to touch cf_j_bust* bones, use cf_d_bust* to adjust everything down the tree, cf_s_bust* to adjust particular part.
+cf_s_bust00_L|I'm not sure if there's any difference between this bone and cf_d_bust01
+cf_s_bust00_R|I'm not sure if there's any difference between this bone and cf_d_bust01
+cf_d_bnip01_L|Areola + nipple
+cf_d_bnip01_R|Areola + nipple
+cf_s_bnip02_L|Nipple
+cf_s_bnip02_R|Nipple
+cf_s_bnipacc_L|Nipple accessory
+cf_s_bnipacc_R|Nipple accessory
+cf_s_bnip025_L|Area between outer areola and nipple
+cf_s_bnip025_R|Area between outer areola and nipple
+cf_s_bnip01_L|Areola outer ring
+cf_s_bnip01_R|Areola outer ring
+cf_s_bnip015_L|Doesn't seem to do anything
+cf_s_bnip015_R|Doesn't seem to do anything
+cf_d_shoulder_L|Shoulder+arm
+cf_d_shoulder_R|Shoulder+arm
+cf_d_shoulder02_L|ANIMCOR (same as s_shoulder02)
+cf_d_shoulder02_R|ANIMCOR (same as s_shoulder02)
+cf_s_shoulder02_L|Shoulder meat
+cf_s_shoulder02_R|Shoulder meat
+cf_j_arm00_L|Whole arm
+cf_j_arm00_R|Whole arm
+cf_s_hand_L|Hand, parented to it are fingers and phalanges. Proper way to adjust finger lenght is to use BL, but its rather tedious
+cf_s_hand_R|Hand, parented to it are fingers and phalanges. Proper way to adjust finger lenght is to use BL, but its rather tedious
+cf_s_elbo_L|ANIMCOR (elbow)
+cf_s_elbo_R|ANIMCOR (elbow)
+cf_s_elboback_L|ANIMCOR (meat around elbow joint)
+cf_s_elboback_R|ANIMCOR (meat around elbow joint)
+cf_d_spinesk_00|Top clothes front part w physics (Ties)
+cf_j_neck|BL - neck lenght
+cf_j_head|BL - neck lenght, but visual effect is slightly different from above one
+cf_s_head|Head+Upper neck
+cf_J_FaceBase|Head
+cf_J_FaceLow_tz|Lower face
+cf_J_FaceLow_sx|Same but doesn't affect the mouth
+cf_J_CheekUp_s_L|Contrary to the name, this is lower cheek (below the cheekbone)
+cf_J_CheekUp_s_R|Contrary to the name, this is lower cheek (below the cheekbone)
+cf_J_CheekLow_s_L|Lowest cheek part around the jaw
+cf_J_CheekLow_s_R|Lowest cheek part around the jaw
+cf_J_MouthCavity|Useful to correct clipping when scaling mouth
+cf_J_Mouth_L|Mouth corner. If your character has strange wrikles around the mouth adjusting those might help
+cf_J_Mouth_R|Mouth corner. If your character has strange wrikles around the mouth adjusting those might help
+cf_J_MouthLow|Bottom lip, also affects lower teeth to an extend
+cf_J_Mouthup|Upper lip
+cf_J_FaceUp_ty|Upper face
+cf_J_EarBase_ry_L|Whole ear
+cf_J_EarBase_ry_R|Whole ear
+cf_J_EarRing_L|Ear accessory
+cf_J_EarRing_R|Ear accessory
+cf_J_FaceUp_tz|Upper Front Head scale, eyes+brow ridge and brows
+cf_J_Eye_tz|Base of both eyes
+cf_J_CheekUp2_L|Cheekbones
+cf_J_CheekUp2_R|Cheekbones
+cf_J_Eye01_s_L|This and all its brother bones below are different part of the eyelid from inner upper corner clockwise (c/clockwise for *_R)
+cf_J_Eye01_s_R|This and all its brother bones below are different part of the eyelid from inner upper corner clockwise (c/clockwise for *_R)
+cf_J_Eye06_s_L|06-08 lower eyelid parts
+cf_J_Eye06_s_R|06-08 lower eyelid parts
+cf_J_hitomi_tx_L|Iris
+cf_J_hitomi_tx_R|Iris
+cf_J_Mayu_ty|Base of both eyebrows, BL - distance from the forehead
+cf_J_Mayumoto_L|Eyebrow base
+cf_J_Mayumoto_R|Eyebrow base
+cf_J_Mayu_L|Eyebrow
+cf_J_Mayu_R|Eyebrow
+cf_J_MayuMid_s_L|Inner brow, BL - X pos
+cf_J_MayuMid_s_R|Inner brow, BL - X pos
+cf_J_MayuTip_s_L|Brow tip, BL - X pos
+cf_J_MayuTip_s_R|Brow tip, BL - X pos
+cf_J_NoseBase|Whole nose
+cf_J_NoseBase_rx|Nose tip
+cf_J_Nose_tip|Tippy top of the nose
+cf_J_megane_rx_ear|Glasses
+cf_J_NoseBridge_rx|Nose ridge
+cf_s_spine03|Shoulder girdle
+cf_s_spine02|Ribcage
+cf_s_spine01|Lower torso
+cf_j_waist01|Lower body
+cf_d_sk_top|General skirt scale. Under this, different sections of the skirt, sk_00_XX to sk_07_XX go from front center clockwise, sk_XX_00 to sk_XX_05 from waist downwards. Note that not all skirts have complete set of these bones.
+cf_j_waist02|Hips and below, BL - hip bone height
+cf_d_siri_L|ANIMCOR (Buttock, use bones below instead)
+cf_d_siri_R|ANIMCOR (Buttock, use bones below instead)
+cf_d_siri01_L|Buttock
+cf_d_siri01_R|Buttock
+cf_j_siri_L_01|No reason to touch this, use the parent bone instead
+cf_j_siri_R_01|No reason to touch this, use the parent bone instead
+cf_j_siri_L|Same as above but works on male characters only (still no reason to touch it)
+cf_j_siri_R|Same as above but works on male characters only (still no reason to touch it)
+cf_s_siri_L|Bone is more towards the "tip", so while scaling is the same as the base, offset and rotation look a bit different
+cf_s_siri_R|Bone is more towards the "tip", so while scaling is the same as the base, offset and rotation look a bit different
+cf_d_ana|Butthole
+cf_d_kokan|Pelvis and genitals, same as "Genital area scale" in Maker menu
+cf_j_kokan|Same as above, but doesn't affect male genitals
+cm_J_dan_top|Male genitalia.
+cm_J_dan100_00|BENIS:DDDDD
+cm_J_dan101_00|BENIS:DDDDD yet again (have no idea what's the difference)
+cm_J_dan109_00|Glans (kinda)
+cm_J_dan_f_top|Balls
+cm_J_dan_f_L|One of the balls
+cm_J_dan_f_R|One of the balls
+cf_j_thigh00_L|Whole leg, same as yellow leg sliders
+cf_j_thigh00_R|Whole leg, same as yellow leg sliders
+cf_s_thigh01_L|Upper thigh
+cf_s_thigh01_R|Upper thigh
+cf_s_thigh02_L|Mid thigh
+cf_s_thigh02_R|Mid thigh
+cf_s_thigh03_L|Lower thigh
+cf_s_thigh03_R|Lower thigh
+cf_j_leg01_L|Lower leg
+cf_j_leg01_R|Lower leg
+cf_d_kneeF_L|ANIMCOR (Kneecap, avoid using)
+cf_d_kneeF_R|ANIMCOR (Kneecap, avoid using)
+cf_d_leg02_L|Mid calf
+cf_d_leg02_R|Mid calf
+cf_d_leg03_L|Ankle
+cf_d_leg03_R|Ankle
+cf_j_leg03_L|Lower ankle + foot
+cf_j_leg03_R|Lower ankle + foot
+cf_s_kneeB_L|ANIMCOR (Meat around the knee, avoid using)
+cf_s_kneeB_R|ANIMCOR (Meat around the knee, avoid using)
+cf_s_waist02|Lower waist
+cf_s_leg_L|ANIMCOR (Meat around hip joint, avoid using)
+cf_s_leg_R|ANIMCOR (Meat around hip joint, avoid using)
+cf_s_waist01|Upper waist
