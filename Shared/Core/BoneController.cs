@@ -686,6 +686,7 @@ namespace KKABMX.Core
                 foreach (var boneModifier in _partialBaselineUpdateTargets)
                     boneModifier.CollectBaseline();
 
+                _partialBaselineUpdateTargets = null;
                 NeedsBaselineUpdate = false;
             }
         }
