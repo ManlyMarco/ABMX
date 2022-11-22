@@ -518,7 +518,7 @@ namespace KKABMX.Core
                     }
                 }
             }
-            
+
             var anyUnknown = false;
             // Modifiers must be sorted by location key
             foreach (var kvp in ModifierDict)
@@ -563,7 +563,7 @@ namespace KKABMX.Core
             // bug - causes gravity issues on its own
             ChaControl.UpdateBustGravity();
         }
-        
+
         private IEnumerator OnDataChangedCo()
         {
             CleanEmptyModifiers();
@@ -818,35 +818,30 @@ namespace KKABMX.Core
             }
 
             // Handle unknown locations by looking everywhere. If the bone is found, update the location
-            try
+            var bone = FindBone(name, _ctrl.objBodyBone);
+            if (bone != null)
             {
-                _noRetry = true;
-                var bone = FindBone(name, _ctrl.objBodyBone);
-                if (bone != null)
-                {
-                    location = BoneLocation.BodyTop;
-                    return bone;
-                }
+                location = BoneLocation.BodyTop;
+                return bone;
+            }
 
-                for (var index = 0; index < _ctrl.objAccessory.Length; index++)
+            for (var index = 0; index < _ctrl.objAccessory.Length; index++)
+            {
+                var accObj = _ctrl.objAccessory[index];
+                if (accObj != null)
                 {
-                    var accObj = _ctrl.objAccessory[index];
-                    if (accObj != null)
+                    var accBone = FindBone(name, accObj, true);
+                    if (accBone != null)
                     {
-                        var accBone = FindBone(name, accObj);
-                        if (accBone != null)
-                        {
-                            location = BoneLocation.Accessory + index;
-                            return accBone;
-                        }
+                        location = BoneLocation.Accessory + index;
+                        return accBone;
                     }
                 }
-                return null;
             }
-            finally { _noRetry = false; }
+            return null;
         }
 
-        private GameObject FindBone(string name, GameObject rootObject)
+        private GameObject FindBone(string name, GameObject rootObject, bool noRetry = false)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (rootObject == null) throw new ArgumentNullException(nameof(rootObject));
@@ -861,7 +856,7 @@ namespace KKABMX.Core
             }
 
             boneDic.TryGetValue(name, out var boneObj);
-            if (boneObj == null && !recreated && !_noRetry)
+            if (boneObj == null && !recreated && !noRetry)
             {
                 PurgeDestroyed();
                 boneDic = CreateBoneDic(rootObject);
@@ -871,8 +866,6 @@ namespace KKABMX.Core
 
             return boneObj;
         }
-
-        private bool _noRetry;
 
         /// <summary>
         /// Get a dictionary of all bones and their names in a given location.
