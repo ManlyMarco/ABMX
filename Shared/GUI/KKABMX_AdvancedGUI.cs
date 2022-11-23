@@ -595,6 +595,7 @@ Things to keep in mind:
 
                         if (Event.current.type == EventType.Repaint)
                         {
+                            // BoneListMouseHoversOver gets set inside DisplayObjectTreeHelper
                             if (prevHover.Key != BoneListMouseHoversOver.Key)
                             {
                                 OnBoneListMouseHover?.Invoke(BoneListMouseHoversOver.Key, BoneListMouseHoversOver.Value);
@@ -921,8 +922,17 @@ Things to keep in mind:
 
         private BoneModifier GetOrAddBoneModifier(string boneName, BoneLocation location)
         {
-            var mod = _currentBoneController.GetOrAddModifier(boneName, location);
-            if (mod.IsEmpty()) _changedBones.Add(mod);
+            var mod = _currentBoneController.GetModifier(boneName, location);
+            if (mod == null)
+            {
+                mod = new BoneModifier(boneName, location);
+                _currentBoneController.AddModifier(mod);
+#if KK || KKS
+                if(location >= BoneLocation.Accessory)
+                    mod.MakeCoordinateSpecific(_currentChaControl.chaFile.coordinate.Length);
+#endif
+                _changedBones.Add(mod);
+            }
             return mod;
         }
 
@@ -1030,7 +1040,11 @@ Things to keep in mind:
             GUILayout.EndVertical();
 
             if (anyChanged)
+            {
                 UnityEngine.GUI.changed = true;
+                Instance._changedBones.Add(mod);
+                if (linkedMod != null) Instance._changedBones.Add(linkedMod);
+            }
         }
 
         private static bool DrawXyzSliders(string sliderName, ref Vector3 value, float minValue, float maxValue, float defaultValue, int incrementIndex)
