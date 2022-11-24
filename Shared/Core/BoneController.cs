@@ -284,6 +284,7 @@ namespace KKABMX.Core
         {
             var currentCoord = CurrentCoordinate.Value;
             var toSave = ModifierDict.SelectMany(x => x.Value)
+                                     // This can remove accessory modifiers if they are for a different coordinate, but this method should only ever run for the current coord
                                      .Where(x => !x.IsEmpty() && x.IsCoordinateSpecific() && x.BoneTransform != null)
                                      .Select(x => new BoneModifier(x.BoneName, x.BoneLocation, new[] { x.GetModifier(currentCoord) }))
                                      .ToList();
@@ -453,7 +454,8 @@ namespace KKABMX.Core
 
         internal static PluginData SaveModifiers(IEnumerable<BoneModifier> modifiers)
         {
-            var toSave = modifiers.Where(x => !x.IsEmpty() && x.BoneTransform != null).ToList();
+            // Accessory modifiers might not have a BoneTransform if they are for an accessory in a non-current coordinate
+            var toSave = modifiers.Where(x => !x.IsEmpty() && (x.BoneLocation >= BoneLocation.Accessory || x.BoneTransform != null)).ToList();
 
             if (toSave.Count == 0)
                 return null;
@@ -468,7 +470,7 @@ namespace KKABMX.Core
         {
             BoneSearcher = new BoneFinder(ChaControl);
             base.Start();
-            CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
+            CurrentCoordinate.Subscribe(_ => NeedsBaselineUpdate = true);
         }
 
         private void LateUpdate()
@@ -673,7 +675,7 @@ namespace KKABMX.Core
                     boneModifier.ClearBaseline();
                 }
 
-                ModifiersFillInTransforms();
+                ModifiersFillInTransforms(_partialBaselineUpdateTargets);
 
                 NeedsBaselineUpdate = true;
             }
@@ -691,7 +693,7 @@ namespace KKABMX.Core
             }
         }
 
-        private void ModifiersFillInTransforms()
+        private void ModifiersFillInTransforms(ICollection<BoneModifier> updateTargets = null)
         {
             if (ModifierDict.Count == 0) return;
             var dictRecalcNeeded = false;
@@ -700,11 +702,19 @@ namespace KKABMX.Core
                 foreach (var modifier in modifiers)
                 {
                     if (modifier.BoneTransform != null)
+                    {
                         continue;
+                    }
                     else if (BoneSearcher.AssignBone(modifier))
+                    {
                         dictRecalcNeeded = true;
+                        updateTargets?.Add(modifier);
+                    }
                     else
-                        KKABMX_Core.Logger.LogWarning($"Failed to find a bone {modifier.BoneName} in location {modifier.BoneLocation} - modifier will be ignored");
+                    {
+                        KKABMX_Core.Logger.Log(modifier.BoneLocation >= BoneLocation.Accessory ? BepInEx.Logging.LogLevel.Info : BepInEx.Logging.LogLevel.Warning,
+                                               $"Could not find bone [{modifier.BoneName}] in location [{modifier.BoneLocation}] - modifier will be ignored");
+                    }
                 }
             }
 
