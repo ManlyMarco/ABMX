@@ -8,6 +8,9 @@ namespace KKABMX.Core
         // Bones that misbehave with rotation adjustments
         internal static HashSet<string> IssuesWithRotationBones = new HashSet<string>
         {
+            // Dodgy in studio
+            "d_bust00",
+
             "cf_t_hips",
             "cf_j_head",
             "k_f_legupL_00",
@@ -46,6 +49,9 @@ namespace KKABMX.Core
             "p_cf_head_bone",
             "cf_J_N_FaceRoot",
             "cf_J_FaceRoot",
+
+            // Dodgy in studio
+            "d_bust00",
             
             "k_f_armupL_00",
             "k_f_armupL_01",
