@@ -54,6 +54,12 @@ namespace KKABMX.Core
                                     newArr[(int)map.Value] = new BoneModifierData();
                             }
 
+                            for (var i = 0; i < newArr.Length; i++)
+                            {
+                                if (newArr[i] == null)
+                                    newArr[i] = new BoneModifierData();
+                            }
+
                             modifier.CoordinateModifiers = newArr;
                         }
 
