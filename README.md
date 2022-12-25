@@ -27,4 +27,4 @@ This is an upgraded version of the original Koikatu ABM/Bonemod plugin. It fixes
 ## Screenshots
 ![KK maker GUI](https://user-images.githubusercontent.com/39247311/48379581-e6891980-e6d4-11e8-8253-21feed5ac6cb.png)
 ![AI maker GUI](https://user-images.githubusercontent.com/39247311/65235718-79ee6080-dad7-11e9-87ff-366ef4d5101a.PNG)
-![Advanced window in KK maker](https://user-images.githubusercontent.com/39247311/78053182-830e9300-7380-11ea-8324-a0cbed813b6b.png)
+![Advanced window in KK maker](https://user-images.githubusercontent.com/39247311/209483144-905d04d3-1115-4d13-a60e-2f33b819f56e.png)
