@@ -59,7 +59,9 @@ namespace KKABMX.Core
             if (coordinateModifiers == null)
                 throw new ArgumentNullException(nameof(coordinateModifiers));
             if (coordinateModifiers.Length < 1)
-                throw new ArgumentException("Need to set either 1 modifier", nameof(coordinateModifiers));
+                throw new ArgumentException("Need at least 1 element in coordinateModifiers", nameof(coordinateModifiers));
+            if (coordinateModifiers.Any(x => x == null))
+                throw new ArgumentException("coordinateModifiers can't have any nulls in it", nameof(coordinateModifiers));
 
             BoneName = boneName;
             BoneLocation = boneLocation;

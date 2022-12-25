@@ -242,10 +242,18 @@ namespace KKABMX.Core
             var modifiers = ReadCoordModifiers(data);
             foreach (var modifier in modifiers)
             {
-                // Add any missing modifiers
-                var target = GetOrAddModifier(modifier.BoneName, modifier.BoneLocation);
-                target.MakeCoordinateSpecific(ChaFileControl.coordinate.Length);
-                target.CoordinateModifiers[(int)currentCoord] = modifier.CoordinateModifiers[0];
+                var modifierData = modifier.CoordinateModifiers.FirstOrDefault();
+                if (modifierData == null)
+                {
+                    KKABMX_Core.Logger.LogWarning($"Invalid CoordinateModifiers in modifier for {modifier.BoneName} - the modifier will be ignored");
+                }
+                else
+                {
+                    // Add any missing modifiers
+                    var target = GetOrAddModifier(modifier.BoneName, modifier.BoneLocation);
+                    target.MakeCoordinateSpecific(ChaFileControl.coordinate.Length);
+                    target.CoordinateModifiers[(int)currentCoord] = modifierData;
+                }
             }
 
             StartCoroutine(OnDataChangedCo());
