@@ -311,7 +311,7 @@ namespace KKABMX.Core
         /// <inheritdoc />
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            var data = SaveModifiers(ModifierDict.SelectMany(x => x.Value));
+            var data = SaveModifiers(ModifierDict.SelectMany(x => x.Value), true);
             SetExtendedData(data);
 
             MakeModifiersBackup();
@@ -460,10 +460,10 @@ namespace KKABMX.Core
             return new List<BoneModifier>();
         }
 
-        internal static PluginData SaveModifiers(IEnumerable<BoneModifier> modifiers)
+        internal static PluginData SaveModifiers(IEnumerable<BoneModifier> modifiers, bool removeOrphaned)
         {
             // Accessory modifiers might not have a BoneTransform if they are for an accessory in a non-current coordinate
-            var toSave = modifiers.Where(x => !x.IsEmpty() && (x.BoneLocation >= BoneLocation.Accessory || x.BoneTransform != null)).ToList();
+            var toSave = modifiers.Where(x => !x.IsEmpty() && (x.BoneTransform != null || !removeOrphaned || x.BoneLocation >= BoneLocation.Accessory)).ToList();
 
             if (toSave.Count == 0)
                 return null;

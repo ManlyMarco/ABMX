@@ -27,7 +27,7 @@ namespace KKABMX.Core
                         // Only 1st coord is used in EC so remove others
                         foreach (var modifier in modifiers) modifier.MakeNonCoordinateSpecific();
 
-                        importedData[GUID] = BoneController.SaveModifiers(modifiers);
+                        importedData[GUID] = BoneController.SaveModifiers(modifiers, false);
                     }
                 };
 #elif KKS
@@ -63,7 +63,7 @@ namespace KKABMX.Core
                             modifier.CoordinateModifiers = newArr;
                         }
 
-                        data[ExtDataGUID] = BoneController.SaveModifiers(modifiers);
+                        data[ExtDataGUID] = BoneController.SaveModifiers(modifiers, false);
                     }
                 };
 #endif
