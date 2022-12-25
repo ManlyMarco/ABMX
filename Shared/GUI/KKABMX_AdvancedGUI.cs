@@ -614,6 +614,8 @@ Things to keep in mind:
                         }
                         GUILayout.EndHorizontal();
 
+                        UnityEngine.GUI.changed = false;
+
                         GUILayout.BeginHorizontal();
                         {
                             if (GUILayout.Button(new GUIContent("Export", "Export all current modifiers in a human-readable form to clipboard."), _GloExpand))
@@ -709,7 +711,10 @@ Things to keep in mind:
                         var mod = _selectedTransform.Value == null ? null : GetOrAddBoneModifier(_selectedTransform.Value.name, _selectedTransform.Key);
 
                         // Slider list
+                        var prevChanged = UnityEngine.GUI.changed;
                         _slidersScrollPosition = GUILayout.BeginScrollView(_slidersScrollPosition, false, false, GUILayout.ExpandHeight(true));
+                        // GUI.changed is set to true when mouse dragging the slider for some reason
+                        UnityEngine.GUI.changed = prevChanged;
                         {
                             if (_selectedTransform.Value == null)
                             {
@@ -928,7 +933,7 @@ Things to keep in mind:
                 mod = new BoneModifier(boneName, location);
                 _currentBoneController.AddModifier(mod);
 #if KK || KKS
-                if(location >= BoneLocation.Accessory)
+                if (location >= BoneLocation.Accessory)
                     mod.MakeCoordinateSpecific(_currentChaControl.chaFile.coordinate.Length);
 #endif
                 _changedBones.Add(mod);
