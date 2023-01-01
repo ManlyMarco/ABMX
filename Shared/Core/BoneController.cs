@@ -256,6 +256,8 @@ namespace KKABMX.Core
                 }
             }
 
+            _baselineKnown = false;
+            StopAllCoroutines();
             StartCoroutine(OnDataChangedCo());
         }
 
@@ -579,13 +581,14 @@ namespace KKABMX.Core
             CleanEmptyModifiers();
 
             // Needed to let accessories load in
-            yield return CoroutineUtils.WaitForEndOfFrame;
+            do yield return CoroutineUtils.WaitForEndOfFrame;
+            while (ChaControl.animBody == null);
 
             ModifiersFillInTransforms();
 
             MakeModifiersBackup();
 
-            NeedsBaselineUpdate = false;
+            NeedsBaselineUpdate = true;
 
             NewDataLoaded?.Invoke(this, EventArgs.Empty);
         }
@@ -600,6 +603,14 @@ namespace KKABMX.Core
         {
             do yield return CoroutineUtils.WaitForEndOfFrame;
             while (ChaControl.animBody == null);
+
+            if (ModifierDict.Count == 0)
+            {
+                _baselineKnown = true;
+                _partialBaselineUpdateTargets = null;
+                NeedsBaselineUpdate = false;
+                yield break;
+            }
 
             // Stop the animation to prevent bones from drifting while taking the measurement
             // Check if there's a speed already stored in case the previous run of this coroutine didn't finish
@@ -628,14 +639,18 @@ namespace KKABMX.Core
             ChaControl.updateShapeBody = true;
             ChaControl.LateUpdateForce();
 
+            BoneSearcher.ClearCache(true);
+
             ModifiersFillInTransforms();
 
             foreach (var modifier in ModifierDict.Values.SelectMany(x => x))
                 modifier.CollectBaseline();
 
-            _baselineKnown = true;
-
             yield return CoroutineUtils.WaitForEndOfFrame;
+
+            _baselineKnown = true;
+            _partialBaselineUpdateTargets = null;
+            NeedsBaselineUpdate = false;
 
 #if KK || KKS || AI || HS2 // Only for studio
             if (pvCopy != null)
@@ -670,10 +685,22 @@ namespace KKABMX.Core
                 // Run after DynamicBones finish their late updates
                 yield return new WaitForEndOfFrame();
 
+                if (ModifierDict.Count == 0)
+                {
+                    NeedsBaselineUpdate = false;
+                    yield break;
+                }
+
                 var distSrc = ChaControl.sibFace.dictDst;
                 var distSrc2 = ChaControl.sibBody.dictDst;
                 var affectedBones = new HashSet<Transform>(distSrc.Concat(distSrc2).Select(x => x.Value.trfBone));
                 _partialBaselineUpdateTargets = ModifierDict.Values.SelectMany(x => x).Where(x => affectedBones.Contains(x.BoneTransform)).ToList();
+
+                if (_partialBaselineUpdateTargets.Count == 0)
+                {
+                    NeedsBaselineUpdate = false;
+                    yield break;
+                }
 
                 // Prevent some scales from being added to the baseline, mostly skirt scale
                 foreach (var boneModifier in _partialBaselineUpdateTargets)
@@ -825,7 +852,7 @@ namespace KKABMX.Core
         {
             if (location == BoneLocation.BodyTop)
             {
-                return FindBone(name, _ctrl.objBodyBone);
+                return _ctrl.objBodyBone != null ? FindBone(name, _ctrl.objBodyBone) : null;
             }
 
             if (location >= BoneLocation.Accessory)
@@ -836,11 +863,14 @@ namespace KKABMX.Core
             }
 
             // Handle unknown locations by looking everywhere. If the bone is found, update the location
-            var bone = FindBone(name, _ctrl.objBodyBone);
-            if (bone != null)
+            if (_ctrl.objBodyBone != null)
             {
-                location = BoneLocation.BodyTop;
-                return bone;
+                var bone = FindBone(name, _ctrl.objBodyBone);
+                if (bone != null)
+                {
+                    location = BoneLocation.BodyTop;
+                    return bone;
+                }
             }
 
             for (var index = 0; index < _ctrl.objAccessory.Length; index++)
@@ -937,6 +967,24 @@ namespace KKABMX.Core
             modifier.BoneTransform = boneFound ? bone.transform : null;
             modifier.BoneLocation = loc;
             return boneFound;
+        }
+
+        /// <summary>
+        /// Force GameObject refresh next time a bone is looked up.
+        /// </summary>
+        public void ClearCache(bool onlyBody)
+        {
+            if (_lookup.Count == 0) return;
+
+            if (onlyBody)
+            {
+                foreach (var go in _lookup.Keys.Except(_ctrl.objAccessory).ToList())
+                    _lookup.Remove(go);
+            }
+            else
+            {
+                _lookup.Clear();
+            }
         }
     }
 }
