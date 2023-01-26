@@ -705,6 +705,8 @@ Things to keep in mind:
                     }
                     GUILayout.EndVertical();
 
+                    BoneModifier otherMod = null;
+
                     // Sliders ------------------------------------------------------------------------------------------------------------------------
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box, _GloExpand, GUILayout.ExpandHeight(true));
                     {
@@ -757,7 +759,6 @@ Things to keep in mind:
                                 var otherSideBoneName = GetCounterBoneName(mod);
                                 var origEnabled = UnityEngine.GUI.enabled;
                                 if (otherSideBoneName == null) UnityEngine.GUI.enabled = false;
-                                BoneModifier otherMod = null;
                                 if (_editSymmetry)
                                 {
                                     if (otherSideBoneName != null)
@@ -855,7 +856,7 @@ Things to keep in mind:
 
                                     if (//_copiedModifier == null && 
                                         string.IsNullOrEmpty(GUIUtility.systemCopyBuffer)) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button(new GUIContent("Paste", "Paste modifier data that is currently in the clipboard. To get modifier data to paste use the Copy button, or copy previously saved data in any text editor."), _GloExpand))
+                                    if (GUILayout.Button(new GUIContent("Paste", "Paste modifier data that is currently in the clipboard. To get modifier data to paste use the Copy button, or copy previously saved data in any text editor. If left / right symmetry is enabled, both sides will be affected."), _GloExpand))
                                     {
                                         //if (_copiedModifier != null) mod.CoordinateModifiers = _copiedModifier.Select(x => x.Clone()).ToArray();
                                         //else
@@ -868,13 +869,18 @@ Things to keep in mind:
                                                 }
                                                 else
                                                 {
-                                                    using (var r = new StringReader(GUIUtility.systemCopyBuffer))
+                                                    void PasteIntoModifier(BoneModifier targetModifier)
                                                     {
-                                                        var result = (BoneModifierData[])new XmlSerializer(typeof(BoneModifierData[])).Deserialize(r);
-                                                        if (result == null || result.Length < 1) throw new ArgumentException("Invalid data", nameof(result));
-                                                        mod.CoordinateModifiers = result;
-                                                        KKABMX_Core.Logger.LogMessage("Imported modifiers from clipboard!");
+                                                        using (var r = new StringReader(GUIUtility.systemCopyBuffer))
+                                                        {
+                                                            var result = (BoneModifierData[])new XmlSerializer(typeof(BoneModifierData[])).Deserialize(r);
+                                                            if (result == null || result.Length < 1) throw new ArgumentException("Invalid data", nameof(result));
+                                                            targetModifier.CoordinateModifiers = result;
+                                                        }
                                                     }
+                                                    PasteIntoModifier(mod);
+                                                    if(otherMod != null) PasteIntoModifier(otherMod);
+                                                    KKABMX_Core.Logger.LogMessage("Imported modifiers from clipboard!");
                                                 }
                                             }
                                             catch (Exception e)
@@ -889,10 +895,15 @@ Things to keep in mind:
 
                                     UnityEngine.GUI.color = _DangerColor;
                                     if (mod.IsEmpty()) UnityEngine.GUI.enabled = false;
-                                    if (GUILayout.Button(new GUIContent("Remove", "Reset and remove this modifier."), _GloExpand))
+                                    if (GUILayout.Button(new GUIContent("Remove", "Reset and remove this modifier. If left / right symmetry is enabled, both sides will be removed."), _GloExpand))
                                     {
                                         _changedBones.Remove(mod);
                                         _currentBoneController.RemoveModifier(mod);
+                                        if (otherMod != null)
+                                        {
+                                            _changedBones.Remove(otherMod);
+                                            _currentBoneController.RemoveModifier(otherMod);
+                                        }
                                         _selectedTransform = default;
                                     }
 
