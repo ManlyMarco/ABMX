@@ -32,6 +32,15 @@ namespace KKABMX.Core
 
             #region Cache invalidation
 
+            // Handles hair changes, otherwise they cause issues. Also catches clothing changes which might also help.
+            // bug setting wetRate also triggers this, so changing this setting in maker triggers this every update
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaInfo), nameof(ChaInfo.updateWet), MethodType.Setter)]
+            private static void UpdateWetHook(ChaInfo __instance, bool value)
+            {
+                if(value) OnBodyChangedHook(__instance);
+            }
+
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ChaInfo), nameof(ChaInfo.objBody), MethodType.Setter)]
             [HarmonyPatch(typeof(ChaInfo), nameof(ChaInfo.objHead), MethodType.Setter)]
