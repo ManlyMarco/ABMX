@@ -256,7 +256,6 @@ namespace KKABMX.Core
                 }
             }
 
-            _baselineKnown = false;
             StopAllCoroutines();
             StartCoroutine(OnDataChangedCo());
         }
