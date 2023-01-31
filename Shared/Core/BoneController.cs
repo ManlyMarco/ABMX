@@ -480,7 +480,7 @@ namespace KKABMX.Core
         {
             BoneSearcher = new BoneFinder(ChaControl);
             base.Start();
-            CurrentCoordinate.Subscribe(_ => NeedsBaselineUpdate = true);
+            CurrentCoordinate.Subscribe(_ => StartCoroutine(OnDataChangedCo()));
         }
 
         private void LateUpdate()
