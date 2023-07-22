@@ -512,8 +512,10 @@ namespace KKABMX.Core
 
         private void ApplyEffects()
         {
-            _effectsToUpdate.Clear();
+            foreach (var kv in _effectsToUpdate)
+                kv.Value.Clear();
 
+            int numEffects = 0;
             foreach (var additionalBoneEffect in _additionalBoneEffects)
             {
                 var affectedBones = additionalBoneEffect.GetAffectedBones(this);
@@ -529,6 +531,7 @@ namespace KKABMX.Core
                             _effectsToUpdate[modifier] = list;
                         }
                         list.Add(effect);
+                        numEffects++;
                     }
                 }
             }
@@ -550,6 +553,12 @@ namespace KKABMX.Core
                 {
                     FixBustGravity();
                 }
+            }
+
+            if (_effectsToUpdate.Count > 2 * numEffects)
+            {
+                // The buffer has grown too large.
+                _effectsToUpdate.Clear();
             }
         }
 
