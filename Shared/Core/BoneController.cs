@@ -64,7 +64,8 @@ namespace KKABMX.Core
         /// <summary>
         /// Container of all bonemod data. Do not hold references to this, always get the current one!
         /// </summary>
-        internal SortedDictionary<BoneLocation, List<BoneModifier>> ModifierDict { get; private set; } = new SortedDictionary<BoneLocation, List<BoneModifier>>();
+        internal SortedDictionary<BoneLocation, List<BoneModifier>> ModifierDict { get; private set; } =
+            new SortedDictionary<BoneLocation, List<BoneModifier>>(new BoneLocationComparer());
         internal Dictionary<BoneLocation, List<BoneModifier>> ModifierDictBackup { get; private set; } = new Dictionary<BoneLocation, List<BoneModifier>>();
 
         /// <summary>
@@ -323,7 +324,9 @@ namespace KKABMX.Core
             foreach (var modifier in ModifierDict.SelectMany(x => x.Value))
                 modifier.Reset();
 
-            ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(ModifierDictBackup.ToDictionary(x => x.Key, x => x.Value.Select(y => y.Clone()).ToList()));
+            ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(
+                ModifierDictBackup.ToDictionary(x => x.Key, x => x.Value.Select(y => y.Clone()).ToList()),
+                new BoneLocationComparer());
 
             NeedsFullRefresh = true;
         }
@@ -366,7 +369,7 @@ namespace KKABMX.Core
 
                 if (loadBody && loadFace && loadClothes)
                 {
-                    ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(newModifiers);
+                    ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(newModifiers, new BoneLocationComparer());
                 }
                 else
                 {
@@ -753,7 +756,9 @@ namespace KKABMX.Core
             }
 
             if (dictRecalcNeeded)
-                ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(ModifierDict.SelectMany(x => x.Value).GroupBy(x => x.BoneLocation).ToDictionary(x => x.Key, x => x.ToList()));
+                ModifierDict = new SortedDictionary<BoneLocation, List<BoneModifier>>(
+                    ModifierDict.SelectMany(x => x.Value).GroupBy(x => x.BoneLocation).ToDictionary(x => x.Key, x => x.ToList()),
+                    new BoneLocationComparer());
         }
 
         internal void CleanEmptyModifiers()
@@ -799,6 +804,17 @@ namespace KKABMX.Core
             {
                 modifier.Reset();
                 modifier.CollectBaseline();
+            }
+        }
+
+        /// <summary>
+        /// Same as the default comparer, but does not allocate.
+        /// </summary>
+        private class BoneLocationComparer : IComparer<BoneLocation>
+        {
+            public int Compare(BoneLocation x, BoneLocation y)
+            {
+                return ((int)x).CompareTo((int)y);
             }
         }
     }
