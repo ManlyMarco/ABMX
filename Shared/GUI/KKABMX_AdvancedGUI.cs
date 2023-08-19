@@ -260,7 +260,7 @@ namespace KKABMX.GUI
             var objName = controller.name;
             var charaName = controller.ChaControl.fileParam.fullname;
             TranslationHelper.TryTranslate(charaName, out var charaNameTl);
-            return string.IsNullOrEmpty(charaNameTl) ? charaName.Trim() : $"{objName} ({charaNameTl.Trim()})";
+            return $"{objName} ({(string.IsNullOrEmpty(charaNameTl) ? charaName.Trim() : charaNameTl.Trim())})";
         }
 
         /// <summary>
@@ -879,7 +879,7 @@ Things to keep in mind:
                                                         }
                                                     }
                                                     PasteIntoModifier(mod);
-                                                    if(otherMod != null) PasteIntoModifier(otherMod);
+                                                    if (otherMod != null) PasteIntoModifier(otherMod);
                                                     KKABMX_Core.Logger.LogMessage("Imported modifiers from clipboard!");
                                                 }
                                             }
