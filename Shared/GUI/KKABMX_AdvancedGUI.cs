@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using HarmonyLib;
 using KKABMX.Core;
@@ -276,7 +277,8 @@ namespace KKABMX.GUI
 
         private bool CheckSearchMatch(string transformName)
         {
-            return transformName.IndexOf(_searchFieldValue, StringComparison.OrdinalIgnoreCase) >= 0;
+            string regex = "^.*" + Regex.Escape(_searchFieldValue).Replace("\\?", ".").Replace("\\*", ".*") + ".*$";
+            return Regex.IsMatch(transformName, regex, RegexOptions.IgnoreCase);
         }
 
         /// <inheritdoc />
