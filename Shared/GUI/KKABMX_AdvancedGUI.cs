@@ -871,17 +871,29 @@ Things to keep in mind:
                                                 }
                                                 else
                                                 {
-                                                    void PasteIntoModifier(BoneModifier targetModifier)
+                                                    void PasteIntoModifier(BoneModifier targetModifier, bool adjustForOther)
                                                     {
                                                         using (var r = new StringReader(GUIUtility.systemCopyBuffer))
                                                         {
                                                             var result = (BoneModifierData[])new XmlSerializer(typeof(BoneModifierData[])).Deserialize(r);
                                                             if (result == null || result.Length < 1) throw new ArgumentException("Invalid data", nameof(result));
+
+                                                            if (adjustForOther)
+                                                            {
+                                                                Array.ForEach(result, data =>
+                                                                {
+                                                                    var position = data.PositionModifier;
+                                                                    data.PositionModifier = new Vector3(position.x * -1, position.y, position.z);
+                                                                    var rotation = data.RotationModifier;
+                                                                    data.RotationModifier = new Vector3(rotation.x, rotation.y * -1, rotation.z * -1);
+                                                                });
+                                                            }
+
                                                             targetModifier.CoordinateModifiers = result;
                                                         }
                                                     }
-                                                    PasteIntoModifier(mod);
-                                                    if (otherMod != null) PasteIntoModifier(otherMod);
+                                                    PasteIntoModifier(mod, false);
+                                                    if (otherMod != null) PasteIntoModifier(otherMod, true);
                                                     KKABMX_Core.Logger.LogMessage("Imported modifiers from clipboard!");
                                                 }
                                             }
