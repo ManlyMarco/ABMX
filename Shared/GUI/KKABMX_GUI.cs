@@ -31,6 +31,17 @@ namespace KKABMX.GUI
         private static event EventHandler IsAdvancedModeChanged;
 
         /// <summary>
+        /// Add yellow sliders to maker, including new categories.
+        /// If false, only advanced mode can be used to change slider values.
+        /// Has effect only after maker restart.
+        /// </summary>
+        public static bool ShowSliders
+        {
+            get => KKABMX_Core.ShowSliders.Value;
+            set => KKABMX_Core.ShowSliders.Value = value;
+        }
+
+        /// <summary>
         /// If true, split sliders into separate XYZ sliders, otherwise only show one All slider
         /// </summary>
         public static bool XyzMode
@@ -70,40 +81,44 @@ namespace KKABMX.GUI
         {
             SpawnedSliders = new List<SliderData>();
 
-            foreach (var categoryBones in InterfaceData.BoneControls.GroupBy(x => x.Category))
+            if (ShowSliders)
             {
-                var category = categoryBones.Key;
-
-                var first = true;
-                foreach (var boneMeta in categoryBones)
+                foreach (var categoryBones in InterfaceData.BoneControls.GroupBy(x => x.Category))
                 {
-                    if (boneMeta.IsSeparator || !first)
-                        callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
+                    var category = categoryBones.Key;
 
-                    RegisterSingleControl(category, boneMeta, callback);
-                    first = false;
-                }
+                    var first = true;
+                    foreach (var boneMeta in categoryBones)
+                    {
+                        if (boneMeta.IsSeparator || !first)
+                            callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
 
-                // todo separate category?
-                if (Equals(category, InterfaceData.FingerCategory))
-                {
-                    if (!first)
-                        callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
+                        RegisterSingleControl(category, boneMeta, callback);
+                        first = false;
+                    }
 
-                    RegisterFingerControl(category, callback);
+                    // todo separate category?
+                    if (Equals(category, InterfaceData.FingerCategory))
+                    {
+                        if (!first)
+                            callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
+
+                        RegisterFingerControl(category, callback);
+                    }
                 }
             }
 
             _faceLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Face Bonemod"));
             _bodyLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Body Bonemod"));
 
-#pragma warning disable CS0618
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                     .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
-#pragma warning restore CS0618
 
-            callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
-                .ValueChanged.Subscribe(b => XyzMode = b);
+            if (ShowSliders)
+            {
+                callback.AddSidebarControl(new SidebarToggle("Split XYZ scale sliders", XyzMode, KKABMX_Core.Instance))
+                        .ValueChanged.Subscribe(b => XyzMode = b);
+            }
 
             var toggle = callback.AddSidebarControl(new SidebarToggle("Advanced Bonemod Window", KKABMX_AdvancedGUI.Enabled, KKABMX_Core.Instance));
             toggle.ValueChanged.Subscribe(b =>
@@ -455,11 +470,12 @@ namespace KKABMX.GUI
 
         private static void OnRegisterCustomSubCategories(object sender, RegisterSubCategoriesEvent e)
         {
-            foreach (var subCategory in InterfaceData.BoneControls
-                .Select(x => x.Category)
-                .Distinct())
+            if (ShowSliders)
             {
-                e.AddSubCategory(subCategory);
+                foreach (var subCategory in InterfaceData.BoneControls.Select(x => x.Category).Distinct())
+                {
+                    e.AddSubCategory(subCategory);
+                }
             }
         }
 

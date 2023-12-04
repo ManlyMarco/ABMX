@@ -31,6 +31,7 @@ namespace KKABMX.Core
         public const string ExtDataGUID = Metadata.ExtDataGUID;
         private const string Name = Metadata.Name;
 
+        internal static ConfigEntry<bool> ShowSliders { get; private set; }
         internal static ConfigEntry<bool> XyzMode { get; private set; }
         internal static ConfigEntry<bool> RaiseLimits { get; private set; }
         internal static ConfigEntry<bool> ResetToLastLoaded { get; private set; }
@@ -47,6 +48,7 @@ namespace KKABMX.Core
 
             gameObject.AddComponent<KKABMX_AdvancedGUI>();
 
+            ShowSliders = Config.Bind("Maker", Metadata.ShowSlidersName, true, Metadata.ShowSlidersDesc);
             XyzMode = Config.Bind("Maker", Metadata.XyzModeName, false, Metadata.XyzModeDesc);
             RaiseLimits = Config.Bind("Maker", Metadata.RaiseLimitsName, false, Metadata.RaiseLimitsDesc);
             ResetToLastLoaded = Config.Bind("Maker", Metadata.ResetToLastLoadedName, true, Metadata.ResetToLastLoadedDesc);
