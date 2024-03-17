@@ -58,6 +58,21 @@ namespace KKABMX.GUI
         private static readonly float[] _IncrementSize = _DefaultIncrementSize.ToArray();
         private static readonly bool[] _LockXyz = new bool[_DefaultIncrementSize.Length];
 
+        private sealed class WorldValueHoldInfo
+        {
+            public readonly string BoneName;
+            public readonly BoneLocation BoneLocation;
+            public Vector3? WorldPosition;
+            public Quaternion? WorldRotation;
+            public Vector3? WorldScale;
+            public WorldValueHoldInfo(string boneName, BoneLocation boneLocation)
+            {
+                BoneName = boneName;
+                BoneLocation = boneLocation;
+            }
+        }
+        private static readonly List<WorldValueHoldInfo> _WorldHolds = new List<WorldValueHoldInfo>();
+
         //private BoneModifierData[] _copiedModifier;
         private static bool _editSymmetry = true;
 
@@ -102,6 +117,14 @@ namespace KKABMX.GUI
             }
         }
 
+#if AI || HS2
+        private static CoordinateType CurrentCoordinateType => CoordinateType.Unknown;
+#elif EC
+        private static KoikatsuCharaFile.ChaFileDefine.CoordinateType CurrentCoordinateType => KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01;
+#else
+        private static ChaFileDefine.CoordinateType CurrentCoordinateType => (ChaFileDefine.CoordinateType)_currentChaControl.fileStatus.coordinateType;
+#endif
+
         private void OnFiltersChanged()
         {
             if (SearchFieldValue.Length == 0 && !_onlyShowModified && !_onlyShowNewChanges && !_onlyShowCoords && !_onlyShowFavorites)
@@ -140,6 +163,44 @@ namespace KKABMX.GUI
                 _scrollTreeToSelected = false;
                 _treeScrollPosition = _scrollTarget.Value;
                 _scrollTarget = null;
+            }
+
+            for (var i = 0; i < _WorldHolds.Count; i++)
+            {
+                var any = false;
+
+                var holdInfo = _WorldHolds[i];
+                var mod = GetOrAddBoneModifier(holdInfo.BoneName, holdInfo.BoneLocation);
+
+                if (holdInfo.WorldPosition != null)
+                {
+                    mod.BoneTransform.position = holdInfo.WorldPosition.Value;
+                    var moddata = mod.GetModifier(CurrentCoordinateType);
+                    moddata.PositionModifier = mod.BoneTransform.localPosition - mod._posBaseline;
+                    any = true;
+                }
+
+                if (holdInfo.WorldRotation != null)
+                {
+                    mod.BoneTransform.rotation = holdInfo.WorldRotation.Value;
+                    var moddata = mod.GetModifier(CurrentCoordinateType);
+                    moddata.RotationModifier = mod.BoneTransform.localEulerAngles - mod._rotBaseline.eulerAngles;
+                    any = true;
+                }
+
+                if (holdInfo.WorldScale != null)
+                {
+                    Vector3 Divide(Vector3 a, Vector3 b) => new Vector3(a.x / b.x, a.y / b.y, a.z / b.z);
+
+                    mod.BoneTransform.localScale = Divide(Vector3.Scale(holdInfo.WorldScale.Value, mod.BoneTransform.localScale), mod.BoneTransform.lossyScale);
+
+                    var moddata = mod.GetModifier(CurrentCoordinateType);
+                    moddata.ScaleModifier = Divide(mod.BoneTransform.localScale, mod._sclBaseline);
+                    any = true;
+                }
+
+                if (!any)
+                    _WorldHolds.RemoveAt(i--);
             }
         }
 
@@ -968,13 +1029,7 @@ Things to keep in mind:
 
         private static void DrawSliders(BoneModifier mod, BoneModifier linkedMod)
         {
-#if AI || HS2
-            var coordinateType = CoordinateType.Unknown;
-#elif EC
-            var coordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType.School01;
-#else
-            var coordinateType = (ChaFileDefine.CoordinateType)_currentChaControl.fileStatus.coordinateType;
-#endif
+            var coordinateType = CurrentCoordinateType;
             var modData = mod.GetModifier(coordinateType);
             var linkedModData = linkedMod?.GetModifier(coordinateType);
 
@@ -993,6 +1048,10 @@ Things to keep in mind:
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Scale sliders ------------------------------------------------------------
             {
+                var enabled = UnityEngine.GUI.enabled;
+                if (DrawWorldHoldControl(mod, linkedMod, 0))
+                    UnityEngine.GUI.enabled = false;
+
                 var scale = modData.ScaleModifier;
                 if (DrawXyzSliders(sliderName: "Scale", value: ref scale, minValue: 0, maxValue: 2, defaultValue: 1, incrementIndex: 1))
                 {
@@ -1002,6 +1061,8 @@ Things to keep in mind:
                 }
 
                 DrawIncrementControl(1, true);
+
+                UnityEngine.GUI.enabled = enabled;
             }
             GUILayout.EndVertical();
 
@@ -1039,6 +1100,10 @@ Things to keep in mind:
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Position sliders ------------------------------------------------------------
             {
+                var enabled = UnityEngine.GUI.enabled;
+                if (DrawWorldHoldControl(mod, linkedMod, 2))
+                    UnityEngine.GUI.enabled = false;
+
                 var position = modData.PositionModifier;
                 if (DrawXyzSliders(sliderName: "Offset", value: ref position, minValue: -1, maxValue: 1, defaultValue: 0, incrementIndex: 2))
                 {
@@ -1048,6 +1113,8 @@ Things to keep in mind:
                 }
 
                 DrawIncrementControl(2, true);
+
+                UnityEngine.GUI.enabled = enabled;
             }
             GUILayout.EndVertical();
 
@@ -1055,6 +1122,10 @@ Things to keep in mind:
 
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Rotation sliders ------------------------------------------------------------
             {
+                var enabled = UnityEngine.GUI.enabled;
+                if (DrawWorldHoldControl(mod, linkedMod, 1))
+                    UnityEngine.GUI.enabled = false;
+
                 var rotation = modData.RotationModifier;
                 if (DrawXyzSliders(sliderName: "Tilt", value: ref rotation, minValue: -180, maxValue: 180, defaultValue: 0, incrementIndex: 3))
                 {
@@ -1064,6 +1135,8 @@ Things to keep in mind:
                 }
 
                 DrawIncrementControl(3, true);
+
+                UnityEngine.GUI.enabled = enabled;
             }
             GUILayout.EndVertical();
 
@@ -1074,6 +1147,122 @@ Things to keep in mind:
                 UnityEngine.GUI.changed = true;
                 Instance._changedBones.Add(mod);
                 if (linkedMod != null) Instance._changedBones.Add(linkedMod);
+            }
+        }
+
+        private static bool DrawWorldHoldControl(BoneModifier mod, BoneModifier linkedMod, int target)
+        {
+            if (mod == null) throw new ArgumentNullException(nameof(mod));
+
+            var holdInfo = _WorldHolds.Find(info => info.BoneName == mod.BoneName && info.BoneLocation == mod.BoneLocation);
+            var holdInfoLinked = linkedMod != null ? _WorldHolds.Find(info => info.BoneName == linkedMod.BoneName && info.BoneLocation == linkedMod.BoneLocation) : null;
+
+            switch (target)
+            {
+                case 0: // Scale
+                    if (holdInfo != null && holdInfo.WorldScale.HasValue)
+                    {
+                        GUILayout.Label("You can change scales of parent bones and this bone will attempt to remain the same overall size (bone rotations make this difficult). This effect only applies while the Advanced Window is open.");
+                        if (GUILayout.Button("Stop holding world scale"))
+                        {
+                            holdInfo.WorldScale = null;
+                            if (holdInfoLinked != null) holdInfoLinked.WorldScale = null;
+                            return false;
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Hold world scale (lossy)"))
+                        {
+                            if (holdInfo == null)
+                                _WorldHolds.Add(holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
+                            holdInfo.WorldScale = mod.BoneTransform.lossyScale;
+
+                            if (linkedMod != null)
+                            {
+                                if (holdInfoLinked == null)
+                                    _WorldHolds.Add(holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
+                                holdInfoLinked.WorldScale = linkedMod.BoneTransform.lossyScale;
+                            }
+
+                            return true;
+                        }
+
+                        return false;
+                    }
+                    break;
+
+                case 1: // Rotation
+                    if (holdInfo != null && holdInfo.WorldRotation.HasValue)
+                    {
+                        GUILayout.Label("You can rotate parent bones and this bone will keep facing the same way. This effect only applies while the Advanced Window is open.");
+                        if (GUILayout.Button("Stop holding world rotation"))
+                        {
+                            holdInfo.WorldRotation = null;
+                            if (holdInfoLinked != null) holdInfoLinked.WorldRotation = null;
+                            return false;
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Hold world rotation"))
+                        {
+                            if (holdInfo == null)
+                                _WorldHolds.Add(holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
+                            holdInfo.WorldRotation = mod.BoneTransform.rotation;
+
+                            if (linkedMod != null)
+                            {
+                                if (holdInfoLinked == null)
+                                    _WorldHolds.Add(holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
+                                holdInfoLinked.WorldRotation = linkedMod.BoneTransform.rotation;
+                            }
+
+                            return true;
+                        }
+
+                        return false;
+                    }
+                    break;
+
+                case 2: // Position
+                    if (holdInfo != null && holdInfo.WorldPosition.HasValue)
+                    {
+                        GUILayout.Label("You can move parent bones and this bone will stay fixed in place. This effect only applies while the Advanced Window is open.");
+                        if (GUILayout.Button("Stop holding world position"))
+                        {
+                            holdInfo.WorldPosition = null;
+                            if (holdInfoLinked != null) holdInfoLinked.WorldPosition = null;
+                            return false;
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Hold world position"))
+                        {
+                            if (holdInfo == null)
+                                _WorldHolds.Add(holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
+                            holdInfo.WorldPosition = mod.BoneTransform.position;
+
+                            if (linkedMod != null)
+                            {
+                                if (holdInfoLinked == null)
+                                    _WorldHolds.Add(holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
+                                holdInfoLinked.WorldPosition = linkedMod.BoneTransform.position;
+                            }
+
+                            return true;
+                        }
+
+                        return false;
+                    }
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(target), target, "only 0,1,2");
             }
         }
 
