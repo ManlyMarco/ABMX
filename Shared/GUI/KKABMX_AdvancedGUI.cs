@@ -70,8 +70,9 @@ namespace KKABMX.GUI
                 BoneName = boneName;
                 BoneLocation = boneLocation;
             }
+            public bool IsEmpty() => WorldPosition == null && WorldRotation == null && WorldScale == null;
         }
-        private static readonly List<WorldValueHoldInfo> _WorldHolds = new List<WorldValueHoldInfo>();
+        private static readonly Dictionary<Transform, WorldValueHoldInfo> _WorldHolds = new Dictionary<Transform, WorldValueHoldInfo>();
 
         //private BoneModifierData[] _copiedModifier;
         private static bool _editSymmetry = true;
@@ -165,11 +166,9 @@ namespace KKABMX.GUI
                 _scrollTarget = null;
             }
 
-            for (var i = 0; i < _WorldHolds.Count; i++)
+            foreach (var kvp in _WorldHolds)
             {
-                var any = false;
-
-                var holdInfo = _WorldHolds[i];
+                var holdInfo = kvp.Value;
                 var mod = GetOrAddBoneModifier(holdInfo.BoneName, holdInfo.BoneLocation);
 
                 if (holdInfo.WorldPosition != null)
@@ -177,7 +176,6 @@ namespace KKABMX.GUI
                     mod.BoneTransform.position = holdInfo.WorldPosition.Value;
                     var moddata = mod.GetModifier(CurrentCoordinateType);
                     moddata.PositionModifier = mod.BoneTransform.localPosition - mod._posBaseline;
-                    any = true;
                 }
 
                 if (holdInfo.WorldRotation != null)
@@ -185,7 +183,6 @@ namespace KKABMX.GUI
                     mod.BoneTransform.rotation = holdInfo.WorldRotation.Value;
                     var moddata = mod.GetModifier(CurrentCoordinateType);
                     moddata.RotationModifier = mod.BoneTransform.localEulerAngles - mod._rotBaseline.eulerAngles;
-                    any = true;
                 }
 
                 if (holdInfo.WorldScale != null)
@@ -196,11 +193,7 @@ namespace KKABMX.GUI
 
                     var moddata = mod.GetModifier(CurrentCoordinateType);
                     moddata.ScaleModifier = Divide(mod.BoneTransform.localScale, mod._sclBaseline);
-                    any = true;
                 }
-
-                if (!any)
-                    _WorldHolds.RemoveAt(i--);
             }
         }
 
@@ -368,6 +361,8 @@ namespace KKABMX.GUI
                 Camera.onPostRender += OnRendered;
                 BoneListMouseHoversOver = default;
                 _currentCamera = Camera.main;
+
+                _WorldHolds.Where(x => !x.Key || x.Value.IsEmpty()).ToList().Do(x => _WorldHolds.Remove(x.Key));
             }
         }
 
@@ -381,6 +376,8 @@ namespace KKABMX.GUI
                 BoneListMouseHoversOver = default;
                 OnBoneListMouseHover?.Invoke(null, BoneLocation.Unknown);
             }
+
+            _WorldHolds.Where(x => !x.Key || x.Value.IsEmpty()).ToList().Do(x => _WorldHolds.Remove(x.Key));
         }
 
         private static void OnRendered(Camera camera)
@@ -523,6 +520,13 @@ namespace KKABMX.GUI
                                 {
                                     SearchFieldValue = "";
                                     UnityEngine.GUI.FocusControl("");
+                                }
+
+                                if (_WorldHolds.Count > 0)
+                                {
+                                    UnityEngine.GUI.color = _DangerColor;
+                                    if (GUILayout.Button("Clear all holds", GUILayout.ExpandWidth(false)))
+                                        _WorldHolds.Clear();
                                 }
 
                                 UnityEngine.GUI.color = _enableHelp ? Color.cyan : Color.white;
@@ -1027,6 +1031,13 @@ Things to keep in mind:
             return mod;
         }
 
+        private enum SliderType
+        {
+            Length,
+            Scale,
+            Position,
+            Rotation
+        }
         private static void DrawSliders(BoneModifier mod, BoneModifier linkedMod)
         {
             var coordinateType = CurrentCoordinateType;
@@ -1049,19 +1060,27 @@ Things to keep in mind:
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Scale sliders ------------------------------------------------------------
             {
                 var enabled = UnityEngine.GUI.enabled;
-                if (DrawWorldHoldControl(mod, linkedMod, 0))
-                    UnityEngine.GUI.enabled = false;
+
+                GUILayout.BeginHorizontal();
+                {
+                    var isLocked = DrawLockControl(SliderType.Scale);
+                    if (DrawWorldHoldControl(mod, linkedMod, SliderType.Scale))
+                        UnityEngine.GUI.enabled = false;
+                    GUILayout.Space(4);
+                    DrawIncrementControl(SliderType.Scale);
+                    if (isLocked) UnityEngine.GUI.color = _WarningColor;
+                }
+                GUILayout.EndHorizontal();
 
                 var scale = modData.ScaleModifier;
-                if (DrawXyzSliders(sliderName: "Scale", value: ref scale, minValue: 0, maxValue: 2, defaultValue: 1, incrementIndex: 1))
+                if (DrawXyzSliders(sliderName: "Scale", value: ref scale, minValue: 0, maxValue: 2, defaultValue: 1, sliderType: SliderType.Scale))
                 {
                     modData.ScaleModifier = scale;
                     if (linkedModData != null) linkedModData.ScaleModifier = scale;
                     anyChanged = true;
                 }
 
-                DrawIncrementControl(1, true);
-
+                UnityEngine.GUI.color = Color.white;
                 UnityEngine.GUI.enabled = enabled;
             }
             GUILayout.EndVertical();
@@ -1083,15 +1102,21 @@ Things to keep in mind:
                 if (!mod.CanApplyLength())
                     UnityEngine.GUI.enabled = false;
 
+                GUILayout.BeginHorizontal();
+                {
+                    DrawIncrementControl(SliderType.Length);
+                }
+                GUILayout.EndHorizontal();
+
                 var lengthModifier = modData.LengthModifier;
-                if (DrawSingleSlider(sliderName: "Length:", value: ref lengthModifier, minValue: -2, maxValue: 2, defaultValue: 1, incrementIndex: 0))
+                if (DrawSingleSlider(sliderName: "Length:", value: ref lengthModifier, minValue: -2, maxValue: 2, defaultValue: 1, sliderType: SliderType.Length))
                 {
                     modData.LengthModifier = lengthModifier;
                     if (linkedModData != null) linkedModData.LengthModifier = lengthModifier;
                     anyChanged = true;
                 }
 
-                DrawIncrementControl(0, false);
+                UnityEngine.GUI.color = Color.white;
                 UnityEngine.GUI.enabled = origEnabled;
             }
             GUILayout.EndVertical();
@@ -1101,19 +1126,27 @@ Things to keep in mind:
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Position sliders ------------------------------------------------------------
             {
                 var enabled = UnityEngine.GUI.enabled;
-                if (DrawWorldHoldControl(mod, linkedMod, 2))
-                    UnityEngine.GUI.enabled = false;
+
+                GUILayout.BeginHorizontal();
+                {
+                    var isLocked = DrawLockControl(SliderType.Position);
+                    if (DrawWorldHoldControl(mod, linkedMod, SliderType.Position))
+                        UnityEngine.GUI.enabled = false;
+                    GUILayout.Space(4);
+                    DrawIncrementControl(SliderType.Position);
+                    if (isLocked) UnityEngine.GUI.color = _WarningColor;
+                }
+                GUILayout.EndHorizontal();
 
                 var position = modData.PositionModifier;
-                if (DrawXyzSliders(sliderName: "Offset", value: ref position, minValue: -1, maxValue: 1, defaultValue: 0, incrementIndex: 2))
+                if (DrawXyzSliders(sliderName: "Offset", value: ref position, minValue: -1, maxValue: 1, defaultValue: 0, sliderType: SliderType.Position))
                 {
                     modData.PositionModifier = position;
                     if (linkedModData != null) linkedModData.PositionModifier = new Vector3(position.x * -1, position.y, position.z);
                     anyChanged = true;
                 }
 
-                DrawIncrementControl(2, true);
-
+                UnityEngine.GUI.color = Color.white;
                 UnityEngine.GUI.enabled = enabled;
             }
             GUILayout.EndVertical();
@@ -1123,19 +1156,27 @@ Things to keep in mind:
             GUILayout.BeginVertical(UnityEngine.GUI.skin.box); // Rotation sliders ------------------------------------------------------------
             {
                 var enabled = UnityEngine.GUI.enabled;
-                if (DrawWorldHoldControl(mod, linkedMod, 1))
-                    UnityEngine.GUI.enabled = false;
+
+                GUILayout.BeginHorizontal();
+                {
+                    var isLocked = DrawLockControl(SliderType.Rotation);
+                    if (DrawWorldHoldControl(mod, linkedMod, SliderType.Rotation))
+                        UnityEngine.GUI.enabled = false;
+                    GUILayout.Space(4);
+                    DrawIncrementControl(SliderType.Rotation);
+                    if (isLocked) UnityEngine.GUI.color = _WarningColor;
+                }
+                GUILayout.EndHorizontal();
 
                 var rotation = modData.RotationModifier;
-                if (DrawXyzSliders(sliderName: "Tilt", value: ref rotation, minValue: -180, maxValue: 180, defaultValue: 0, incrementIndex: 3))
+                if (DrawXyzSliders(sliderName: "Tilt", value: ref rotation, minValue: -180, maxValue: 180, defaultValue: 0, sliderType: SliderType.Rotation))
                 {
                     modData.RotationModifier = rotation;
                     if (linkedModData != null) linkedModData.RotationModifier = new Vector3(rotation.x, rotation.y * -1, rotation.z * -1);
                     anyChanged = true;
                 }
 
-                DrawIncrementControl(3, true);
-
+                UnityEngine.GUI.color = Color.white;
                 UnityEngine.GUI.enabled = enabled;
             }
             GUILayout.EndVertical();
@@ -1150,129 +1191,66 @@ Things to keep in mind:
             }
         }
 
-        private static bool DrawWorldHoldControl(BoneModifier mod, BoneModifier linkedMod, int target)
+        private static bool DrawWorldHoldControl(BoneModifier mod, BoneModifier linkedMod, SliderType sliderType)
         {
             if (mod == null) throw new ArgumentNullException(nameof(mod));
 
-            var holdInfo = _WorldHolds.Find(info => info.BoneName == mod.BoneName && info.BoneLocation == mod.BoneLocation);
-            var holdInfoLinked = linkedMod != null ? _WorldHolds.Find(info => info.BoneName == linkedMod.BoneName && info.BoneLocation == linkedMod.BoneLocation) : null;
+            _WorldHolds.TryGetValue(mod.BoneTransform, out var holdInfo);
+            WorldValueHoldInfo holdInfoLinked = null;
+            if (linkedMod != null) _WorldHolds.TryGetValue(linkedMod.BoneTransform, out holdInfoLinked);
 
-            switch (target)
+            bool Draw(Func<WorldValueHoldInfo, bool> hasValue, Action<WorldValueHoldInfo, BoneModifier> setValue)
             {
-                case 0: // Scale
-                    if (holdInfo != null && holdInfo.WorldScale.HasValue)
+                var isHolding = holdInfo != null && hasValue(holdInfo);
+
+                var color = UnityEngine.GUI.color;
+                if (isHolding) UnityEngine.GUI.color = _DangerColor;
+
+                if (GUILayout.Button(new GUIContent("Hold", "Hold this bone's scale/position/rotation constant in world space even when parent bones are modified.\nIt's best to use a T-pose or pause the animation to avoid character's movement causing held bone to drift.\n\nWarning: Holding scale can be inconsistent and unreliable, especially when parent bones have rotations.\n\nThis effect only applies while the Advanced Window is open.")))
+                {
+                    if (isHolding)
                     {
-                        GUILayout.Label("You can change scales of parent bones and this bone will attempt to remain the same overall size (bone rotations make this difficult). This effect only applies while the Advanced Window is open.");
-                        if (GUILayout.Button("Stop holding world scale"))
-                        {
-                            holdInfo.WorldScale = null;
-                            if (holdInfoLinked != null) holdInfoLinked.WorldScale = null;
-                            return false;
-                        }
-                        return true;
+                        setValue(holdInfo, null);
+
+                        if (holdInfoLinked != null) setValue(holdInfoLinked, null);
+
+                        isHolding = false;
                     }
                     else
                     {
-                        if (GUILayout.Button("Hold world scale (lossy)"))
+                        if (holdInfo == null) _WorldHolds[mod.BoneTransform] = (holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
+                        setValue(holdInfo, mod);
+
+                        if (linkedMod != null)
                         {
-                            if (holdInfo == null)
-                                _WorldHolds.Add(holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
-                            holdInfo.WorldScale = mod.BoneTransform.lossyScale;
-
-                            if (linkedMod != null)
-                            {
-                                if (holdInfoLinked == null)
-                                    _WorldHolds.Add(holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
-                                holdInfoLinked.WorldScale = linkedMod.BoneTransform.lossyScale;
-                            }
-
-                            return true;
+                            if (holdInfoLinked == null) _WorldHolds[linkedMod.BoneTransform] = (holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
+                            setValue(holdInfoLinked, linkedMod);
                         }
 
-                        return false;
+                        isHolding = true;
                     }
-                    break;
+                }
 
-                case 1: // Rotation
-                    if (holdInfo != null && holdInfo.WorldRotation.HasValue)
-                    {
-                        GUILayout.Label("You can rotate parent bones and this bone will keep facing the same way. This effect only applies while the Advanced Window is open.");
-                        if (GUILayout.Button("Stop holding world rotation"))
-                        {
-                            holdInfo.WorldRotation = null;
-                            if (holdInfoLinked != null) holdInfoLinked.WorldRotation = null;
-                            return false;
-                        }
-                        return true;
-                    }
-                    else
-                    {
-                        if (GUILayout.Button("Hold world rotation"))
-                        {
-                            if (holdInfo == null)
-                                _WorldHolds.Add(holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
-                            holdInfo.WorldRotation = mod.BoneTransform.rotation;
+                UnityEngine.GUI.color = color;
+                return isHolding;
+            }
 
-                            if (linkedMod != null)
-                            {
-                                if (holdInfoLinked == null)
-                                    _WorldHolds.Add(holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
-                                holdInfoLinked.WorldRotation = linkedMod.BoneTransform.rotation;
-                            }
-
-                            return true;
-                        }
-
-                        return false;
-                    }
-                    break;
-
-                case 2: // Position
-                    if (holdInfo != null && holdInfo.WorldPosition.HasValue)
-                    {
-                        GUILayout.Label("You can move parent bones and this bone will stay fixed in place. This effect only applies while the Advanced Window is open.");
-                        if (GUILayout.Button("Stop holding world position"))
-                        {
-                            holdInfo.WorldPosition = null;
-                            if (holdInfoLinked != null) holdInfoLinked.WorldPosition = null;
-                            return false;
-                        }
-                        return true;
-                    }
-                    else
-                    {
-                        if (GUILayout.Button("Hold world position"))
-                        {
-                            if (holdInfo == null)
-                                _WorldHolds.Add(holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
-                            holdInfo.WorldPosition = mod.BoneTransform.position;
-
-                            if (linkedMod != null)
-                            {
-                                if (holdInfoLinked == null)
-                                    _WorldHolds.Add(holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
-                                holdInfoLinked.WorldPosition = linkedMod.BoneTransform.position;
-                            }
-
-                            return true;
-                        }
-
-                        return false;
-                    }
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(target), target, "only 0,1,2");
+            switch (sliderType)
+            {
+                case SliderType.Scale: return Draw(info => info.WorldScale.HasValue, (info, modifier) => info.WorldScale = modifier?.BoneTransform?.lossyScale);
+                case SliderType.Rotation: return Draw(info => info.WorldRotation.HasValue, (info, modifier) => info.WorldRotation = modifier?.BoneTransform?.rotation);
+                case SliderType.Position: return Draw(info => info.WorldPosition.HasValue, (info, modifier) => info.WorldPosition = modifier?.BoneTransform?.position);
+                default: throw new ArgumentOutOfRangeException(nameof(sliderType), sliderType, "not supported");
             }
         }
 
-        private static bool DrawXyzSliders(string sliderName, ref Vector3 value, float minValue, float maxValue, float defaultValue, int incrementIndex)
+        private static bool DrawXyzSliders(string sliderName, ref Vector3 value, float minValue, float maxValue, float defaultValue, SliderType sliderType)
         {
-            var x = DrawSingleSlider(sliderName + " X:", ref value.x, minValue, maxValue, defaultValue, incrementIndex);
-            var y = DrawSingleSlider(sliderName + " Y:", ref value.y, minValue, maxValue, defaultValue, incrementIndex);
-            var z = DrawSingleSlider(sliderName + " Z:", ref value.z, minValue, maxValue, defaultValue, incrementIndex);
+            var x = DrawSingleSlider(sliderName + " X:", ref value.x, minValue, maxValue, defaultValue, sliderType);
+            var y = DrawSingleSlider(sliderName + " Y:", ref value.y, minValue, maxValue, defaultValue, sliderType);
+            var z = DrawSingleSlider(sliderName + " Z:", ref value.z, minValue, maxValue, defaultValue, sliderType);
 
-            if (_LockXyz[incrementIndex])
+            if (_LockXyz[(int)sliderType])
             {
                 if (x)
                 {
@@ -1294,36 +1272,35 @@ Things to keep in mind:
             return x || y || z;
         }
 
-        private static void DrawIncrementControl(int index, bool showLock)
+        private static void DrawIncrementControl(SliderType sliderType)
         {
-            GUILayout.BeginHorizontal();
+            var index = (int)sliderType;
+
+            GUILayout.Label("Increment:", GUILayout.Width(65));
+
+            float RoundToPowerOf10(float value)
             {
-                GUILayout.Label("Increment:", GUILayout.Width(65));
-
-                float RoundToPowerOf10(float value)
-                {
-                    return Mathf.Pow(10, Mathf.Round(Mathf.Log10(value)));
-                }
-
-                float.TryParse(GUILayout.TextField(_IncrementSize[index].ToString(CultureInfo.InvariantCulture), _gsInput, _GloExpand, _GloHeight), out _IncrementSize[index]);
-                if (GUILayout.Button("-", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) _IncrementSize[index] = RoundToPowerOf10(_IncrementSize[index] * 0.1f);
-                if (GUILayout.Button("+", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) _IncrementSize[index] = RoundToPowerOf10(_IncrementSize[index] * 10f);
-                if (GUILayout.Button("Reset", GUILayout.ExpandWidth(false))) _IncrementSize[index] = _DefaultIncrementSize[index];
-
-                if (showLock)
-                {
-                    GUILayout.Space(4);
-
-                    var isLock = _LockXyz[index];
-                    if (isLock) UnityEngine.GUI.color = _WarningColor;
-                    _LockXyz[index] = GUILayout.Toggle(isLock, "Lock XYZ", GUILayout.ExpandWidth(false));
-                    UnityEngine.GUI.color = Color.white;
-                }
+                return Mathf.Pow(10, Mathf.Round(Mathf.Log10(value)));
             }
-            GUILayout.EndHorizontal();
+
+            float.TryParse(GUILayout.TextField(_IncrementSize[index].ToString(CultureInfo.InvariantCulture), _gsInput, _GloExpand, _GloHeight), out _IncrementSize[index]);
+            if (GUILayout.Button("-", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) _IncrementSize[index] = RoundToPowerOf10(_IncrementSize[index] * 0.1f);
+            if (GUILayout.Button("+", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) _IncrementSize[index] = RoundToPowerOf10(_IncrementSize[index] * 10f);
+            if (GUILayout.Button("Reset", GUILayout.ExpandWidth(false))) _IncrementSize[index] = _DefaultIncrementSize[index];
         }
 
-        private static bool DrawSingleSlider(string sliderName, ref float value, float minValue, float maxValue, float defaultValue, int incrementIndex)
+        private static bool DrawLockControl(SliderType sliderType)
+        {
+            var index = (int)sliderType;
+            var isLock = _LockXyz[index];
+            var color = UnityEngine.GUI.color;
+            if (isLock) UnityEngine.GUI.color = _WarningColor;
+            if (GUILayout.Button(new GUIContent("Link", "Move X/Y/Z sliders together"), GUILayout.ExpandWidth(false))) _LockXyz[index] = !isLock;
+            UnityEngine.GUI.color = color;
+            return isLock;
+        }
+
+        private static bool DrawSingleSlider(string sliderName, ref float value, float minValue, float maxValue, float defaultValue, SliderType sliderType)
         {
             UnityEngine.GUI.changed = false;
             GUILayout.BeginHorizontal();
@@ -1336,10 +1313,10 @@ Things to keep in mind:
                 float.TryParse(GUILayout.TextField(value.ToString(maxValue >= 100 ? "F1" : "F3", CultureInfo.InvariantCulture), _gsInput, GUILayout.Width(43), _GloHeight),
                                out value);
 
-                if (GUILayout.Button("-", _gsButtonReset, GUILayout.Width(20), _GloHeight)) value -= _IncrementSize[incrementIndex];
-                if (GUILayout.Button("+", _gsButtonReset, GUILayout.Width(20), _GloHeight)) value += _IncrementSize[incrementIndex];
+                if (GUILayout.Button("-", _gsButtonReset, GUILayout.Width(20), _GloHeight)) value -= _IncrementSize[(int)sliderType];
+                if (GUILayout.Button("+", _gsButtonReset, GUILayout.Width(20), _GloHeight)) value += _IncrementSize[(int)sliderType];
 
-                if (GUILayout.Button("0", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) value = defaultValue;
+                if (GUILayout.Button(defaultValue.Equals(1f) ? "1" : "0", _gsButtonReset, _GloSmallButtonWidth, _GloHeight)) value = defaultValue;
             }
             GUILayout.EndHorizontal();
             return UnityEngine.GUI.changed;
@@ -1427,6 +1404,12 @@ Things to keep in mind:
                         {
                             UnityEngine.GUI.color = _FavColor;
                             GUILayout.Label("Fav", GUILayout.ExpandWidth(false));
+                        }
+
+                        if (_WorldHolds.TryGetValue(go.transform, out var holdInfo) && !holdInfo.IsEmpty())
+                        {
+                            UnityEngine.GUI.color = _DangerColor;
+                            GUILayout.Label("Hold", GUILayout.ExpandWidth(false));
                         }
 
                         UnityEngine.GUI.color = originalColor;
