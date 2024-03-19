@@ -19,9 +19,9 @@ namespace KKABMX.Core
     public sealed class BoneModifier
     {
         private bool _hasBaseline;
-        private Vector3 _sclBaseline = Vector3.one;
-        private Vector3 _posBaseline = Vector3.zero;
-        private Quaternion _rotBaseline;
+        internal Vector3 _sclBaseline = Vector3.one;
+        internal Vector3 _posBaseline = Vector3.zero;
+        internal Quaternion _rotBaseline;
 
         private bool _changedScale, _changedRotation, _changedPosition;
 
