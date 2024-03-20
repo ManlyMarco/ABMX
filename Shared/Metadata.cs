@@ -4,7 +4,7 @@ namespace KKABMX
 {
     internal static class Metadata
     {
-        public const string Version = "5.1";
+        public const string Version = "5.2";
 #if AI
         public const string Name = "AIABMX (BonemodX)";
 #elif HS2
