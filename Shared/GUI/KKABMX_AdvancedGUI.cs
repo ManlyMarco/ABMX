@@ -1194,10 +1194,11 @@ Things to keep in mind:
         private static bool DrawWorldHoldControl(BoneModifier mod, BoneModifier linkedMod, SliderType sliderType)
         {
             if (mod == null) throw new ArgumentNullException(nameof(mod));
+            if (!mod.BoneTransform) return false;
 
             _WorldHolds.TryGetValue(mod.BoneTransform, out var holdInfo);
             WorldValueHoldInfo holdInfoLinked = null;
-            if (linkedMod != null) _WorldHolds.TryGetValue(linkedMod.BoneTransform, out holdInfoLinked);
+            if (linkedMod != null && linkedMod.BoneTransform) _WorldHolds.TryGetValue(linkedMod.BoneTransform, out holdInfoLinked);
 
             bool Draw(Func<WorldValueHoldInfo, bool> hasValue, Action<WorldValueHoldInfo, BoneModifier> setValue)
             {
