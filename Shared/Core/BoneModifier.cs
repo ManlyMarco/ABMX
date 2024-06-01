@@ -61,7 +61,22 @@ namespace KKABMX.Core
             if (coordinateModifiers.Length < 1)
                 throw new ArgumentException("Need at least 1 element in coordinateModifiers", nameof(coordinateModifiers));
             if (coordinateModifiers.Any(x => x == null))
+            {
+#if DEBUG
                 throw new ArgumentException("coordinateModifiers can't have any nulls in it", nameof(coordinateModifiers));
+#else
+                var logText = "Some ABMX data failed to load for coordinates:";
+                for (int i = 0; i < coordinateModifiers.Length; i++)
+                {
+                    if (coordinateModifiers[i] == null)
+                    {
+                        coordinateModifiers[i] = new BoneModifierData();
+                        logText += $" #{i + 1}";
+                    }
+                }
+                KKABMX_Core.Logger.Log(BepInEx.Logging.LogLevel.Warning | BepInEx.Logging.LogLevel.Message, logText + "\nRe-save the card to stop this warning from appearing.");
+#endif
+            }
 
             BoneName = boneName;
             BoneLocation = boneLocation;
