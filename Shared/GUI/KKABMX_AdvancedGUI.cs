@@ -77,7 +77,9 @@ namespace KKABMX.GUI
         //private BoneModifierData[] _copiedModifier;
         private static bool _editSymmetry = true;
 
+#pragma warning disable CS0649 // Field is never assigned to outside of KK and KKS but is still needed
         private bool _onlyShowCoords;
+#pragma warning restore CS0649
         private bool _onlyShowModified;
         private bool _onlyShowNewChanges;
         private bool _onlyShowFavorites;

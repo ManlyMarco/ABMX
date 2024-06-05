@@ -111,8 +111,10 @@ namespace KKABMX.GUI
             _faceLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Face Bonemod"));
             _bodyLoadToggle = callback.AddLoadToggle(new MakerLoadToggle("Body Bonemod"));
 
+#pragma warning disable CS0618 // Ignore the obsolete warning in AI/HS2, the toggle might get implemented in the future
             callback.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Bonemod"))
                     .ValueChanged.Subscribe(b => GetRegistration().MaintainCoordinateState = !b);
+#pragma warning restore CS0618
 
             if (ShowSliders)
             {

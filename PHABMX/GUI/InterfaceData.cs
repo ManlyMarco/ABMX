@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
 using KKAPI.Maker;
+#pragma warning disable CS1591
 
 namespace KKABMX.GUI
 {
+    /// <summary>
+    /// Data needed for creating yellow sliders and custom maker categories
+    /// </summary>
     public static class InterfaceData
     {
         public static List<BoneMeta> BoneControls { get; }
