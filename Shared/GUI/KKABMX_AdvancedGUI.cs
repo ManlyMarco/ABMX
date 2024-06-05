@@ -303,7 +303,12 @@ namespace KKABMX.GUI
         }
         private bool RemoveFavorite(string boneName)
         {
-            return _favorites.Remove(boneName);
+            if (_favorites.Remove(boneName))
+            {
+                KKABMX_Core.Favorites.Value = string.Join("/", _favorites.ToArray());
+                return true;
+            }
+            return false;
         }
         private bool IsFavorite(string boneName)
         {
