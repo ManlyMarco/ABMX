@@ -509,7 +509,6 @@ namespace KKABMX.Core
         }
 
         private readonly Dictionary<BoneModifier, List<BoneModifierData>> _effectsToUpdate = new Dictionary<BoneModifier, List<BoneModifierData>>();
-
         private void ApplyEffects()
         {
             foreach (var kv in _effectsToUpdate)
@@ -655,7 +654,21 @@ namespace KKABMX.Core
             ModifiersFillInTransforms();
 
             foreach (var modifier in ModifierDict.Values.SelectMany(x => x))
+            {
+                var dynamicBoneEnabled = false;
+
+                if (modifier.DynamicBone?.enabled == true)
+                {
+                    dynamicBoneEnabled = true;
+                    modifier.DynamicBone.enabled = false;
+                }
+
                 modifier.CollectBaseline();
+                if (dynamicBoneEnabled)
+                {
+                    modifier.DynamicBone.enabled = true;
+                }
+            }
 
             yield return CoroutineUtils.WaitForEndOfFrame;
 
@@ -940,6 +953,41 @@ namespace KKABMX.Core
         }
 
         /// <summary>
+        /// Finds the dynamic bone that is targeting the bone of the given name in the given location. Currently only supporting accessories.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public DynamicBone FindDynamicBone(string name, BoneLocation location)
+        {
+            if (location < BoneLocation.Accessory)
+            {
+                return null;
+            }
+
+            var accId = location - BoneLocation.Accessory;
+            var rootObj = _ctrl.objAccessory.SafeGet(accId);
+
+            foreach (var dynamicBone in rootObj.GetComponents<DynamicBone>())
+            {
+                if (dynamicBone.m_Root.name.Equals(name))
+                {
+                    return dynamicBone;
+                }
+
+                foreach (var child in dynamicBone.m_Root.GetComponentsInChildren<Transform>())
+                {
+                    if (child.name.Equals(name))
+                    {
+                        return dynamicBone;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Get a dictionary of all bones and their names in a given location.
         /// </summary>
         public IDictionary<string, GameObject> GetAllBones(BoneLocation location)
@@ -990,6 +1038,7 @@ namespace KKABMX.Core
             var boneFound = bone != null;
             modifier.BoneTransform = boneFound ? bone.transform : null;
             modifier.BoneLocation = loc;
+            modifier.DynamicBone = FindDynamicBone(modifier.BoneName, modifier.BoneLocation);
             return boneFound;
         }
 

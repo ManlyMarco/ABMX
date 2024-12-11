@@ -100,6 +100,12 @@ namespace KKABMX.Core
         public Transform BoneTransform { get; internal set; }
 
         /// <summary>
+        /// DynamicBone component that targets this transform, if any.
+        /// </summary>
+        [IgnoreMember]
+        public DynamicBone DynamicBone { get; internal set; }
+
+        /// <summary>
         /// Actual modifier values, split for different coordinates if required
         /// </summary>
         [Key(1)]
