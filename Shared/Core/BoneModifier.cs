@@ -103,7 +103,7 @@ namespace KKABMX.Core
         /// DynamicBone component that targets this transform, if any.
         /// </summary>
         [IgnoreMember]
-        public DynamicBone DynamicBone { get; internal set; }
+        internal DynamicBone DynamicBone { get; set; }
 
         /// <summary>
         /// Actual modifier values, split for different coordinates if required
