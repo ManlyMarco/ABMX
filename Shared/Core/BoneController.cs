@@ -968,8 +968,19 @@ namespace KKABMX.Core
             var accId = location - BoneLocation.Accessory;
             var rootObj = _ctrl.objAccessory.SafeGet(accId);
 
+            if (rootObj == null) 
+            {
+                return null;
+            }
+
             foreach (var dynamicBone in rootObj.GetComponents<DynamicBone>())
             {
+
+                if (dynamicBone.m_Root == null) 
+                {
+                    continue;
+                }
+
                 if (dynamicBone.m_Root.name.Equals(name))
                 {
                     return dynamicBone;
