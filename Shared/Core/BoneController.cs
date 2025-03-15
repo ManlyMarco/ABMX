@@ -237,7 +237,7 @@ namespace KKABMX.Core
 
             // Clear previous data for this coordinate from coord specific modifiers
             foreach (var modifier in ModifierDict.SelectMany(x => x.Value).Where(x => x.IsCoordinateSpecific()))
-                modifier.GetModifier(currentCoord).Clear();
+                modifier.GetModifier(currentCoord)?.Clear();
 
             var data = GetCoordinateExtendedData(coordinate);
             var modifiers = ReadCoordModifiers(data);
