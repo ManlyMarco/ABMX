@@ -862,13 +862,13 @@ Things to keep in mind:
                                 if (UnityEngine.GUI.changed)
                                 {
                                     if (newval) mod.MakeCoordinateSpecific(_currentChaControl.chaFile.coordinate.Length);
-                                    else mod.MakeNonCoordinateSpecific();
+                                    else mod.MakeNonCoordinateSpecific(CurrentCoordinateType);
                                 }
 
                                 if (otherMod != null && otherMod.IsCoordinateSpecific() != newval)
                                 {
                                     if (newval) otherMod.MakeCoordinateSpecific(_currentChaControl.chaFile.coordinate.Length);
-                                    else otherMod.MakeNonCoordinateSpecific();
+                                    else otherMod.MakeNonCoordinateSpecific(CurrentCoordinateType);
                                 }
 #endif
 

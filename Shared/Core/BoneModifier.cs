@@ -292,13 +292,22 @@ namespace KKABMX.Core
             CoordinateModifiers = modifiers.ToArray();
         }
 
+        /// <inheritdoc cref="MakeNonCoordinateSpecific(CoordinateType)"/>
+        [Obsolete]
+        public void MakeNonCoordinateSpecific() => MakeNonCoordinateSpecific(0);
+
         /// <summary>
-        /// If this modifier is coordinate specific, make it not coordinate specific (one set of values for all outfits)
+        /// If this modifier is coordinate specific, make it not coordinate specific (one set of values for all outfits).
+        /// Does nothing on non-coordinate-specific modifiers.
         /// </summary>
-        public void MakeNonCoordinateSpecific()
+        /// <param name="defaultCoordinate">Use the value of this coordinate for all coordinates if this modifier is coordinate-specific.</param>
+        public void MakeNonCoordinateSpecific(CoordinateType defaultCoordinate)
         {
             if (CoordinateModifiers.Length > 1)
-                CoordinateModifiers = new[] { CoordinateModifiers[0] };
+            {
+                var id = (int)defaultCoordinate;
+                CoordinateModifiers = new[] { id < CoordinateModifiers.Length ? CoordinateModifiers[id] : new BoneModifierData() };
+            }
         }
 
         /// <summary>

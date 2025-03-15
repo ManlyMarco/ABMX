@@ -28,7 +28,7 @@ namespace KKABMX.Core
                         var modifiers = BoneController.ReadModifiers(pluginData);
 
                         // Only 1st coord is used in EC so remove others
-                        foreach (var modifier in modifiers) modifier.MakeNonCoordinateSpecific();
+                        foreach (var modifier in modifiers) modifier.MakeNonCoordinateSpecific(0);
 
                         importedData[GUID] = BoneController.SaveModifiers(modifiers, false);
                     }
