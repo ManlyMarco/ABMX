@@ -968,7 +968,7 @@ namespace KKABMX.Core
             var accId = location - BoneLocation.Accessory;
             var rootObj = _ctrl.objAccessory.SafeGet(accId);
 
-            if (rootObj == null) 
+            if (rootObj == null)
             {
                 return null;
             }
@@ -976,7 +976,7 @@ namespace KKABMX.Core
             foreach (var dynamicBone in rootObj.GetComponents<DynamicBone>())
             {
 
-                if (dynamicBone.m_Root == null) 
+                if (dynamicBone.m_Root == null)
                 {
                     continue;
                 }
@@ -1017,7 +1017,7 @@ namespace KKABMX.Core
 
             if (rootObject == null) return null;
 
-            if (!_lookup.TryGetValue(rootObject, out var boneDic))
+            if (!_lookup.TryGetValue(rootObject, out var boneDic) || boneDic.Values.Any(x => !x))
             {
                 PurgeDestroyed();
                 boneDic = CreateBoneDic(rootObject);
