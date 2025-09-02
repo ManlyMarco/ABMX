@@ -870,9 +870,13 @@ namespace KKABMX.Core
                 if (boneName.Length > hairPrefix.Length + 2 && boneName.StartsWith(hairPrefix))
                 {
                     var fixedName = boneName[hairPrefix.Length] == '_' ? hairPrefix + boneName.Substring(hairPrefix.Length + 1) : hairPrefix + "_" + boneName.Substring(hairPrefix.Length);
-                    Console.WriteLine(boneName + " -> " + fixedName);
                     if (!d.ContainsKey(fixedName))
+                    {
+#if DEBUG
+                        Console.WriteLine("Adding bone name synonym "+ boneName + " -> " + fixedName);
+#endif
                         d[fixedName] = kvp.Value;
+                    }
                 }
             }
 #endif
