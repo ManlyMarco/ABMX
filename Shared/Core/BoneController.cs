@@ -856,20 +856,41 @@ namespace KKABMX.Core
             KKABMX_Core.Logger.LogDebug($"Creating bone dictionary for char={_ctrl.name} rootObj={rootObject}");
             var d = new Dictionary<string, GameObject>();
             FindAll(rootObject.transform, d, _ctrl.objAccessory.Where(x => x != null).Select(x => x.transform).ToArray());
+
+#if AI || HS2
+            // This hack is needed because HS2 has inconsistent naming for hair bones between main game and studio (AIS is consistent with studio).
+            // e.g. c_J_hairB_top in HS2 main game is the same as c_J_hair_B_top in studio and AIS (the _ after hair is missing).
+            // To avoid the issue, add the other _ name format to the dictionary (the modifier could be saved with either format).
+            // This is also needed in AIS in case someone loads a HS2 card with the underscoreless names.
+            // Do this after the search finishes just in case there are bones with both names (shouldn't happen but just in case).
+            foreach (var kvp in d.ToList())
+            {
+                const string hairPrefix = "c_J_hair";
+                var boneName = kvp.Key;
+                if (boneName.Length > hairPrefix.Length + 2 && boneName.StartsWith(hairPrefix))
+                {
+                    var fixedName = boneName[hairPrefix.Length] == '_' ? hairPrefix + boneName.Substring(hairPrefix.Length + 1) : hairPrefix + "_" + boneName.Substring(hairPrefix.Length);
+                    Console.WriteLine(boneName + " -> " + fixedName);
+                    if (!d.ContainsKey(fixedName))
+                        d[fixedName] = kvp.Value;
+                }
+            }
+#endif
             return d;
         }
 
         private static void FindAll(Transform transform, Dictionary<string, GameObject> dictObjName, Transform[] excludeTransforms)
         {
-            if (!dictObjName.ContainsKey(transform.name))
-                dictObjName[transform.name] = transform.gameObject;
+            var trName = transform.name;
+            if (!dictObjName.ContainsKey(trName))
+                dictObjName[trName] = transform.gameObject;
 
             for (var i = 0; i < transform.childCount; i++)
             {
                 var childTransform = transform.GetChild(i);
-                var trName = childTransform.name;
+                var childTrName = childTransform.name;
                 // Exclude parented characters (in Studio) and accessories/other
-                if (!trName.StartsWith("chaF_") && !trName.StartsWith("chaM_") && Array.IndexOf(excludeTransforms, childTransform) < 0)
+                if (!childTrName.StartsWith("chaF_") && !childTrName.StartsWith("chaM_") && Array.IndexOf(excludeTransforms, childTransform) < 0)
                     FindAll(childTransform, dictObjName, excludeTransforms);
             }
         }
