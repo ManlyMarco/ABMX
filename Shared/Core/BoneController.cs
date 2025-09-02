@@ -1070,7 +1070,7 @@ namespace KKABMX.Core
             var boneFound = bone != null;
             modifier.BoneTransform = boneFound ? bone.transform : null;
             modifier.BoneLocation = loc;
-            modifier.DynamicBone = FindDynamicBone(modifier.BoneName, modifier.BoneLocation);
+            modifier.DynamicBone = boneFound ? FindDynamicBone(bone.name, loc) : null;
             return boneFound;
         }
 
