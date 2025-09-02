@@ -13,4 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\KKABMX_Core.Hooks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GUI\InterfaceData.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)BoneTooltips.txt" />
+  </ItemGroup>
 </Project>

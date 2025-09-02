@@ -1,0 +1,2 @@
+cf_N_height|Entire body scale
+cf_J_Hips|Scale this to correct IK animations (all axes should have the same scale): in default standing animations legs and arms should be very slightly bent, in "Bouncing" animation they should not toggle straight to bent. First scale this to get legs to correct length, then scale arms if necessary.
