@@ -279,7 +279,7 @@ namespace KKABMX.Core
 
         private void OnCoordinateCountChanged(int coordinateCount)
         {
-            //if (!IsCoordinateSpecific()) return;
+            if (CoordinateModifiers.Length == coordinateCount) return;
 
             // Trim slots if there's less than before
             var modifiers = CoordinateModifiers.Take(coordinateCount);
