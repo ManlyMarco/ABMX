@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -73,6 +74,8 @@ namespace KKABMX.Core
                 XyzMode.SettingChanged += KKABMX_GUI.OnIsAdvancedModeChanged;
             }
 
+            AccessoriesApi.AccessoryTransferred += OnAccCopy;
+
             CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
 
             Hooks.Init();
@@ -116,6 +119,37 @@ namespace KKABMX.Core
 #else
       return null;
 #endif
+        }
+
+        private static void OnAccCopy(object sender, AccessoryTransferEventArgs e)
+        {
+            var chara = MakerAPI.GetCharacterControl();
+            if (chara == null) return;
+            var ctrl = chara.GetComponent<BoneController>();
+            if (ctrl == null) throw new ArgumentNullException(nameof(ctrl));
+
+            var sourceKey = BoneLocation.Accessory + e.SourceSlotIndex;
+            var targetKey = BoneLocation.Accessory + e.DestinationSlotIndex;
+
+            ctrl.ModifierDict.TryGetValue(targetKey, out var existing);
+            if (existing != null)
+            {
+                foreach (var mod in existing)
+                {
+                    mod.Reset();
+                    mod.ClearBaseline();
+                }
+            }
+
+            var sourceModifiers = ctrl.GetAllModifiers(sourceKey);
+            ctrl.ModifierDict[targetKey] = sourceModifiers.Select(m =>
+            {
+                var mcopy = m.Clone();
+                mcopy.BoneLocation = targetKey;
+                return mcopy;
+            }).ToList();
+
+            ctrl.NeedsFullRefresh = true;
         }
     }
 }
