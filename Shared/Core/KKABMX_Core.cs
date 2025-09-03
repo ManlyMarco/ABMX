@@ -74,10 +74,12 @@ namespace KKABMX.Core
                 XyzMode.SettingChanged += KKABMX_GUI.OnIsAdvancedModeChanged;
             }
 
-            AccessoriesApi.AccessoryTransferred += OnAccCopy;
-
             CharacterApi.RegisterExtraBehaviour<BoneController>(ExtDataGUID);
-
+            
+            AccessoriesApi.AccessoryTransferred += OnAccCopy;
+#if KK || KKS
+            AccessoriesApi.AccessoriesCopied += OnAccCoordCopy;
+#endif
             Hooks.Init();
         }
 
@@ -149,7 +151,40 @@ namespace KKABMX.Core
                 return mcopy;
             }).ToList();
 
+            // Need to refresh for both source and target accs. The source acccessory is destroyed and recreated.
             ctrl.NeedsFullRefresh = true;
         }
+#if KK || KKS
+        private static void OnAccCoordCopy(object sender, AccessoryCopyEventArgs e)
+        {
+            var chara = MakerAPI.GetCharacterControl();
+            if (chara == null) return;
+            var ctrl = chara.GetComponent<BoneController>();
+            if (ctrl == null) throw new ArgumentNullException(nameof(ctrl));
+
+            var any = false;
+            foreach (var copiedSlotIndex in e.CopiedSlotIndexes)
+            {
+                var copiedAccKey = BoneLocation.Accessory + copiedSlotIndex;
+                foreach (var boneModifier in ctrl.GetAllModifiers(copiedAccKey))
+                {
+                    if (boneModifier.IsCoordinateSpecific())
+                    {
+                        // Ensure all coords exist just in case one was just added
+                        boneModifier.MakeCoordinateSpecific(chara.chaFile.coordinate.Length);
+
+                        var src = boneModifier.GetModifier(e.CopySource);
+                        var dest = boneModifier.GetModifier(e.CopyDestination);
+                        src.CopyTo(dest);
+                        any = true;
+                    }
+                }
+            }
+
+            // The source acccessory is destroyed and recreated, so need to refresh bone transforms.
+            if (any)
+                ctrl.NeedsFullRefresh = true;
+        }
+#endif
     }
 }
