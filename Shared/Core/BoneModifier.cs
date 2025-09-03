@@ -97,7 +97,20 @@ namespace KKABMX.Core
         /// Transform of the targetted bone
         /// </summary>
         [IgnoreMember]
-        public Transform BoneTransform { get; internal set; }
+        public Transform BoneTransform
+        {
+            get => _boneTransform;
+            internal set
+            {
+                _boneTransform = value;
+                RealBoneName = _boneTransform ? _boneTransform.gameObject.name : BoneName;
+            }
+        }
+        [IgnoreMember] private Transform _boneTransform;
+        /// <summary>
+        /// Name of the actual BoneTransform, if found. If not found, same as <see cref="BoneName"/>.
+        /// </summary>
+        [IgnoreMember] internal string RealBoneName;
 
         /// <summary>
         /// DynamicBone component that targets this transform, if any.
@@ -179,6 +192,7 @@ namespace KKABMX.Core
         }
 
         private readonly BoneModifierData _combineModifiersCachedReturn = new BoneModifierData();
+
         private BoneModifierData CombineModifiers(BoneModifierData baseModifier, IList<BoneModifierData> additionalModifiers)
         {
             var scale = baseModifier?.ScaleModifier ?? Vector3.one;

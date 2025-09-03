@@ -187,7 +187,7 @@ namespace KKABMX.Core
             for (var i = 0; i < modifierList.Count; i++)
             {
                 var x = modifierList[i];
-                if ((location == BoneLocation.Unknown || location == x.BoneLocation) && x.BoneName == boneName) return x;
+                if ((location == BoneLocation.Unknown || location == x.BoneLocation) && (x.RealBoneName == boneName || x.BoneName == boneName)) return x;
             }
 
             return null;
@@ -394,11 +394,11 @@ namespace KKABMX.Core
                             }
                             else
                             {
-                                oldList.RemoveAll(x => toReplace.Contains(x.BoneName));
+                                oldList.RemoveAll(x => toReplace.Contains(x.BoneName) || toReplace.Contains(x.RealBoneName));
                             }
 
                             if (newModifiers.TryGetValue(targetBoneLocation, out var newList))
-                                oldList.AddRange(newList.Where(x => toReplace.Contains(x.BoneName)));
+                                oldList.AddRange(newList.Where(x => toReplace.Contains(x.BoneName) || toReplace.Contains(x.RealBoneName)));
                             if (oldList.Count == 0)
                                 ModifierDict.Remove(targetBoneLocation);
                         }
