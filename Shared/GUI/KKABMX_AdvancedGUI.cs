@@ -1055,7 +1055,7 @@ Things to keep in mind:
 
             GUILayout.BeginVertical();
 
-            if (KKABMX_Core.IssuesWithScaleBones.Contains(mod.BoneName))
+            if (KKABMX_Core.IssuesWithScaleBones.Contains(mod.RealBoneName))
             {
                 UnityEngine.GUI.color = _WarningColor;
                 GUILayout.Label("Warning: This bone has known issues with Scale sliders. Use at your own risk.");
@@ -1094,7 +1094,7 @@ Things to keep in mind:
 
             GUILayout.Space(2);
 
-            if (KKABMX_Core.IssuesWithRotationBones.Contains(mod.BoneName))
+            if (KKABMX_Core.IssuesWithRotationBones.Contains(mod.RealBoneName))
             {
                 UnityEngine.GUI.color = _WarningColor;
                 GUILayout.Label("Warning: This bone has known issues with Tilt and possibly Offset/Length sliders. Use at your own risk.");
@@ -1226,12 +1226,12 @@ Things to keep in mind:
                     }
                     else
                     {
-                        if (holdInfo == null) _WorldHolds[mod.BoneTransform] = (holdInfo = new WorldValueHoldInfo(mod.BoneName, mod.BoneLocation));
+                        if (holdInfo == null) _WorldHolds[mod.BoneTransform] = (holdInfo = new WorldValueHoldInfo(mod.RealBoneName, mod.BoneLocation));
                         setValue(holdInfo, mod);
 
                         if (linkedMod != null)
                         {
-                            if (holdInfoLinked == null) _WorldHolds[linkedMod.BoneTransform] = (holdInfoLinked = new WorldValueHoldInfo(linkedMod.BoneName, linkedMod.BoneLocation));
+                            if (holdInfoLinked == null) _WorldHolds[linkedMod.BoneTransform] = (holdInfoLinked = new WorldValueHoldInfo(linkedMod.RealBoneName, linkedMod.BoneLocation));
                             setValue(holdInfoLinked, linkedMod);
                         }
 
