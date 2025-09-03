@@ -86,7 +86,6 @@
     <Compile Include="Core\Legacy\BoneModifier.cs" />
     <Compile Include="Core\Legacy\Prefs.cs" />
     <Compile Include="Core\Legacy\OldDataConverter.cs" />
-    <Compile Include="Core\Utilities.cs" />
     <Compile Include="GUI\BoneMeta.cs" />
     <Compile Include="GUI\InterfaceData.cs" />
     <Compile Include="GUI\KKABMX_AdvancedGUI.cs" />

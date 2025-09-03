@@ -53,7 +53,7 @@ namespace KKABMX.Core
         /// </summary>
         public IEnumerable<BoneEffect> AdditionalBoneEffects => _additionalBoneEffects;
         private readonly List<BoneEffect> _additionalBoneEffects = new List<BoneEffect>();
-        private bool _isDuringHScene;
+        //private bool _isDuringHScene;
 
         /// <summary>
         /// Signals that new modifier data was loaded and custom Modifiers and AdditionalBoneEffects might need to be updated
@@ -360,7 +360,8 @@ namespace KKABMX.Core
                         RemoveModifier(modifier);
                 }
 
-                modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
+                //modifier.Apply(CurrentCoordinate.Value, list, _isDuringHScene);
+                modifier.Apply(CurrentCoordinate.Value, list, false);
             }
 
             //// Fix some bust physics issues

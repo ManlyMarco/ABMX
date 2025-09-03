@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace KKABMX.Core
 {
+    /// <summary>
+    /// Class that handles applying modifiers to bones
+    /// </summary>
     [MessagePackObject]
     public sealed class BoneModifier
     {
@@ -180,7 +183,11 @@ namespace KKABMX.Core
 
             return new BoneModifierData(scale, len, position, rotation);
         }
-
+        
+        /// <summary>
+        /// Set current values of the bone as its default/base values.
+        /// Warning: Do not call after the modifier was applied, it has to be reset first!
+        /// </summary>
         public void CollectBaseline()
         {
             if (BoneTransform == null) return;
@@ -198,7 +205,10 @@ namespace KKABMX.Core
 
             _hasBaseline = true;
         }
-
+        
+        /// <summary>
+        /// Get data for a specific coordinate
+        /// </summary>
         public BoneModifierData GetModifier(CoordinateType coordinate)
         {
             if (CoordinateModifiers.Length == 1) return CoordinateModifiers[0];

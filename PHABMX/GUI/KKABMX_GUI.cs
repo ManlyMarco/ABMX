@@ -12,6 +12,9 @@ using UnityEngine;
 
 namespace KKABMX.GUI
 {
+    /// <summary>
+    /// Manages UI integration with maker
+    /// </summary>
     public class KKABMX_GUI : MonoBehaviour
     {
         private const int LimitRaiseAmount = 2;
@@ -27,13 +30,19 @@ namespace KKABMX.GUI
 
         internal static void OnIsAdvancedModeChanged(object sender, EventArgs args) => IsAdvancedModeChanged?.Invoke(sender, args);
         private static event EventHandler IsAdvancedModeChanged;
-
+        
+        /// <summary>
+        /// If true, split sliders into separate XYZ sliders, otherwise only show one All slider
+        /// </summary>
         public static bool XyzMode
         {
             get => KKABMX_Core.XyzMode.Value;
             set => KKABMX_Core.XyzMode.Value = value;
         }
-
+        
+        /// <summary>
+        /// Increase value limits of yellow sliders
+        /// </summary>
         public static bool RaiseLimits
         {
             get => KKABMX_Core.RaiseLimits.Value;
@@ -54,14 +63,14 @@ namespace KKABMX.GUI
             {
                 var category = categoryBones.Key;
 
-                var first = true;
+                //var first = true;
                 foreach (var boneMeta in categoryBones)
                 {
                     //if (boneMeta.IsSeparator || !first)
                     //    callback.AddControl(new MakerSeparator(category, KKABMX_Core.Instance) { TextColor = _settingColor });
 
                     RegisterSingleControl(category, boneMeta, callback);
-                    first = false;
+                    //first = false;
                 }
 
                 // todo separate category?
