@@ -277,9 +277,9 @@ namespace KKABMX.Core
         {
             var array = _updatePartialBaselineArray;
 
-            if (array[(int)Baseline.Position - 1]) _posBaseline = BoneTransform.localPosition;
-            if (array[(int)Baseline.Rotation - 1]) _posBaseline = BoneTransform.localPosition;
-            if (array[(int)Baseline.Scale - 2]) _posBaseline = BoneTransform.localPosition;
+            if (array[0]) _posBaseline = BoneTransform.localPosition;
+            if (array[1]) _rotBaseline = BoneTransform.localRotation;
+            if (array[2]) _sclBaseline = BoneTransform.localScale;
 
         }
 
@@ -289,9 +289,9 @@ namespace KKABMX.Core
         /// </summary>
         internal void SetPartialBaselineUpdate(Baseline baselines)
         {
-            _updatePartialBaselineArray[(int)Baseline.Position - 1] = (baselines & Baseline.Position) != 0;
-            _updatePartialBaselineArray[(int)Baseline.Rotation - 1] = (baselines & Baseline.Rotation) != 0;
-            _updatePartialBaselineArray[(int)Baseline.Scale - 2] = (baselines & Baseline.Scale) != 0;
+            _updatePartialBaselineArray[0] = (baselines & Baseline.Position) != 0;
+            _updatePartialBaselineArray[1] = (baselines & Baseline.Rotation) != 0;
+            _updatePartialBaselineArray[2] = (baselines & Baseline.Scale) != 0;
 
             _updatePartialBaseline = _updatePartialBaselineArray[0] || _updatePartialBaselineArray[1] || _updatePartialBaselineArray[2];
         }
