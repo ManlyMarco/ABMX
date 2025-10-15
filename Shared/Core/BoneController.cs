@@ -178,6 +178,20 @@ namespace KKABMX.Core
             }
             return m;
         }
+        /// <summary>
+        /// Set baseline(s) to collect on each frame for the specified 'boneName'.
+        /// (Default = none)
+        /// </summary>
+        /// <param name="boneName">Name of the bone that the modifier targets</param>
+        /// <param name="location">Where the bone is located</param>
+        /// <param name="baselinesToUpdate">Single or plural baseline type</param>
+        /// <returns>Modifier for 'boneName'</returns>
+        public BoneModifier SetModifierBaselineUpdate(string boneName, BoneLocation location, Baseline baselinesToUpdate)
+        {
+            var m = GetOrAddModifier(boneName, location);
+            m.SetPartialBaselineUpdate(baselinesToUpdate);
+            return m;
+        }
 
         private static BoneModifier GetModifierInt(string boneName, BoneLocation location, List<BoneModifier> modifierList)
         {
@@ -1095,5 +1109,11 @@ namespace KKABMX.Core
                 _lookup.Clear();
             }
         }
+    }
+    public enum Baseline
+    {
+        Position = 1,
+        Rotation = 2,
+        Scale = 4,
     }
 }

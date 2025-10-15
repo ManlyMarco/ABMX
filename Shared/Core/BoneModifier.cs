@@ -28,6 +28,9 @@ namespace KKABMX.Core
         private bool _lenModForceUpdate;
         private bool _forceApply;
 
+        private bool _updatePartialBaseline;
+        private readonly bool[] _updatePartialBaselineArray = new bool[Enum.GetNames(typeof(Baseline)).Length];
+
         /// <summary> Use other overloads instead </summary>
         [Obsolete]
         public BoneModifier(string boneName) : this(boneName, BoneLocation.Unknown, new[] { new BoneModifierData() }) { }
@@ -147,6 +150,8 @@ namespace KKABMX.Core
 
             if (!CanApply(modifier)) return;
 
+            if (_updatePartialBaseline) CollectPartialBaseline();
+
             if (modifier.HasScale())
             {
                 BoneTransform.localScale = new Vector3(
@@ -233,6 +238,32 @@ namespace KKABMX.Core
             _rotBaseline = BoneTransform.localRotation;
 
             _hasBaseline = true;
+        }
+
+        /// <summary>
+        /// Collect particular baseline for the bone early on in the LateUpdate().
+        /// </summary>
+        private void CollectPartialBaseline()
+        {
+            var array = _updatePartialBaselineArray;
+
+            if (array[(int)Baseline.Position - 1]) _posBaseline = BoneTransform.localPosition;
+            if (array[(int)Baseline.Rotation - 1]) _posBaseline = BoneTransform.localPosition;
+            if (array[(int)Baseline.Scale - 2]) _posBaseline = BoneTransform.localPosition;
+
+        }
+
+        /// <summary>
+        /// For the (local) rotation mostly, as the animator doesn't change 
+        /// local position or the scale of the bone in our games.
+        /// </summary>
+        internal void SetPartialBaselineUpdate(Baseline baselines)
+        {
+            _updatePartialBaselineArray[(int)Baseline.Position - 1] = (baselines & Baseline.Position) != 0;
+            _updatePartialBaselineArray[(int)Baseline.Rotation - 1] = (baselines & Baseline.Rotation) != 0;
+            _updatePartialBaselineArray[(int)Baseline.Scale - 2] = (baselines & Baseline.Scale) != 0;
+
+            _updatePartialBaseline = _updatePartialBaselineArray[0] || _updatePartialBaselineArray[1] || _updatePartialBaselineArray[2];
         }
 
         /// <summary>
