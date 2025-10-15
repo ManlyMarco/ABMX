@@ -27,6 +27,7 @@ namespace KKABMX.Core
 
         private bool _lenModForceUpdate;
         private bool _forceApply;
+        private bool _influencesDynamicBone;
 
         private bool _updatePartialBaseline;
         private readonly bool[] _updatePartialBaselineArray = new bool[Enum.GetNames(typeof(Baseline)).Length];
@@ -84,6 +85,25 @@ namespace KKABMX.Core
             BoneName = boneName;
             BoneLocation = boneLocation;
             CoordinateModifiers = coordinateModifiers.ToArray();
+
+            // Skip non-body modifiers to speed up the check and avoid affecting accessories
+            if (BoneLocation <= BoneLocation.BodyTop)
+            {
+#if KK || KKS || EC
+                if (boneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
+#elif AI || HS2
+                if (boneName.StartsWith("cf_J_SiriDam", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_J_Mune00", StringComparison.Ordinal))
+#else
+                    todo fix
+#endif
+                {
+                    _influencesDynamicBone = true;
+                }
+            }
         }
 
         /// <summary> Use other overloads instead </summary>
@@ -150,7 +170,17 @@ namespace KKABMX.Core
 
             if (!CanApply(modifier)) return;
 
-            if (_updatePartialBaseline) CollectPartialBaseline();
+            // Force reset baseline of bones affected by dynamicbones
+            // to avoid overwriting dynamicbone animations
+            if (_influencesDynamicBone)
+            {
+                Reset();
+                CollectBaseline();
+            }
+            else if (_updatePartialBaseline)
+            {
+                CollectPartialBaseline();
+            }
 
             if (modifier.HasScale())
             {
