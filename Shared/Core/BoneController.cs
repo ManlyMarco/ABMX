@@ -187,10 +187,10 @@ namespace KKABMX.Core
         /// <param name="location">Where the bone is located</param>
         /// <param name="baselinesToUpdate">One or many baseline types</param>
         /// <returns>Modifier for 'boneName'</returns>
-        public BoneModifier SetModifierBaselineUpdate(string boneName, BoneLocation location, Baseline baselinesToUpdate)
+        public BoneModifier CollectBaselineOnUpdate(string boneName, BoneLocation location, Baseline baselinesToUpdate)
         {
             var m = GetOrAddModifier(boneName, location);
-            m.SetPartialBaselineUpdate(baselinesToUpdate);
+            m.SetCollectPartialBaseline(baselinesToUpdate);
             return m;
         }
 
@@ -1082,6 +1082,7 @@ namespace KKABMX.Core
             }
         }
     }
+    [Flags]
     public enum Baseline
     {
         Position = 1,
