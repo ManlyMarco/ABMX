@@ -178,6 +178,21 @@ namespace KKABMX.Core
             }
             return m;
         }
+        /// <summary>
+        /// Set baseline(s) to be collected on each frame for the specified 'boneName'. 
+        /// Won't restore baseline as it assumes that the new ones were written by the animator. 
+        /// (Default = none)
+        /// </summary>
+        /// <param name="boneName">Name of the bone that the modifier targets</param>
+        /// <param name="location">Where the bone is located</param>
+        /// <param name="baselinesToUpdate">One or many baseline types</param>
+        /// <returns>Modifier for 'boneName'</returns>
+        public BoneModifier CollectBaselineOnUpdate(string boneName, BoneLocation location, Baseline baselinesToUpdate)
+        {
+            var m = GetOrAddModifier(boneName, location);
+            m.SetCollectPartialBaseline(baselinesToUpdate);
+            return m;
+        }
 
         private static BoneModifier GetModifierInt(string boneName, BoneLocation location, List<BoneModifier> modifierList)
         {
@@ -569,8 +584,6 @@ namespace KKABMX.Core
         {
             foreach (var modifier in boneModifiers)
             {
-                HandleDynamicBoneModifiers(modifier);
-
                 List<BoneModifierData> extraEffects = null;
                 if (boneLocation == BoneLocation.Unknown || boneLocation == BoneLocation.BodyTop)
                     _effectsToUpdate.TryGetValue(modifier, out extraEffects);
@@ -799,33 +812,6 @@ namespace KKABMX.Core
                 });
                 if (kvp.Value.Count == 0)
                     ModifierDict.Remove(kvp.Key);
-            }
-        }
-
-        /// <summary>
-        /// Force reset baseline of bones affected by dynamicbones
-        /// to avoid overwriting dynamicbone animations
-        /// </summary>
-        private static void HandleDynamicBoneModifiers(BoneModifier modifier)
-        {
-            // Skip non-body modifiers to speed up the check and avoid affecting accessories
-            if (modifier.BoneLocation > BoneLocation.BodyTop) return;
-
-            var boneName = modifier.BoneName;
-#if KK || KKS || EC
-            if (boneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) ||
-                boneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) ||
-                boneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) ||
-                boneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
-#elif AI || HS2
-            if (boneName.StartsWith("cf_J_SiriDam", StringComparison.Ordinal) ||
-                boneName.StartsWith("cf_J_Mune00", StringComparison.Ordinal))
-#else
-                todo fix
-#endif
-            {
-                modifier.Reset();
-                modifier.CollectBaseline();
             }
         }
 
@@ -1095,5 +1081,12 @@ namespace KKABMX.Core
                 _lookup.Clear();
             }
         }
+    }
+    [Flags]
+    public enum Baseline
+    {
+        Position = 1,
+        Rotation = 2,
+        Scale = 4,
     }
 }

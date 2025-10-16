@@ -27,6 +27,9 @@ namespace KKABMX.Core
 
         private bool _lenModForceUpdate;
         private bool _forceApply;
+        private bool _influencesDynamicBone;
+
+        private Baseline _collectPartialBaselineMask;
 
         /// <summary> Use other overloads instead </summary>
         [Obsolete]
@@ -81,6 +84,25 @@ namespace KKABMX.Core
             BoneName = boneName;
             BoneLocation = boneLocation;
             CoordinateModifiers = coordinateModifiers.ToArray();
+
+            // Skip non-body modifiers to speed up the check and avoid affecting accessories
+            if (BoneLocation <= BoneLocation.BodyTop)
+            {
+#if KK || KKS || EC
+                if (boneName.StartsWith("cf_d_sk_", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_j_bust0", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_d_siri01_", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_j_siri_", StringComparison.Ordinal))
+#elif AI || HS2
+                if (boneName.StartsWith("cf_J_SiriDam", StringComparison.Ordinal) ||
+                    boneName.StartsWith("cf_J_Mune00", StringComparison.Ordinal))
+#else
+                    todo fix
+#endif
+                {
+                    _influencesDynamicBone = true;
+                }
+            }
         }
 
         /// <summary> Use other overloads instead </summary>
@@ -146,6 +168,18 @@ namespace KKABMX.Core
                 return;
 
             if (!CanApply(modifier)) return;
+
+            // Force reset baseline of bones affected by dynamicbones
+            // to avoid overwriting dynamicbone animations
+            if (_influencesDynamicBone)
+            {
+                Reset();
+                CollectBaseline();
+            }
+            else if (_collectPartialBaselineMask != 0)
+            {
+                CollectPartialBaseline();
+            }
 
             if (modifier.HasScale())
             {
@@ -233,6 +267,24 @@ namespace KKABMX.Core
             _rotBaseline = BoneTransform.localRotation;
 
             _hasBaseline = true;
+        }
+
+        /// <summary>
+        /// Set specified baseline(s) to be collected on the LateUpdate().
+        /// </summary>
+        internal void SetCollectPartialBaseline(Baseline baselines) => _collectPartialBaselineMask = baselines;
+
+        /// <summary>
+        /// Collect particular baseline for the bone early on in the LateUpdate().
+        /// </summary>
+        private void CollectPartialBaseline()
+        {
+            var baselines = _collectPartialBaselineMask;
+
+            if ((baselines & Baseline.Position) != 0) _posBaseline = BoneTransform.localPosition;
+            if ((baselines & Baseline.Rotation) != 0) _rotBaseline = BoneTransform.localRotation;
+            if ((baselines & Baseline.Scale) != 0) _sclBaseline = BoneTransform.localScale;
+
         }
 
         /// <summary>
