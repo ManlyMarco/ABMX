@@ -29,8 +29,7 @@ namespace KKABMX.Core
         private bool _forceApply;
         private bool _influencesDynamicBone;
 
-        private bool _collectPartialBaseline;
-        private readonly bool[] _collectPartialBaselineArray = new bool[Enum.GetNames(typeof(Baseline)).Length];
+        private Baseline _collectPartialBaselineMask;
 
         /// <summary> Use other overloads instead </summary>
         [Obsolete]
@@ -177,7 +176,7 @@ namespace KKABMX.Core
                 Reset();
                 CollectBaseline();
             }
-            else if (_collectPartialBaseline)
+            else if (_collectPartialBaselineMask != 0)
             {
                 CollectPartialBaseline();
             }
@@ -271,28 +270,21 @@ namespace KKABMX.Core
         }
 
         /// <summary>
+        /// Set specified baseline(s) to be collected on the LateUpdate().
+        /// </summary>
+        internal void SetCollectPartialBaseline(Baseline baselines) => _collectPartialBaselineMask = baselines;
+
+        /// <summary>
         /// Collect particular baseline for the bone early on in the LateUpdate().
         /// </summary>
         private void CollectPartialBaseline()
         {
-            var array = _collectPartialBaselineArray;
+            var baselines = _collectPartialBaselineMask;
 
-            if (array[0]) _posBaseline = BoneTransform.localPosition;
-            if (array[1]) _rotBaseline = BoneTransform.localRotation;
-            if (array[2]) _sclBaseline = BoneTransform.localScale;
+            if ((baselines & Baseline.Position) != 0) _posBaseline = BoneTransform.localPosition;
+            if ((baselines & Baseline.Rotation) != 0) _rotBaseline = BoneTransform.localRotation;
+            if ((baselines & Baseline.Scale) != 0) _sclBaseline = BoneTransform.localScale;
 
-        }
-
-        /// <summary>
-        /// Set specified baseline(s) to be collected on the LateUpdate().
-        /// </summary>
-        internal void SetCollectPartialBaseline(Baseline baselines)
-        {
-            _collectPartialBaselineArray[0] = (baselines & Baseline.Position) != 0;
-            _collectPartialBaselineArray[1] = (baselines & Baseline.Rotation) != 0;
-            _collectPartialBaselineArray[2] = (baselines & Baseline.Scale) != 0;
-
-            _collectPartialBaseline = _collectPartialBaselineArray[0] || _collectPartialBaselineArray[1] || _collectPartialBaselineArray[2];
         }
 
         /// <summary>
