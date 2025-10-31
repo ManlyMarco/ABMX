@@ -22,6 +22,20 @@ namespace KKABMX.Core
     [BepInPlugin(GUID, Name, Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
+    [BepInProcess(KoikatuAPI.GameProcessName)]
+#if !EC
+    [BepInProcess(KoikatuAPI.StudioProcessName)]
+#endif
+
+#if KK || KKS || HS2
+    [BepInProcess(KoikatuAPI.VRProcessName)]
+#endif
+
+#if KK
+    [BepInProcess(KoikatuAPI.GameProcessNameSteam)]
+    [BepInProcess(KoikatuAPI.VRProcessNameSteam)]
+#endif
+    
     public partial class KKABMX_Core : BaseUnityPlugin
     {
         /// <summary> Version of this plugin </summary>
