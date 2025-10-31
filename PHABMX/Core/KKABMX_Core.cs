@@ -21,6 +21,10 @@ namespace KKABMX.Core
     [BepInPlugin(GUID, Name, Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
+    [BepInProcess("PlayHome32bit")]
+    [BepInProcess("PlayHome64bit")]
+    [BepInProcess("PlayHomeStudio32bit")]
+    [BepInProcess("PlayHomeStudio64bit")]
     public partial class KKABMX_Core : BaseUnityPlugin
     {
         /// <summary> Version of this plugin </summary>
