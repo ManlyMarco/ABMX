@@ -906,7 +906,7 @@ namespace KKABMX.Core
             if (location >= BoneLocation.Accessory)
             {
                 var accId = location - BoneLocation.Accessory;
-                var rootObj = _ctrl.objAccessory.SafeGet(accId);
+                var rootObj = accId >= 0 && accId < _ctrl.objAccessory.Length ? _ctrl.objAccessory[accId] : null;
                 return rootObj != null ? FindBone(name, rootObj) : null;
             }
 
@@ -977,7 +977,7 @@ namespace KKABMX.Core
             }
 
             var accId = location - BoneLocation.Accessory;
-            var rootObj = _ctrl.objAccessory.SafeGet(accId);
+            var rootObj = accId >= 0 && accId < _ctrl.objAccessory.Length ? _ctrl.objAccessory[accId] : null;
 
             if (rootObj == null)
             {
@@ -1023,7 +1023,7 @@ namespace KKABMX.Core
             if (location >= BoneLocation.Accessory)
             {
                 var accId = location - BoneLocation.Accessory;
-                rootObject = _ctrl.objAccessory.SafeGet(accId);
+                rootObject = accId >= 0 && accId < _ctrl.objAccessory.Length ? _ctrl.objAccessory[accId] : null;
             }
 
             if (rootObject == null) return null;
