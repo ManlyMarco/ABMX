@@ -906,7 +906,7 @@ namespace KKABMX.Core
             if (location >= BoneLocation.Accessory)
             {
                 var accId = location - BoneLocation.Accessory;
-                var rootObj = accId >= 0 && accId < _ctrl.objAccessory.Length ? _ctrl.objAccessory[accId] : null;
+                var rootObj = GetAccessoryRootObject(accId);
                 return rootObj != null ? FindBone(name, rootObj) : null;
             }
 
@@ -977,7 +977,7 @@ namespace KKABMX.Core
             }
 
             var accId = location - BoneLocation.Accessory;
-            var rootObj = accId >= 0 && accId < _ctrl.objAccessory.Length ? _ctrl.objAccessory[accId] : null;
+            var rootObj = GetAccessoryRootObject(accId);
 
             if (rootObj == null)
             {
@@ -1023,7 +1023,7 @@ namespace KKABMX.Core
             if (location >= BoneLocation.Accessory)
             {
                 var accId = location - BoneLocation.Accessory;
-                rootObject = accId >= 0 && accId < _ctrl.objAccessory.Length ? _ctrl.objAccessory[accId] : null;
+                rootObject = GetAccessoryRootObject(accId);
             }
 
             if (rootObject == null) return null;
@@ -1049,6 +1049,16 @@ namespace KKABMX.Core
 
         private readonly Dictionary<GameObject, Dictionary<string, GameObject>> _lookup; //todo switching accs doesnt update?
         private readonly ChaControl _ctrl;
+
+        /// <summary>
+        /// Safely get an accessory GameObject by its index, with bounds checking.
+        /// </summary>
+        /// <param name="accId">The accessory index (0-based)</param>
+        /// <returns>The accessory GameObject, or null if the index is out of bounds or the slot is empty</returns>
+        private GameObject GetAccessoryRootObject(int accId)
+        {
+            return accId >= 0 && accId < _ctrl.objAccessory.Length ? _ctrl.objAccessory[accId] : null;
+        }
 
         /// <summary>
         /// Try to find and assign target bone to a bone modifier. Returns true if successful.
